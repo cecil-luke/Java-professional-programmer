@@ -2207,31 +2207,184 @@ String类：
 
 
 
-
-
-
-
-# Day13（项目练习）
-
-
-
-
-
-
-
-# Day14（通讯录项目练习）
+# Day13（通讯录项目练习）
 
   
 
   
 
 
+
+# day14
+
+课程内容
+
+#### HashSet集合
+
++++
+
+~~~ java
+																	JCF:java集合框架
+                                    
+                 Collection																Map
+                 [单值类型的集合]													[键值对类型的集合]
+                                    
+      List							Set															 SortedMap
+      [有序]						[无序]
+      [不唯一]					 [唯一]
+                        SortedSet
+~~~
+
+#### **Set接口 里面都是抽象方法**
+
+- ##### HashSet
+
+  - 特点：无序 唯一
+  - 数据结构：哈希表实现的
+
+- ##### HashSet1:基本用法及特点
+
+  - 创建对象：
+    - HashSet<泛型> set = new HashSet<>();
+  - 添加元素：
+    - set.add(元素);
+    - Collections.addAll(集合,元素...);
+  - 得到集合大小：
+    - set.size()
+  - 判断集合里面是否存在某个元素：
+    - set.contains(元素)
+  - 删除元素：
+    - set.remove(元素);
+  - 遍历集合：
+    - foreach + 迭代器
+
+- ##### HashSet2:即使不是内存里面的同一个对象也有可能被视为相等对象 从而只能往集合里面添加一次
+
+  - 当我们想要将两个不同的对象视为相等对象的话 HashSet集合里面需要覆盖hashCode()+equals()
+  - hashCode():计算哈希码值 可以决定一个对象去到哪一个小组
+  - equals():当一个对象去到某个小组之后 发现这个小组里面有一个元素的哈希码值和新来元素的哈希码值一样 那么就拿着equals()详细比较
+
+- ##### HashSet3:HashSet添加元素的时候 其实完整流程：
+
+  - hashCode() == equals()
+  - 如图
+
+- ##### HashSet4：当HashSet遇到重复元素的时候 舍弃的是新来的元素
+
+  - HashSet底层的add(元素)  remove(元素)  contains(元素)底层尊重hashCode() == equals()
+
+- ##### HashSet5:当我们使用迭代器在遍历集合的时候 不要对集合的整体进行添加/删除操作 否则触发CME异常
+
+  - 如果在遍历的时候想要删除的话 car.remove()
+
+- ##### HashSet6:
+
+  - 当一个对象已经添加进HashSet集合之后 不要随意的修改那些参与生成哈希码值的属性值
+  - 如果在添加之后想要修改的话 需要删除+修改+添加
+  - 如果这个属性没有参与生成哈希码值 直接修改
+
+- ##### HashSet7:
+
+  - HashSet set = new HashSet(int 分组组数,float 加载因子);
+    - 分组组数程序员可以随意的指定 但是最终一定会变成2的n次方数
+  - HashSet set = new HashSet();
+    - 默认分16个小组 加载因子0.75F 阈值：12
 
 ​    
 
+# day15
+
+课程内容
+
+#### TreeSet集合
+
++++
+
+~~~ java
+															JCF:java集合框架
+                                
+              Collection													Map
+              [单值类型的集合]												[键值对类型的集合]
+                                
+     List							Set													SortedMap
+     [有序 不唯一]      [无序 唯一]                          
+                      
+                      SortedSet
+											[有序 唯一]
+~~~
+
+#### SortedSet接口：
+
+- ##### TreeSet
+
+  - 特点：有序 唯一
+  - 数据结构：二叉树
+
+- TreeSet1:基本用法及特点：
+
+  - 创建对象：TreeSet<泛型> set = new TreeSet<>();
+  - 添加元素：set.add(元素);   Collections.addAll(集合,元素,元素...);
+  - 得到集合大小：set.size()
+  - 判断集合包含：set.contains(元素)
+  - 删除元素：set.remove(元素)
+  - 得到第一个元素：**set.first()**
+  - 得到第一个元素并且删除：**set.pollFirst()**
+  - 得到最后一个元素：**set.last()**
+  - 得到最后一个元素并且删除：**set.pollLast()**
+
+- TreeSet2:任何一个引用数据类型如果想要装进TreeSet集合的话 都需要这个类型会排序 有比较规则
+
+  - **class 类型 implements Comparable<类型>{}**
+  - **public int compareTo(参数 x){}**
+
+- TreeSet3:如果我们想要按照多个属性综合排序的话 优先比较什么属性 就描述当这个属性不一样的话...
+
+- TreeSet4:当我们在**覆盖compareTo()尽量保证方法都机会返回0** 否则
+
+  - add(元素)：不能保证唯一性
+  - remove(元素)：永远删除失败
+  - contains(元素)：永远返回false
+  - 如果compareTo()在没有机会返回0的时候 想要删除的话：**car.remove()**
+
+- TreeSet5:当我们使用迭代器在遍历集合的时候 不允许对集合的整体进行添加/删除 否则触发CME异常
+
+  - 如果需求要求一边遍历 一边删除的话：car.remove()
+
+- TreeSet6:当一个对象已经被装进TreeSet集合的话 不要随意的修改那些参与排序的属性值
+
+  - 如果在添加之后想要修改的话：删除 + 修改 + 添加
+
+- TreeSet7:
+
+  - 第一个添加进TreeSet集合里面的元素在某个时间段内是跟节点 随着元素的增多 根节点可能会进行改变 底层会进行旋转修复 目的是**为了平衡效率高**
+
+#### TreeSet8(比较器):
+
+  - 如果我们想要脱离开一个类制定他的比较规则的话 需要写**比较器**
+
+  - **class XXX implements Comparator<>{}**
+
+    单例模式：	
+
+    ~~~ java 
+    private BJQ(){}
+    private static BJQ bb = new BJQ();
+    public static BJQ getBB(){
+        return bb;
+    }
+    ~~~
+
+    
+
+    **@Override**
+
+  - **public int compare(参数1 ,参数2){}**
+
   
 
 
+
+ 
 
 ​      
 
