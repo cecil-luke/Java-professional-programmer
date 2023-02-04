@@ -2382,15 +2382,138 @@ String类：
 
   
 
+# day16
 
+课程内容
+
+- Collections类里面常用的方法
+- 单值集合总复习
+
++++
+
+#### Collections:单值集合的工具类
+
+- Collections类里面专门用来**<u>处理List集合</u>**的方法：
+  - Collections.**sort(List集合)**：自然排序 **按照泛型类的排序规则**对List集合里面的元素进行排序
+  - Collections.**sort(List集合,比较器)**：定制排序 **按照比较器的规则**对List集合里面的元素进行排序
+  - Collections.**reverse(List集合)**：**反转**List集合里面的元素
+  - Collections.**shuffle(List集合)**：**打乱**List集合里面的顺序
+- Collections类里面对**<u>所有单值集合</u>**都提供的方法：
+  - Collections.**addAll(集合,元素,元素....);**
+  - Collections.**max(单值集合)**：按照**泛型类的规则排序**找队列里面**最后一个元素**
+  - Collections.**max(单值集合,比较器)**：按照**比较器的规则排序**找队列里面的最后一个元素
+  - Collections.**min(单值集合)**：按照泛型类的规则排序找队列里面**第一个元素**
+  - Collections.**min(单值集合,比较器)**：按照比较器的规则排序找队列里面的第一个元素
 
  
 
-​      
+ ==================================================================================     
 
-​      
+####  面试题（List集合）
 
-​      
+1:请画出集合框架
+                            JCF:java集合框架
+
+            Collection                           Map
+    
+    List           Set                          SortedMap
+    
+                  SortedSet
+
+2:Collections和Collection之间的区别
+    Collection是所有单值集合统一的父接口 -》 interface
+    Collections是集合的工具类：class
+
+3:模拟实现Collections.addAll(集合,"","","",""...);
+
+    public static void addAll(ArrayList<String> jihe,String ... data){
+        for(String x : data){
+            System.out.println(x);
+        }
+    }
+
+4:模拟实现ArrayList集合的contains()底层实现
+
+    public boolean contains(Object obj){
+        for(int x = 0;x < size;x++){
+            if(obj.equals(data[x])){
+                return true;
+            }
+        }
+        return false;
+    }
+
+5:ArrayList和LinkedList之间的区别？
+    ArrayList底层基于数组实现的
+        优点:查找遍历效率高
+        缺点:添加 删除元素效率低
+
+    LinkedList底层基于链表实现的
+        优点:添加 删除元素效率高
+        缺点:查找 遍历效率低
+
+6:ArrayList和Vector之间的区别？
+    a:同步特性不同
+        ArrayList同时允许多个线程进行访问 效率高 但是可能会有并发错误
+        Vector同时允许一个线程进行访问 效率低 但是不会出现并发错误
+    b:扩容机制不同
+        ArrayuList分版本
+            jdk6.0及之前   x * 3 / 2 + 1
+            jdk7.0及之后   x + (x >> 1)
+        Vector分构造方法
+            Vector(int) -> 2倍扩容
+            Vector(int,int) -> 定长扩容
+    c:出现的版本不同
+        ArrayList since jdk1.2
+        Vector since jdk1.0
+
+7:考虑到ArrayList开发的时候可能会出现并发错误 那么有哪些类可以取代？
+    Vector
+    List list = Collections.synchronizedList(ArrayList对象)
+
+8:请写出ArrayList的add()方法底层的流程
+    当我们想要往ArrayList集合里面添加元素的时候 直接将新来的元素放在集合的最后一块空间
+
+  请写出ArrayList的remove(元素)底层的流程
+    当我们想要指定一个元素进行删除的时候 底层拿着被删除的元素和集合里面的每一个元素做equals()
+
+  请写出ArrayList的contains(元素)底层的流程
+    当我们想要判断ArrayList集合里面是否包含元素的时候
+    底层拿着被包含的元素和集合里面的每一个元素做equals()
+
+  请写出HashSet的add(元素)底层的流程
+    当我们想要往HashSet集合添加元素的时候 底层拿着新来的元素
+    和老元素做hashCode() == equals()比较
+
+  请写出HashSet的remove(元素)底层的流程
+    当我们想要从HashSet集合里面删除元素的时候 底层拿着被删除的元素
+    和集合里面的每个元素做hashCode() == equals()比较
+
+  请写出HashSet的contains(元素)底层的流程
+    当我们想要判断HashSet集合里面是否存在某个元素的时候 底层拿着被包含的元素和集合里面的每一个元素做hashCode() == equals()
+
+
+  请写出TreeSet的add(元素)底层的流程
+    当我们想要往TreeSet集合里面添加元素的时候 底层拿着新来元素和老元素
+    做compareTo()/compare()比较
+
+  请写出TreeSet的remove(元素)底层的流程
+    当我们想要从TreeSet集合里面删除元素的时候 底层拿着被删除的元素和老元素做compareTo()/compare()比较
+
+  请写出TreeSet的contains(元素)底层的流程
+    当我们想要判断TreeSet集合里面是否存在某个元素的时候 底层拿着被包含的元素和老元素做compareTo()/compare()比较
+
+9:学过的单值集合有哪些 他们的底层都是基于什么数据结构实现的
+    ArrayList  数组
+    LinkedList 链表
+    Vector     数组
+    Stack      栈
+    HashSet    哈希表
+    LinkedHashSet 链表+哈希表
+    TreeSet    二叉树
+
+10:简述CME的原理
+11:分别写出ArrayList HashSet TreeSet构造方法的参数分别可以传什么      
 
 ​      
 
