@@ -2517,3 +2517,297 @@ String类：
 
 ​      
 
+
+
+# day17
+
+课程内容
+
+- Collection集合复习
+- Map集合
+
++++
+
+#### Collections工具类复习：
+
+- 对List集合提供服务的方法
+  - Collections**.sort(List对象)**:自然排序 按照List集合里面的泛型规则排序
+  - Collections**.sort(List对象,比较器)**:定制排序 按照比较器规则排序
+  - Collections**.shuffle(List集合)**:打乱集合顺序
+  - Collections**.reverse(List集合)**:翻转集合里面的元素
+- 对所有单值集合服务的方法：
+  - Collections**.addAll(集合,元素,元素,元素....)**;
+  - Collections**.max(集合)**:按照泛型类排序得到集合里面的最大值<u>**[最后]**</u>
+  - Collections**.max(集合,比较器)**：按照比较器排序找最大值
+  - Collections**.min(集合)**:按照泛型类排序找最小值<u>**[第一个元素]**</u>
+  - Collections**.min(集合,比较器)**:按照比较器排序找最小值
+
++++
+
+~~~ java
+											JCF：java集合框架
+                        
+          Collection												Map
+          [单值类型的集合]										 [键值对类型的集合]
+                        
+   List						Set											  SortedMap
+   [有序]					[无序]
+   [不唯一]			 [唯一]：hashCode==equals()
+                  SortedSet
+                 [有序]compareTo()/compare()
+                 [唯一]compareTo()/compare()
+~~~
+
+#### Map:键值对类型的集合 每次往集合里面添加两个元素  Key[主键]=Value[值]
+
+- <u>主键要求唯一</u>
+- HashMap
+- TreeMap
+
+#### Map1:所有Map集合通用的方法
+
+- 创建对象：HashMap<**主键,值**> map = new HashMap<>();
+
+- 添加元素：map**.put(主键,值)**;
+
+- 合并集合：map1**.putAll(map2)**
+
+- 得到集合大小：map**.size()**
+
+- 通过主键得到值对象：map**.get(主键)**
+
+- 判断主键是否存在：map**.containsKey(主键)**
+
+- 判断值是否存在：map**.containsValue(值)**
+
+- 删除元素：map**.remove(主键)**
+
+#### Map集合通用的遍历方式：
+
+- 通过Map集合得到所有的<u>主键视图</u>
+  - Set<主键> set = map**.keySet();**
+  - 遍历set集合得到所有的主键
+  - 通过主键得到值对象：map**.get(主键)**
+- 通过Map集合得到所有的<u>值视图</u>
+  - Collection<值> cs = **map.values();**
+  - 遍历cs集合得到所有的值对象
+- 通过Map集合得到<u>所有的记录[主键+值]</u>
+  - Set<Map.Entry<主键,值>> set = map**.entrySet()**;
+  - 遍历set集合得到每一条记录：x[主键+值]
+  - 通过记录x得到主键：x.getKey()
+  - 通过记录x得到值：x.getValue()
+  - 通过记录修改值：x.setValue()
+
++++
+
+#### **HashMap:** （原理）
+
+底层基于**哈希表**实现的 **默认分16个小组** 每对元素[主键+值]应该添加进哪一个小组里面 **根据主键的哈希码值决定** 哈希码值  **% 分组组数**看余数 如果来到某个小组之后发现这个小组里面有一个元素的主键的哈希码值和新来对象主键的哈希码值一样 需要拿着**== equals()**继续比较
+
+- HashMap底层的
+
+  - put(主键,值)
+  - get(主键)
+  - remove(主键)
+  - containsKey(主键)
+  - 底层尊重**hashCode()  ==  equals()**比较机制
+
+- Map当主键遇到<u>重复元素</u>的时候 <u>**主键不变 值替换**</u>
+
+#### 面试题：<u>HashMap</u>和<u>Hashtable</u>之间的区别？
+
+  - 同步特性不同
+    - Hashtable同一时间允许一个线程进行访问 **效率较低** 但是**不会出现并发方法错误**
+    - HashMap同一时间允许多个线程进行访问 **效率较高** 但是**可能会出现并发方法错误**
+    - jdk5.0开始 集合的工具类里面提供一个方法 将线程不安全的HashMap变成线程安全的Map集合 所以Hashtable渐渐被淘汰了
+    - Map<> map = Collections**.synchronizedMap(HashMap对象)**;
+  - 对null的处理不同
+    - Hashtable无论是主键还是值对象 都**不能传null** 一旦输入null触发空指针异常
+    - HashMap无论是主键还是值对象**都可以传null** 但是由于**主键是唯一的** 所以<u>只能传一个null</u>
+  - 分组组数不同
+    - Hashtable默认分**11个小组** 程序员可以随意的指定
+    - HashMap默认分**16个小组** 程序员可以随意的指定 但是最终**一定会变成2的N次方数** （为了计算机处理效率高）
+  - 出现的版本不同
+    - Hashtable since jdk1.0   
+    - HashMap since jdk1.2
+
+#### 面试题：<u>HashMap</u> <u>Hashtable</u> <u>ConcurrentHashMap</u>之间的区别？
+
+    - Hashtable底层所有的方法都加上synchronized 只要有一个线程进入哈希表会将这个哈希表全部加锁 所以效率很低 但是安全
+    - HashMap底层为了追求高效性 所以不加锁 可能会有多个线程同时访问一个小组的风险
+    - ConcurrentHashMap为了追求高效率和安全性 将锁的力度降低 当一个线程进入哈希表里面某个小组之后 仅仅是对这一个小组进行加锁 如果新来的线程也想要访问该小组 需要等待 如果新来的线程想要访问没有加锁的小组 直接访问
+
+#### 面试题：HashMap在高并发的情况下 不安全 有哪些方法可以取代？
+
+  - Hashtable
+  - ConcurrentHashMap
+  - Map<> map = Collections.synchronizedMap(HashMap对象)
+
+#### 面试题：如何计算每个元素应该放进HashMap/HashSet哪一个小组？
+
+  - 通过key**.hashCode()**得到主键的哈希码值：h
+  - 通过调用哈希算法进行进一步处理：**h=h ^ (h >>> 16)** 进行高位16运算
+  - 通过**h % 16**看余数 余数为几就去哪一个小组
+
+- ##### 为什么将hashCode<u>右移16位</u>再进行<u>异或</u>运算？
+
+  - 可以将hashCode()的高位和低位的值进行混合做异或运算 这样低位的信息加上高位的信息也就是计算小组的时候将高位16的值也参与进来了 <u>参与进来的元素越多 重码的概率越低</u>
+
+- ##### 为什么HashMap/HashSet分组最终一定会变成2的n次方数？
+
+  - 当长度是2(n)的时候 **hash % 分组组数** <u>等价于</u> **hash & (分组组数-1)**   <u>效率更高</u>
+
+- ##### HashMap在jdk7.0前后底层变化？
+
+  - HashMap底层基于<u>哈希表</u>实现的
+  - jdk7.0之前 哈希表底层基于<u>数组 + 链表</u>组成
+    - 数组：装表头信息 可以快速的为每个元素定位应该去到哪一个小组
+    - 链表：组内用链表结构存储
+      - 为了添加/删除元素效率高
+    - 采用头插法
+  - jdk8.0及之后 哈希表底层基于<u>数组 + 链表 + 二叉树</u>组成
+    - 数组：装表头信息 可以快速的为每个元素定位应该去到哪一个小组
+    - 链表：组内用链表存储 方便添加/删除元素
+      - 当**小组链表长度** > 8 && **数组长度** > 64   由**链表**变成**二叉树**
+      - 当**小组二叉树**个数 < 6  二叉树变成**链表** 
+    - 采用尾插法
+
++++
+
+#### TreeMap（原理）
+
+底层基于**二叉树**实现的 每对元素[主键+值]应该被放进左子树/右子树 底层拿着**新来元素主键**和**老元素主键**比较<u>compareTo()/compare()</u>
+
+[> 0 ]新来的一对元素放在**右子树**
+
+[= 0 ]主键不变 **值替换**
+
+[< 0]新来的一对元素放在**左子树**
+
+TreeMap集合底层的：
+			put(主键,值)
+			get(主键)
+			remove(主键)
+			containsKey(主键)
+底层尊重**compareTo()/compare()**比较
+
+
+
+# day18
+
+课程内容
+
+- jdk8.0新特性：
+  - 接口
+  - Optional类型
+  - Lambda表达式
+  - Stream流
+
++++
+
+#### jdk8.0新特性接口：
+
+- jdk8.0**之前** 接口里面<u>只能出现抽象方法</u>
+- jdk8.0**开始** 接口里面<u>可以出现普通方法</u> -->> 必须加上**static / default**
+- jdk9.0**开始** 接口里面可以出现<u>私有方法</u>
+
+~~~ java
+//jdk8.0之前 接口里面只能出现抽象方法
+interface Collection{
+  boolean add(Object obj); //默认添加abstract/default
+  boolean remove(Object obj);
+  boolean contains(Object obj);
+  public static void forEach(){
+    	dy();
+    	dy();
+    	dy();
+      	dy();
+  }
+  
+  private static void dy(String str){
+    	System.out.println(str);
+  }
+}
+
+class ArrayList implements Collection{
+  @Override
+  public boolean add(Object obj){
+    	...
+  }
+  @Override
+  public boolean remove(Object obj){
+    	...
+  }
+  @Override
+  public boolean contains(Object obj){
+    	...
+  }   
+}
+~~~
+
++++
+
+#### Optional类型：jdk8.0出现的新类 专门用来解决空指针异常
+
+- 如何将一个对象放进Optional容器类里面
+  - String str = ...;
+  - Optional<泛型> op = **Optional.of(str)**;
+    - //如果参数为null直接of()出现<u>空指针异常</u>
+  - Optional<泛型> op = **Optional.ofNullable(str)**;
+    - 参数为null的话 容器里面什么都没有
+- 如何判断容器里面是否存在值：
+  - op**.isPresent()** -> boolean
+- 如何从容器里面取值：
+  - op**.get()** -->> 泛型
+- 如果容器里面有值 那么直接<u>使用容器里面的值</u> 如果容器里面没有值 那么<u>使用默认值</u>
+  - 类型 x = **Optional.ofNullable(对象).orElse(默认值)**
+
++++
+
+#### Lambda表达式：jdk8.0出现的新语法 可以让代码变得更加的简单
+
+- jdk8.0开始出现了一个新的操作符 **->** 箭头操作符
+  - 将整个语句分为两个部分
+  - **左侧** : 要覆盖方法的**参数列表**
+  - **右侧** : <u>lambda体</u> **具体的执行步骤**
+- Lambda表达式出现的<u>格式</u>：
+  - () -> void
+  - (参数) -> void
+  - (参数) -> boolean
+  - (参数) -> 类型
+- lambda表示式需要注意：
+  - 左侧如果参数列表只有一个参数的话 **()可以省略** 但是如果参数列表**无参 多参 那么()不能省略**
+  - **左侧参数列表**里面的**数据类型可以省略的** <u>jdk7.0开始</u> 类型可以<u>自动推断</u>
+  - 右侧lambda体里面如果只有一个语句的话 那么**return和{}可以省略** 如果 **多个语句的话 return和{}不能省略**
+- **Lambda表达式使用前提**是调用的方法 **参数是函数式接口**
+  - 函数式接口：接口里面<u>最多只能有一个**抽象方法**</u>
+- 四大函数式接口：jdk8.0新增接口
+  - **Consumer[消费性接口]**
+    - 抽象方法：**accept(参数) ：void**
+  - **Predicate[断言型接口]**
+    - 抽象方法：**test(参数) : boolean**
+- jdk8.0开始 <u>所有的单值集合新增</u>
+  - **foreach((x)** -> void):遍历单值集合里面所有的元素
+  - **forEach((k,v)** -> void)：遍历键值对集合里面所有的元素
+  - **removeIf((x)** -> boolean):删除集合里面符合条件的元素
+- 方法调用：语法糖
+  - 对象::普通方法      
+  - 类名::静态方法
+  - 类名::普通方法
+
+
+
++++
+
+
+
+
+
+
+
+
+
+
+
+
+
