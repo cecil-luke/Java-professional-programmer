@@ -2801,6 +2801,381 @@ class ArrayList implements Collection{
 
 
 
+# day19
+
+课程内容
+
+- Optional类型
+- Lambda表达式
+- Stream流
+- 时间类
+  - Date jdk1.0	
+  - Calendar  jdk1.2
+  - LocalDateTime  jdk8.0
+    - LocalDate:当前的日期 [年月日]
+    - LocalTime:当前的时间[时分秒]
+
++++
+
+~~~ java
+Optional类：
+  	将一个对象装进Optional容器里面
+  	Optional<泛型> op = Optional.of(对象);
+		Optional<泛型> op = Optional.ofNullable(对象);
+
+		判断容器里面是否存在值：
+    op.isPresent() -> boolean
+      
+    从容器里面取值：
+    op.get()
+    如果容器里面有值 那么直接将值取出来
+    如果容器里面没有值 会出现NoSuchElementException
+      
+    如果容器里面有值 那么使用容器里面的值 如果容器里面没有值 那么使用默认值
+    Optional.ofNullable(对象).orElse(默认值);
+~~~
+
+~~~ java
+Lambda表达式：    (参数类型) -> lambda体
+  如果想要使用Lambda表达式 想以函数式接口为前提
+  函数式接口：接口里面只有一个抽象方法
+  
+  注意：
+  	如果参数列表里面只有一个参数的时候 ()可以不写 如果无参/多参 ()不能省略
+  	参数列表里面的参数类型可以省略的 jdk7.0开始 类型可以自动推断
+  	lambda体里面如果只有一个语句的时候 return {}可以省略
+  	lambda体里面有多个语句的话 return {}不能省略
+  
+  四大函数式接口：
+  	Consumer -> 消费型接口
+  			抽象方法：accept(x) -> void
+  	Predicate -> 断言型接口
+  		  	抽象方法：test(x) -> boolean
+  	Function -> 函数型接口
+  			抽象方法：apply(T) -> R
+  	Supplier -> 供给型接口
+  			抽象方法：get() -> T
+  
+ 方法调用：对Lambda简写
+  	对象::普通方法
+      覆盖：accept(x) -> void
+      调用：println(x) -> void
+      forEach(System.out::println);
+
+		类名::静态方法
+      
+    类名::普通方法
+      	必须满足公式：
+      	我们要覆盖的方法的参数列表比我们调用方法的参数列表多1个
+      	且将要覆盖的方法的第一个参数拿出来 应该是调用方法的对象
+      	覆盖：apply(String) -> String
+      	调用：toUpperCase() -> String
+      	map((str) -> str.toUpperCase())
+      	map(String::toUpperCase)
+  
+~~~
+
++++
+
+#### Stream类：jdk8.0新类 专门用来处理集合/数组 可以让代码变得更加的简洁/优雅
+
+- 如何把**集合**里面的元素放进**流**里面
+
+  - Stream<泛型> ss = 集合对象**.stream()**
+
+- 如何将**数组**里面的元素放进**流**里面
+
+- Stream<泛型> ss = **Arrays.stream(数组对象)**
+
+- Stream类里面**<u>中间方法</u>**：
+
+  - **filter(Predicate)**:过滤集合里面符合条件的元素
+  - **limit(long n)**:截断流 只要集合里面的前n个元素
+  - **skip(long n)**:丢弃前n个元素 将剩下的元素放在新集合里面
+  - **map(Function)**:参数接收一个函数 会将该函数应用到每个对象身上
+  - **distinct()**:将集合里面的重复元素去除 -》 尊重<u>hashCode() + equals()</u>
+  - **sorted()**:自然排序 按照泛型类排序规则排序
+  - **sorted(比较器)**:定制排序 按照比较器的排序进行排序
+  - **generate(Supplier)**:<u>创建无限流对象</u>
+
+- Stream类里面的**<u>终端方法</u>**：
+
+  - **forEach(Consumer)**:遍历集合里面的每个元素 -> void
+
+  - **anyMatch(Predicate)**:判断集合里面是否有一个元素符合条件 -> boolean
+
+  - **allMatch(Predicate)**:判断集合里面是否所有元素都符合条件 -》 boolean
+
+  - **noneMatch(Predicate)**:判断集合里面是否所有元素都不符合条件-》boolean
+
+  - **reduce(BiFunction)**:将集合里面的多个值归约成一个值 ->Optional
+
+  - **count()**:得到流里面的元素个数 -》 long
+
+  - **findFirst()**:得到流里面的第一个元素 -> Optional
+
+  - **max(Comparator)**:得到流里面的最大值[最后一个元素] -》 Optional
+
+  - **min(Comparator)**:得到流里面的最小值[第一个元素] -》 Optional
+
+  - **collect(Collectors对象)**：<u>将流里面的元素收集起来</u>
+    - Collectors**.toList()** -> List集合
+    - Collectors**.toSet()** -> Set集合
+    - Collectors**.toMap()** -> Map集合
+
+- ##### 注意：
+
+  - Stream类里面所有的中间方法必须配合终端方法使用 如果只调用中间方法 不调用终端方法的话 那么中间不会执行 -> **惰性求值**
+
++++
+
+#### Date类：时间类 jdk1.0 不安全    java.util.*
+
+- Date dd = new Date();得到当前的时间
+
+- Date dd = new Date(long time);得到指定的时间
+
+- 直接打印Date对象的时候 显示的效果可能和我们平时的习惯不同 所以格式化
+
+- SimpleDateFormate:格式化日期
+
+  - ##### 将Date转换成String
+
+  - Date dd = new Date();
+
+  - SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+  - String time = sdf.format(dd);
+
+  - ##### 将字符串转换成Date类型
+
+  - String str = "2022-5-18 23:12:56";
+
+  - SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+  - Date dd = sdf.parse(str);
+
+#### Calendar:日历类  since jdk1.2  不安全    java.util.*;
+
+- 如何得到当前的时间 由于Calendar是抽象类 所以不能new对象
+  - Calendar cc = Calendar.getInstance();
+- 如何得到当前时间的年月日
+  - System.out.println(cc.get(1));
+  - System.out.println(cc.get(Calendar.YEAR));
+  - 1 = Calender.Year[年]
+  - 2 = Calender.MONTH[月]
+  - 5 = Calender.DAY_OF_MONTH[号]
+  - 7 = Calender.DAY_OF_WEEK[周几]
+  - 11 = Calender.HOUR_OF_DAY[24小时制]
+  - 12 = Calender.MINUTE[分钟]
+  - 13 = Calender.SECOND[秒数]
+- 如何延后时间/提前时间
+  - cc.add(2,3);//3个月后
+  - cc.add(Calendar.MONTH,3);//3个月后
+- 如何格式化日历类：
+  - Calendar cc = Calendar**.getInstance()**;
+  - SimpleDateFormat sdf = **new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")**;
+  - String time = sdf**.format(cc.getTime())**;
+
+#### LocalDateTime:jdk8.0出现的新的时间类   安全   java.time.*
+
+- LocalDate:得到日期[年月日]
+
+- LocalTime:得到时间[时 分 秒]
+
+- 如何得到当前的时间：年月日时分秒
+
+  - LocalDateTime ldt = LocalDateTime.now();
+
+- 如何得到指定的时间
+
+  - LocalDateTime ldt1 = LocalDatTime**.of(2022,5,18,23,40,50)**;
+
+- 如何得到年 月 日 时 分 秒
+
+  - ldt**.getYear()**
+  - ldt.getMonth()
+  - ldt.getDayOfMonth()
+  - ldt.getDayOfWeek()
+  - ldt.getHour()
+  - ldt.getMinute()
+  - ldt.getSecond()
+
+- 如何添加日期
+
+  - ldt**.plusYears(数量)**
+  - ldt.plusMonths(数量)...
+
+- 比较两个时间前后
+
+  - LocalDateTime对象1**.isBefore(LocalDateTime对象2)**   : 1时间是否在2时间之间
+  - LocalDateTime对象1**.isAfter(LocalDateTime对象2)**   : 1时间是否在2时间之后
+
+- ##### Duration类：记录两个时间的间隔
+
+  - Duration du = Duration**.between(LocalDateTime对象1,LocalDateTime对象2)**
+  - du**.toDays()**:间隔天数
+  - du**.toHours()**:间隔小时
+
+- ##### DateTimeFormatter类：<u>格式化  *LocalDate类*    *LocalTime类    LocalDateTime类*</u>
+
+  - 最下面
+
+#### 总结：Data Calendar / LocalDate / LocalTime / LocalDateTime
+
+~~~ java
+得到某个日期：
+    Date:jdk1.0  java.util
+			Date dd = new Date();//当前时间
+			Date dd = new Date(long 毫秒数);//指定日期
+
+    Calendar:jdk1.2  java.util
+			Calendar cc = Calendar.getInstance();//当前日期
+------------------------------------------------------------------------------------
+    LocalDate:jdk8.0  java.time
+			LocalDate dd = LocalDate.now();//当前年月日
+			LocalDate dd = LocalDate.of(2022,5,18);//指定年月日
+
+	LocalTime:jdk8.0  java.time
+     		LocalTime ll = LocalTime.now();//当前时分秒
+			LocalTime ll = LocalTime.of(23,12,50);//指定时分秒
+
+	LocalDateTime:jdk8.0  java.time
+     		LocalDateTime ldt = LocalDateTime.now();//当前年月日时分秒
+			LocalDateTime ldt = LocalDateTime.of(2022,10,28,5,20,45);//指定的年月日时分秒
+~~~
+
+~~~ java
+分别得到年 月 日 时 分 秒
+Date:
+		得到年月日 时分秒的方法全部过时
+      
+Calendar类：
+    get(参数)
+    参数：
+      1 = Calendar.YEAR
+      2 = Calendar.MONTH  从0开始计算
+      5 = Calendar.DAY_OF_MONTH
+      7 = Calendar.DAY_OF_WEEK  周天算周一
+      11 = Calendar.HOUR_OF_DAY
+      12 = Calendar.MINUTE
+      13 = Calendar.SECOND
+      
+ LocalDate类：
+      getYear()
+      getMonth()
+      getDayOfWeek()
+      getDayOfMonth()
+      
+ LocalTime类：
+      getHour()
+      getMinute()
+      getSecond()
+      
+ LocalDateTime类：
+      getYear()
+      getMonth()
+      getDayOfWeek()
+      getDayOfMonth()	
+      getHour()
+      getMinute()
+      getSecond()
+~~~
+
+~~~ java
+如何添加时间
+
+Date类：
+  	添加时间的方法全部过时
+  
+Calendar类：
+  	cc.add(谁,数量)
+  	3年后
+  			add(1,3)
+  			add(Calendar.YEAR,3)
+  
+ LocalDate类：
+  	plusYears(数量)
+  	plusMonths(数量)
+  	plusWeek(数量)
+  	plusDays(数量)
+  
+  LocalTime类：
+  	plusHours(数量)
+  	plusMinute(数量)
+  	plusSecond(数量)
+  
+  LocalDateTime类：
+  	plusYears(数量)
+  	plusMonths(数量)
+  	plusWeek(数量)
+  	plusDays(数量)
+    plusHours(数量)
+  	plusMinute(数量)
+  	plusSecond(数量)
+~~~
+
+~~~ java
+如何将Date转换成字符串
+  	Date dd = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String time = sdf.format(dd);
+
+如何将Calendar转换成字符串
+  	Calendar cc = Calendar.getInstance();
+	  SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String time = sdf.format(cc.getTime());
+
+------------------------------------------------------------------------------------
+
+如何将LocalDate转换成字符串
+  	LocalDate ld = LocalDate.now();
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd ");
+		String time = df.format(ld);
+		
+如何将LocalTime转换成字符串
+  	LocalTime lt = LocalTime.now();
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("HH:mm:ss");
+		String time = df.format(lt);
+
+如何将LocalDateTime转换成字符串
+  	LocalDateTime ldt = LocalDateTime.now();
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		String time = df.format(ldt);
+~~~
+
+~~~ java
+如何将字符串转换成Date类
+  	String str = "2023-02-08 19:42:50";
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date dd = sdf.parse(str);
+--------------------------------------------------------------------------------
+如何将字符串转换成LocalDate类：
+  	String str = "2023-02-18";
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate ld = LocalDate.parse(str,df);
+
+如何将字符串转换LocalTime类：
+  	String str = "19:45:20";
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("HH:mm:ss");
+		LocalTime lt = LocalTime.parse(str,df);
+
+如何将字符串转换成LocalDateTime类：
+  	String str = "2022-11-23 09:23:59";
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime ldt = LocalDateTime.parse(str,df);
+~~~
+
+
+
+
+
+​    
+
+​    
+
+​    
+
 
 
 
