@@ -2154,8 +2154,8 @@ String类：
 
 - ArrayList3:
 
-  - ArrayList类里面指定元素删除的方法 能不能删除成功 底层尊重equals()比较原理
-  - ArrayList类里面判断元素是否存在的方法 底层尊重equals()比较元素
+  - ArrayList类里面指定元素删除的方法 能不能删除成功 底层尊重**equals()**比较原理
+  - ArrayList类里面判断元素是否存在的方法 底层尊重**equals()**比较元素
 
 - ArrayList4:
 
@@ -2164,13 +2164,13 @@ String类：
 
 - ArrayList5:
 
-  - 当我们使用迭代器在遍历集合的时候 不允许对集合的整体进行添加/删除操作 否则触发CME异常
+  - 当我们使用迭代器在遍历集合的时候 **不允许对集合的整体进行添加/删除操作** 否则触发**CME异常**
 
   - CME = ConcurrentModificationException = 并发修改异常
 
   - 如果需求想要我们一边遍历 一边删除的话 使用迭代器自己的删除方法：car.remove()
 
-  - foreach底层基于迭代器实现的
+  - foreach底层基于**迭代器**实现的
 
     ||
 
@@ -2178,7 +2178,7 @@ String类：
 
     - 每一个集合底层都有一个变量 叫modCount记录对集合的处理次数
     - 当我们通过集合获得迭代器的时候 底层会将modCount的值拷贝到迭代器自己的属性里面
-    - 迭代器自己的属性：exptectedModCount
+    - 迭代器自己的属性：expectedModCount
     - 每次car.next()触发modCount和expectedModCount的值的比较
     - 如果两个值不同步 那么出现CME异常
 
@@ -2187,7 +2187,7 @@ String类：
   - ArrayList类里面常用的构造方法
   - ArrayList list = new ArrayList(int 数组容量);数组空间>=0
   - ArrayList list = new ArrayList();//**默认10块空间**
-  - 无论底层开辟多大空间 都可以存储无数个元素 集合会自动扩容
+  - 无论底层开辟多大空间 都可以存储无数个元素 集合会**自动扩容**
   - 项目开发的时候尽量避免扩容：
     - 创建新数组对象
     - 将老数组里面的元素复制到新数组里面
@@ -2195,7 +2195,7 @@ String类：
     - 回收老数组对象
     - 继续添加元素
   - <u>扩容</u>：list.ensureCapcity(int 容量)：将集合大小直接扩大为XXX块空间
-  - <u>缩容</u>：list.trimToSize():将集合大小缩小为元素个数
+  - <u>缩容</u>：list.trimToSize():将集合大小**缩小为元素个数**
 
 
 
@@ -2229,7 +2229,7 @@ String类：
                  Collection																Map
                  [单值类型的集合]													[键值对类型的集合]
                                     
-      List							Set															 SortedMap
+      List							Set													SortedMap		 
       [有序]						[无序]
       [不唯一]					 [唯一]
                         SortedSet
@@ -2240,7 +2240,7 @@ String类：
 - ##### HashSet
 
   - 特点：无序 唯一
-  - 数据结构：哈希表实现的
+  - 数据结构：**哈希表**实现的
 
 - ##### HashSet1:基本用法及特点
 
@@ -2260,18 +2260,19 @@ String类：
 
 - ##### HashSet2:即使不是内存里面的同一个对象也有可能被视为相等对象 从而只能往集合里面添加一次
 
-  - 当我们想要将两个不同的对象视为相等对象的话 HashSet集合里面需要覆盖hashCode()+equals()
+  - 当我们想要将两个不同的对象视为相等对象的话 HashSet集合里面需要覆盖**hashCode()+equals()**
   - hashCode():计算哈希码值 可以决定一个对象去到哪一个小组
   - equals():当一个对象去到某个小组之后 发现这个小组里面有一个元素的哈希码值和新来元素的哈希码值一样 那么就拿着equals()详细比较
 
 - ##### HashSet3:HashSet添加元素的时候 其实完整流程：
 
   - hashCode() == equals()
-  - 如图
+  - 如图：
+  - ![](image\添加元素完整流程.bmp)
 
 - ##### HashSet4：当HashSet遇到重复元素的时候 舍弃的是新来的元素
 
-  - HashSet底层的add(元素)  remove(元素)  contains(元素)底层尊重hashCode() == equals()
+  - HashSet底层的**add(元素)  remove(元素)  contains(元素)**底层尊重**hashCode() == equals()**
 
 - ##### HashSet5:当我们使用迭代器在遍历集合的时候 不要对集合的整体进行添加/删除操作 否则触发CME异常
 
@@ -2279,14 +2280,14 @@ String类：
 
 - ##### HashSet6:
 
-  - 当一个对象已经添加进HashSet集合之后 不要随意的修改那些参与生成哈希码值的属性值
-  - 如果在添加之后想要修改的话 需要删除+修改+添加
-  - 如果这个属性没有参与生成哈希码值 直接修改
+  - 当一个对象已经添加进**HashSet集合**之后 <u>不要随意的修改那些参与生成哈希码值的**属性值**</u>
+  - 如果在添加之后想要修改的话 需要**删除+修改+添加**
+  - 如果<u>这个属性没有参与</u>生成哈希码值 <u>直接修改</u>
 
 - ##### HashSet7:
 
   - HashSet set = new HashSet(int 分组组数,float 加载因子);
-    - 分组组数程序员可以随意的指定 但是最终一定会变成2的n次方数
+    - 分组组数程序员可以随意的指定 但是最终一定会变成**2的n次方数**
   - HashSet set = new HashSet();
     - 默认分16个小组 加载因子0.75F 阈值：12
 
@@ -2318,7 +2319,7 @@ String类：
 - ##### TreeSet
 
   - 特点：有序 唯一
-  - 数据结构：二叉树
+  - 数据结构：**二叉树**
 
 - TreeSet1:基本用法及特点：
 
@@ -2412,7 +2413,7 @@ String类：
 ####  面试题（List集合）
 
 1:请画出集合框架
-                            JCF:java集合框架
+                            											JCF:java集合框架
 
             Collection                           Map
     
@@ -2421,8 +2422,8 @@ String类：
                   SortedSet
 
 2:Collections和Collection之间的区别
-    Collection是所有单值集合统一的父接口 -》 interface
-    Collections是集合的工具类：class
+    Collection是**所有单值集合的父接口** -》 **interface**
+    Collections是**集合的工具类**：-》 **class**
 
 3:模拟实现Collections.addAll(集合,"","","",""...);
 
@@ -2435,7 +2436,7 @@ String类：
 4:模拟实现ArrayList集合的contains()底层实现
 
     public boolean contains(Object obj){
-        for(int x = 0;x < size;x++){
+        for(int x = 0;x < 集合.size();x++){
             if(obj.equals(data[x])){
                 return true;
             }
@@ -2443,65 +2444,75 @@ String类：
         return false;
     }
 
-5:ArrayList和LinkedList之间的区别？
-    ArrayList底层基于数组实现的
+5:**ArrayList**和**LinkedList**之间的区别？
+
+~~~ java
+ ArrayList底层基于数组实现的
         优点:查找遍历效率高
         缺点:添加 删除元素效率低
+~~~
 
     LinkedList底层基于链表实现的
         优点:添加 删除元素效率高
         缺点:查找 遍历效率低
 
-6:ArrayList和Vector之间的区别？
-    a:同步特性不同
+6:**ArrayList**和**Vector**之间的区别？
+    a:<u>同步特性不同</u>
         ArrayList同时允许多个线程进行访问 效率高 但是可能会有并发错误
         Vector同时允许一个线程进行访问 效率低 但是不会出现并发错误
-    b:扩容机制不同
+    b:<u>扩容机制不同</u>
         ArrayuList分版本
             jdk6.0及之前   x * 3 / 2 + 1
             jdk7.0及之后   x + (x >> 1)
         Vector分构造方法
             Vector(int) -> 2倍扩容
             Vector(int,int) -> 定长扩容
-    c:出现的版本不同
+    c:<u>出现的版本不同</u>
         ArrayList since jdk1.2
         Vector since jdk1.0
 
-7:考虑到ArrayList开发的时候可能会出现并发错误 那么有哪些类可以取代？
-    Vector
-    List list = Collections.synchronizedList(ArrayList对象)
+7:考虑到**ArrayList**开发的时候可能会出现<u>并发错误</u> 那么有哪些类可以**取代**？
+    **Vector**
+    **List list = Collections.synchronizedList(ArrayList对象)**  
+
+----------------------------------------------------------------------------------------
 
 8:请写出ArrayList的add()方法底层的流程
-    当我们想要往ArrayList集合里面添加元素的时候 直接将新来的元素放在集合的最后一块空间
+    当我们想要往ArrayList集合里面添加元素的时候 **直接**将新来的元素放在**集合的最后一块空间**
 
   请写出ArrayList的remove(元素)底层的流程
-    当我们想要指定一个元素进行删除的时候 底层拿着被删除的元素和集合里面的每一个元素做equals()
+    当我们想要指定一个元素进行删除的时候 底层拿着<u>被删除的元素</u>和<u>集合里面的每一个元素做**equals()**</u>
 
   请写出ArrayList的contains(元素)底层的流程
     当我们想要判断ArrayList集合里面是否包含元素的时候
-    底层拿着被包含的元素和集合里面的每一个元素做equals()
+    底层拿着被包含的元素和集合里面的每一个元素做**equals()**
 
-  请写出HashSet的add(元素)底层的流程
+------------------
+
+请写出HashSet的add(元素)底层的流程
     当我们想要往HashSet集合添加元素的时候 底层拿着新来的元素
-    和老元素做hashCode() == equals()比较
+    和老元素做**hashCode() == equals()**比较
 
   请写出HashSet的remove(元素)底层的流程
     当我们想要从HashSet集合里面删除元素的时候 底层拿着被删除的元素
-    和集合里面的每个元素做hashCode() == equals()比较
+    和集合里面的每个元素做**hashCode() == equals()**比较
 
   请写出HashSet的contains(元素)底层的流程
     当我们想要判断HashSet集合里面是否存在某个元素的时候 底层拿着被包含的元素和集合里面的每一个元素做hashCode() == equals()
 
+--------------------------------
 
-  请写出TreeSet的add(元素)底层的流程
+请写出TreeSet的add(元素)底层的流程
     当我们想要往TreeSet集合里面添加元素的时候 底层拿着新来元素和老元素
-    做compareTo()/compare()比较
+    做**compareTo()/compare()比较**
 
   请写出TreeSet的remove(元素)底层的流程
     当我们想要从TreeSet集合里面删除元素的时候 底层拿着被删除的元素和老元素做compareTo()/compare()比较
 
   请写出TreeSet的contains(元素)底层的流程
     当我们想要判断TreeSet集合里面是否存在某个元素的时候 底层拿着被包含的元素和老元素做compareTo()/compare()比较
+
+--------------------------
 
 9:学过的单值集合有哪些 他们的底层都是基于什么数据结构实现的
     ArrayList  数组
@@ -2513,7 +2524,25 @@ String类：
     TreeSet    二叉树
 
 10:简述CME的原理
-11:分别写出ArrayList HashSet TreeSet构造方法的参数分别可以传什么      
+
+- 每一个**集合底层**都有一个变量 叫**modCount**<u>记录对集合的处理次数</u>
+- 当我们通过集合获得迭代器的时候 底层会将modCount的值**拷贝**到**迭代器自己的属性里面**
+- 迭代器自己的属性：**expectedModCount**
+- 每次**car.next()**触发modCount和expectedModCount的值的比较
+- **如果两个值不同步** 那么出现CME异常
+
+11:分别写出ArrayList HashSet TreeSet构造方法的参数分别可以传什么 
+
+- ArrayList:
+  - 可以接收一个 **Collection 类型的对象**，来初始化 ArrayList，这样 ArrayList 中的元素就是 Collection 中的元素的副本。
+  - 也可以接收一个 **int 类型的整数**，表示 ArrayList 的初始容量。
+- HashSet:
+  - 可以接收一个 Collection 类型的对象，来初始化 HashSet，这样 HashSet 中的元素就是 Collection 中的元素的副本。
+- TreeSet:
+  - 可以接收一个 Collection 类型的对象，来初始化 TreeSet，这样 TreeSet 中的元素就是 Collection 中的元素的副本。
+  - 也可以接收一个 **Comparator 对象**，用来排序 TreeSet 中的元素。
+
+需要注意的是，无论是 ArrayList，HashSet 还是 TreeSet，都有一个**默认的无参构造方法**，用来创建空的集合。     
 
 ​      
 
@@ -2633,15 +2662,15 @@ String类：
 
 #### 面试题：<u>HashMap</u> <u>Hashtable</u> <u>ConcurrentHashMap</u>之间的区别？
 
-    - Hashtable底层所有的方法都加上synchronized 只要有一个线程进入哈希表会将这个哈希表全部加锁 所以效率很低 但是安全
-    - HashMap底层为了追求高效性 所以不加锁 可能会有多个线程同时访问一个小组的风险
-    - ConcurrentHashMap为了追求高效率和安全性 将锁的力度降低 当一个线程进入哈希表里面某个小组之后 仅仅是对这一个小组进行加锁 如果新来的线程也想要访问该小组 需要等待 如果新来的线程想要访问没有加锁的小组 直接访问
+​	-**Hashtable**底层所有的方法都加上synchronized 只要有一个线程**进入哈希表**会将这个**哈希表全部加锁** 所以效率很低 但是安全
+    - **HashMap**底层为了追求高效性 所以**不加锁** 可能会有多个线程同时访问一个小组的风险
+        - **ConcurrentHashMap**为了追求高效率和安全性 将锁的力度降低 当一个线程进入哈希表里面某个小组之后 **仅仅是对这一个小组进行加锁** 如果新来的线程也想要访问该小组 需要等待 如果新来的线程想要访问没有加锁的小组 直接访问
 
 #### 面试题：HashMap在高并发的情况下 不安全 有哪些方法可以取代？
 
   - Hashtable
   - ConcurrentHashMap
-  - Map<> map = Collections.synchronizedMap(HashMap对象)
+  - Map<> map = Collections**.synchronizedMap**(HashMap对象)
 
 #### 面试题：如何计算每个元素应该放进HashMap/HashSet哪一个小组？
 
@@ -2651,7 +2680,7 @@ String类：
 
 - ##### 为什么将hashCode<u>右移16位</u>再进行<u>异或</u>运算？
 
-  - 可以将hashCode()的高位和低位的值进行混合做异或运算 这样低位的信息加上高位的信息也就是计算小组的时候将高位16的值也参与进来了 <u>参与进来的元素越多 重码的概率越低</u>
+  - 可以将hashCode()的高位和低位的值**进行混合做异或运算** 这样低位的信息加上高位的信息也就是计算小组的时候将高位16的值也参与进来了 <u>参与进来的元素越多 重码的概率越低</u>
 
 - ##### 为什么HashMap/HashSet分组最终一定会变成2的n次方数？
 
@@ -2760,7 +2789,7 @@ class ArrayList implements Collection{
 - 如何从容器里面取值：
   - op**.get()** -->> 泛型
 - 如果容器里面有值 那么直接<u>使用容器里面的值</u> 如果容器里面没有值 那么<u>使用默认值</u>
-  - 类型 x = **Optional.ofNullable(对象).orElse(默认值)**
+  - 对象类型 x = **Optional.ofNullable(对象).orElse(默认值)**
 
 +++
 
@@ -2779,10 +2808,10 @@ class ArrayList implements Collection{
   - 左侧如果参数列表只有一个参数的话 **()可以省略** 但是如果参数列表**无参 多参 那么()不能省略**
   - **左侧参数列表**里面的**数据类型可以省略的** <u>jdk7.0开始</u> 类型可以<u>自动推断</u>
   - 右侧lambda体里面如果只有一个语句的话 那么**return和{}可以省略** 如果 **多个语句的话 return和{}不能省略**
-- **Lambda表达式使用前提**是调用的方法 **参数是函数式接口**
+- **Lambda表达式使用前提**是调用的方法**参数是函数式接口**
   - 函数式接口：接口里面<u>最多只能有一个**抽象方法**</u>
-- 四大函数式接口：jdk8.0新增接口
-  - **Consumer[消费性接口]**
+- <u>四大函数式接口</u>：jdk8.0新增接口
+  - **Consumer[消费型接口]**
     - 抽象方法：**accept(参数) ：void**
   - **Predicate[断言型接口]**
     - 抽象方法：**test(参数) : boolean**
@@ -2883,7 +2912,7 @@ Lambda表达式：    (参数类型) -> lambda体
 
   - Stream<泛型> ss = 集合对象**.stream()**
 
-- 如何将**数组**里面的元素放进**流**里面
+- 如何将**数组**里面的**元素**放进**流**里面
 
 - Stream<泛型> ss = **Arrays.stream(数组对象)**
 
@@ -2977,7 +3006,7 @@ Lambda表达式：    (参数类型) -> lambda体
   - SimpleDateFormat sdf = **new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")**;
   - String time = sdf**.format(cc.getTime())**;
 
-#### LocalDateTime:jdk8.0出现的新的时间类   安全   java.time.*
+#### LocalDateTime:jdk8.0出现的新的时间类   安全   <u>java.time.*</u>
 
 - LocalDate:得到日期[年月日]
 
@@ -3166,15 +3195,165 @@ Calendar类：
 		LocalDateTime ldt = LocalDateTime.parse(str,df);
 ~~~
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
+# day20
 
+课程内容
+
+- 枚举
+
++++
+
+#### 枚举：enum
+
+- java中有四大类型：class   interface  **enum**  @interface
+
+- 枚举：<u>当一个类的对象是有限个</u> 确定的 这个类就适合写成**枚举类**
+
+  ~~~ java
+  有些类希望可以创建无数个对象 -》 普通类
+    	class Student{}
+  
+  有些类希望只能创建一个对象 -》 单例模式
+    	class BJQ{
+        	
+      }
+    
+   有些类希望可以创建有限个对象 确定的 -》 枚举类
+     	class Day{}//周几  -》 应该有7个对象
+  	class Color{}//交通灯的颜色 -》 应该有3个对象
+  	class OrderState()//订单状态 -》 待付款 代发货 待收货 待评价 售后/退款
+      class Season{}//季节 -》 应该有4个对象
+  
+     	
+  ~~~
+
+- 枚举类里面的构造方法默认都是私有的
+
+- 枚举类里面要求类一开始就要定义对象 **对象和对象之间,隔开**  **最后一个对象后面可以加;** 如果最后一个对象后面还有语句;不能省略 如果最后一个对象后面没有语句了 那么;可以省略
+
+- 枚举类都**默认继承Enum类** 所以不能继承其他的类 但是**可以实现多个接口**
+
+- 枚举类里面的<u>toString()</u>默认打印<u>枚举对象的名字</u>
+
+- 枚举类里面常用的方法
+
+  - 将枚举类对象放在**数组**里面
+    - 枚举类名[] data = 枚举类名**.values()**;
+  - 将枚举类对象放在**集合**里面
+    - EnumSet<枚举类名> set = EnumSet**.allOf(枚举类名.class)**;
+  - 将字符串转换成**枚举对象**
+    - 枚举类名 x = 枚举类名**.valueOf(字符串对象)**
+  - 将枚举对象转换成**字符串**
+    - String x = 枚举对象**.name()**;
+  - 得到某个**枚举对象的下标**
+    - int x = 枚举对象**.ordinal()**;
+
+   
+
+#### Date格式(LocalDateTime)
+
+​    Date dd = new Date();
+​    打印对象：月 周几 小时 分钟 秒数 年份
+​    比较时间前后：
+​        Date对象1.after(Date对象2)
+​        Date对象1.before(Date对象2)
+
+    格式化：
+    Date dd = new Date();
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    String time = sdf.format(dd);
+    
+    String str = "2022-08-11 23:11:56";
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    Date dd = sdf.parse(str);
+
+
+Calendar
+    Calendar cc = Calendar.getInstance();
+    打印对象：一大堆  Year Month Day_of_month
+    cc.add(Calendar.YEAR,数量)
+    cc.get(Calendar.MONTH)
+
+    比较时间前后：
+        Calendar对象1.after(Calendar对象2)
+        Calendar对象1.before(Calendar对象2)
+    
+    格式化：
+     Calendar cc = Calendar.getInstance();
+     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+     String time = sdf.format(cc.getTime());
+
+LocalDateTime
+    LocalDate
+    LocalTime
+
+    LocalDateTime ldt = LocalDateTime.now()
+    打印对象：年-月-日T时:分:秒.毫秒数
+    ldt = ldt.plusYears(5L)
+    ldt = ldt.plusMonths(6L);
+    
+    ldt.getYear();
+    ldt.getMonth()
+    
+    比较时间前后：
+    LocalDateTime对象1.isAfter(LocalDateTime2)
+    LocalDateTime对象1.isBefore(LocalDateTime2)
+    
+    间隔时间：
+    Duration dd = Duration.between(LocalDateTime对象,LocalDateTime对象);
+    dd.toDays()
+    dd.toHours()
+    
+    格式化：
+    LocalDateTime ldt = LocalDateTime.now()
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    dtf.format(ldt);    
 ​    
 
-​    
 
-​    
+
+# day21
+
+课程内容
+
+- 注解
+
++++
+
+#### java中的四大类型：
+
+- class	     interface		  enum		@interface
+- 类               接口                  枚举              注解
+
+#### 什么是注解？
+
+- 注解其实就是一个标记 给已有的代码提供补充信息
+
+#### java中的三大内置注解：
+
+- **@Override**:表示下面的方法一定要覆盖父类的某些方法
+- **@Deprecated**:表示下面的类/方法/属性...已经过时了
+- **@SuppressWarnings**:<u>表示忽略某种警告</u>
+  - **deprecation**:过期警告
+  - **unchecked**:未经检查的警告
+
+#### java中的<u>四大元注解</u>：给其他的注解提供补充信息
+
+- **@Target**：表示被修饰的注解 可以作用在谁的上面
+  - 只能从**ElementType枚举类**里面取值
+    - **TYPE**:四大类型
+    - **CONSTRACTOR**:构造方法....
+- **@Retention**:<u>表示被修饰的注解生命周期</u>
+  - 只能从**RetentionPolicy枚举类**里面取值
+    - **SOURCE**:编译
+    - **CLASS**:该注解可以生成在**.class文件里面** 但是<u>不能被反编译</u>
+    - **RUNTIME**:该注解可以生成在.class文件里面 但是<u>可以被反编译</u>
+- **@Documented**:<u>表示被修饰的注解可以生成在api文档里面</u>
+- **@Inherited**:表示被修饰的注解<u>可以被继承</u>
 
 
 
