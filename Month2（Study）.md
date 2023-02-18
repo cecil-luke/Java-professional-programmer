@@ -779,8 +779,10 @@ BigOne
 
 
 
-
 import java.util.concurrent.*;
+
+#### CountDownLatch
+
 /**
 	**CountDownLatch** 是什么 ？核心方法有什么？
 		直译叫做**倒计时门闩** 是JUC包(**并发包**)当中的常用工具之一
@@ -829,9 +831,12 @@ try{
 如何创建线程：
 	1. extends Thread
 	2. implements Runnable
-	3. 明天见
+	
+	3. 明天见implements Callable<T>{}
+	
+	   public T call()throws  Exception{}
 
-如何控制线程
+ 如何控制线程
 	0.**setPriority(int)** : 设置线程的优先级别
 	1.**static sleep(long)** : 让当前线程休眠指定的毫秒数
 	2.**static yield()** : 让当前线程放弃时间片**直接返回就绪**
@@ -1037,6 +1042,502 @@ try{
 				4.唤醒王师傅
 				5.主动休息
 	6.让黎师傅做好准备
+
+
+
+# day27
+
+#### Review
+
+并发错误：
+	多个线程共享操作同一份数据 
+	线程体当中连续的多行语句未必能够连续执行
+	很可能操作只完成了一部分 时间片突然耗尽
+	而此时另一个线程直接访问了操作不完整的数据
+	在语法上 这没有任何错误 但是逻辑上 数据全是错的..
+
+
+如何解决并发错误：
+	加锁
+	1.使用synchronized修饰符操作对象的互斥锁 
+		a> 修饰代码块
+			synchronized(临界资源){
+				需要连续执行的操作1;
+				需要连续执行的操作2;
+			}
+
+		b> 修饰方法
+			public synchronized void add(Object obj){
+				需要连续执行的操作1;
+				需要连续执行的操作2;
+			}
+	
+		*: 方法的synchronized修饰符不会被子类继承得到
+			这个synchronized隔代丢失
+
+
+
+	2.直接使用可重入锁 
+		java.util.concurrent.locks.ReentrantLock;
+	
+			lock()		unlock();
+			加锁		解锁
+	
+			公平锁 & 非公平锁
+			new ReentrantLock(true);
+
+
+
+什么是死锁
+	多个线程相互持有对方想要申请的资源
+	不释放的情况下 又去申请对方已经持有的资源
+	从而双双进入对方已经持有的资源的锁池当中
+	产生了永久的阻塞
+					- DeadLock
+
+
+
+如何解决死锁：
+	一块空间: 对象的等待池
+	三个方法: wait() / notify() / notifyAll()
+
+	*: 这三个方法是Object类的方法
+	*: 这三个方法必须在已经持有对方锁标记的前提下才能使用
+		所以它们必然出现在synchronized 的{}当中
+		否则不但操作失败 还会触发运行时异常
+		IllegalMonitorStateException
+
+
+线程交替执行
+	1.执行逻辑
+	2.主动wait
+				3.执行逻辑
+				4.唤醒notify()
+				5.主动wait()
+	6.唤醒notify()
+
+*: 锁池和等待池的区别?
+	进入是否需要释放资源
+	离开是否需要调用方法
+	离开之后去往什么状态
+
+#### shutdown()	shutdownNow()
+
+首先 它们都能禁止新任务再次提交
+	其次 它们都不能结束那些正在执行当中的线程任务
+
+	它们的区别在于 那些已经提交上去 还没开始执行的线程
+	
+	shutdown() : 能够让进行中的和排队中的都执行完
+	shutdownNow() : 会直接退回排队中的线程任务
+
+
+#### 线程池
+
+​				since JDK5.0  Doug Lea
+​				java.util.concurrent.*;
+
+
+	线程池 是一种标准的资源池模式
+	
+	资源池是指在用户出现之前提前预留活跃资源
+	从而在用户出现的第一时间 直接满足用户对资源的需求
+	并且将资源的创建和销毁 都委托给资源池完成
+	从而优化用户体验
+
+
+	假如一个线程的完整执行时间为T
+		则T = t1 + t2 + t3
+		t1: 在操作系统当中映射一个线程所消耗的时间
+		t2: 线程核心逻辑执行的时间    run()
+		t3: 在操作系统当中销毁一个线程所消耗的时间
+	
+	假如run()当中的代码非常简短 
+	则t2所占T的比例就会很小 
+	此时我们会觉得付出和回报不成比例 喧宾夺主
+
+
+
+#### *: 什么是资源池 为什么要使用资源池？
+
+​	资源池会在用户出现之前提前预留活跃资源
+​	从而在用户出现的第一时间直接满足用户对资源的需求
+​	并且将资源的创建和销毁都委托给资源池完成
+​	从而优化用户体验...
+
+#### *: 实现线程有哪些方式？
+
+​	1. extends Thread
+​		public void run(){}
+​	2. implements Runnable
+​		public void run(){}
+​	3. implements Callable<T>
+​		public T call()throws Exception{}
+
+#### *: 创建线程的第三种方式 优势是什么？
+
+​	1.能够有return返回数据
+​	2.能够向外抛出异常
+
+#### *: shutdown() 和 shutdownNow()的区别？
+
+​	
+
+#### *: 核心类库当中官方提供的常用的线程池种类有哪些？
+
+​	1.newFixedThreadPool() : 修复后可重用的
+​	2.newCachedThreadPool() : 缓存机制的  60S = 1M
+​	3.newSingleThreadExecutor() : 单一实例的执行器
+
+#### *: 如果自己创建线程池执行器 必须的五个参数分别是什么？
+
+​	1.核心线程的数量
+​	2.最大线程的数量
+​	3.KeepAliveTime => 保持活着的时间
+​	4.TimeUnit => 时间单位
+​	5.一个队列 用于存放超过最大需要排队的线程任务...
+
+
+*: 什么是并发错误
+
+*: 如何解决并发错误
+
+*: 什么是死锁
+
+*: 如何解决死锁
+
+*: 线程的七大状态
+
+*: 控制线程的方法有哪些?
+
+*: IllegalThreadStateException
+	先启动线程 后设置其成为守护线程 不但会失败 还会触发异常
+
+*: IllegalMonitorStateException
+	没有拿到对象锁标记就直接去操作对象的等待池
+
+*: 懒汉式单例
+	private*2 + static*2 + public + synchronized
+
+*: 锁池和等待池的区别?
+
+*: throw和throws的区别?
+
+*: Exception和Error的区别
+
+*: 运行时异常和非运行时异常的区别
+
+*: 常见的运行时异常
+
+*: throws    try catch finally
+
+*: catch(类型1 | 类型2 e) 多重catch 7.0
+
+*: 自定义异常
+
+*: 什么是内部类 内部类的作用是什么
+
+*: 内部类的分类 每种内部类如何创建对象
+
+====================================================================
+
+/*
+	JDK5.0的时候Callable接口的出现 弥补了原本Runnable接口的两大不足
+		1.run()被定义为void方法 线程执行结束没法返回数据
+		2.run()没有任何throws声明 逼迫程序员必须try catch
+*/
+
+		//Executors.newSingleThreadExecutor();
+		//单一实例的
+		//Executors.newCachedThreadPool();
+		//缓存机制的
+		ExecutorService es = Executors.newFixedThreadPool(2);
+		//修复后可重用的(固定大小)
+		ThreadOne t1 = new ThreadOne();
+		es.submit(t1);//将线程任务提交给执行器服务
+
+
+
+# day28
+
+#### review（考试题）
+
+#### 01.内部类简述以及内部类的作用？
+
+​	定义在一个类类体当中的类 被称作内部类
+​	内部类可以用于共享数据
+​	也可以用于表达类和类的专属关系
+
+#### *: Java当中常见的共享数据的方式有哪些？
+
+​	a> 使用静态变量		[交替打印 static Object obj]
+​	b> 使用参数传递		[并发错误 一个打印 一个修改]
+​	c> 使用内部类		[死锁 泉城路奔宝]
+
+#### 02.内部类有几种?每种内部类能够共享外部类的什么数据?
+
+​	4种
+​	成员内部类：能够共享外部类的所有[静态+非静态]成员[属性+方法]
+​	静态内部类：能够共享外部类的静态成员[属性+方法]
+​	局部内部类：
+​		如果定义在静态方法中 只能共享外部类静态成员
+​		如果定义在非静态方法中 能够共享外部类所有成员
+​		另外它出现在外部类的方法体当中
+​		所以还能共享所在的外部类方法中的局部变量
+​		只是JDK8.0之前必须加final 8.0开始可以不加
+​	匿名内部类：根据定义的位置 可能等价于上述三种任意一种
+
+
+*: 成员内部类如何创建对象？
+	Outer.Inner in = new Outer().new Inner();
+
+*: 请使用匿名内部类语法创建一个**比较器对象**
+	Comparator<Integer> cmp = new Comparator<Integer>(){
+		@Override
+		public int compare(Integer i1,Integer i2){
+			return i2.compareTo(i1);
+		}
+	};
+
+	Set<Integer> set = new TreeSet<>(new Comparator<Integer>(){
+		@Override
+		public int compare(Integer i1,Integer i2){
+			return i2.compareTo(i1);
+		}
+	});
+
+#### 03.Error和Exception的区别?什么是Exception?
+
+​	Error通常是指由于硬件环境或者系统原因导致的
+​		程序员通过编码无法解决的 相对较严重的问题
+​	Exception就是指程序运行过程当中出现的例外情况而已
+
+#### 04.运行时异常和非运行时异常的区别?
+
+​	运行时异常在编译的时候不要求给出处理方案
+​		编译能够直接通过 问题会在运行的时候直接体现出来
+​			它们都直接继承RuntimeException
+​	非运行时异常在编译的时候必须给出处理方案
+​		否则编译无法通过 它们直接继承Exception
+
+	*: 无论运行时异常还是非运行时异常一定都在运行的时候出现
+		编译的时候找你要处理方案 不是异常出现
+
+#### 05.常见的运行时异常 至少8种
+
+​	过
+
+#### 06.如何处理异常？
+
+​	a> 抛还上级 throws 
+​		throws 出现在方法签名的最后 
+​			用于表达本方法中出现指定种类的异常
+​			本方法中不做处理 抛还给调用的上级进行处理
+​	b> 自行处理 try catch finally
+​		try{
+​			可能出现异常的语句;
+​		}catch(要捕获的异常类型 异常代号){
+​			对捕获的异常进行处理
+​			0.隐瞒不报
+​			1.简要的审   getMessage()
+​			2.详细的审   printStackTrace();
+​			3.谎报 throw new ????Exception();
+
+		}finally{
+			无论是否出现异常最终都要执行的操作
+			通常是释放和关闭资源的操作;
+		}
+
+
+*: JDK7.0之前和之后 如果对多种捕获到的异常要做相同的处理
+	各自应该怎么写
+
+	JDK7.0之前			JDK7.0开始
+	try{				try{
+	
+	}catch(Exception1 e){		}catch(Exception1 | Exception2 e){
+	
+	}catch(Exception2 e){		}
+					*:多重catch
+	}
+
+*: finally当中的语句一定会执行吗？如何不让它执行呢？
+	System.exit(0); //结束虚拟机
+
+#### 07.如何自定义异常并指定异常表述，请写出代码？
+
+​	class EtoakException extends RuntimeException{
+​		public EtoakException(){
+​			super("异常的描述信息");//message
+​		}
+​	}
+
+*: throw和throws的区别?
+	throw 用在方法体当中 用于在本没有异常的情况下 
+		主动制造异常出现
+					【没事找事型】
+	throws 出现在方法签名的最后 
+		用于表达本方法中出现指定种类的异常
+		本方法中不做处理 抛还给调用的上级进行处理
+					【有事甩锅性】
+
+*: 请写出几个你常见的非运行时异常
+	IOException
+	CloneNotSupportedException
+	AWTException       (Robot)     
+	
+	InterruptedException    (sleep() join()  wait()  get())
+
+
+
+#### 08.创建线程的方式有哪些？请写出代码
+
+​	class A extends Thread{
+​		@Override
+​		public void run(){
+​			...;
+​		}
+​	}
+​	class B implements Runnable{
+​		@Override
+​		public void run(){
+​			...;
+​		}
+​	}
+​	class C implements Callable<T>{
+​		@Override
+​		public T call()throws Exception{
+​			...;
+​		}
+​	}
+
+*: Callable接口啥时候出现的 谁写的?
+	JDK5.0的时候 Doug Lea 在JUC包当中提供的实现
+
+*: JUC包当中都有哪些内容？
+	a> 多线程高并发的场景下 更加好用的集合
+			ConcurrentHashMap & CopyOnWriteArrayList & CopyOnWriteArraySet
+	b> 多线程开发中常用的各种工具
+			倒计时门闩 CountDownLatch
+	c> 第三种实现线程的方式 以及线程池的实现
+			ExecutorService
+	d> locks子包当中提供了新的加锁机制 可重入锁
+			ReentrantLock
+
+#### 9.线程是什么 多线程的适用场景有哪些？
+
+​	线程是程序当中一条独立的执行线索
+​	而多线程编程 就是让程序当中拥有多条不同的执行线索
+​	
+
+	当程序当中需要同一时间做多件事 同一时间处理多个请求
+	都必须使用多线程 （某些场景下多线程也可以提高效率）
+
+#### 10.线程状态有哪些？
+
+​	
+
+	新生		就绪		运行		消亡
+	
+				阻塞
+	
+		普通阻塞		锁池		等待池
+
+#### 11.控制线程的方法有哪些?
+
+​	0.setPriority(int) : 设置线程优先级别 可选范围1-10 默认5
+​	1.static sleep(long) : 让当前线程休眠指定的毫秒数
+​	2.static yield() : 让当前线程放弃时间片返回就绪
+​	3.join() : 当前线程邀请调用方法的线程优先执行
+
+#### 12.并发修改异常和并发错误有什么区别?
+
+​	并发错误编译不报错 运行没异常 语法完全正确 只是逻辑上数据全是错的
+​	并发修改异常是为了避免程序运行出现并发错误
+​	而由官方程序员主动校验 主动抛出的运行时异常
+​	以防止程序进一步执行就该出现并发错误了
+
+#### 13.什么场景下会导致并发错误 怎么处理并解决并发错误？
+
+​	多个线程同时操作同一份数据 线程体当中连续的多行语句
+​		未必能够连续执行 很可能操作只完成了一部分
+​		时间片突然耗尽 此时另一个线程抢到时间片
+​		直接拿走了操作不完整的数据
+​			语法上没有任何错误 数据在逻辑上都是错的
+
+	加锁
+		1.语法级别的加锁 synchronized 操作互斥锁
+		2.面向对象的加锁 ReentrantLock 可重入锁
+
+#### 14.synchronized特性有哪些 synchronized可以修饰什么
+
+​	隔代丢失
+​	synchronized修饰的方法可以被子类继承但是其synchronized特性就不见了
+
+	synchronized 可以修饰代码块 可以修饰方法
+
+#### 15.造成死锁的原因？该如何解决？
+
+​	多个线程相互持有对方想要申请的资源 不释放的情况下
+​	又去申请对方已经持有的资源
+​	从而双双进入对方资源的锁池当中 产生永久的阻塞
+
+	使用对象的等待池和操作等待池的方法：
+		wait() notify() notifyAll()
+
+#### 16.锁池和等待池的区别？
+
+​	过
+
+#### 17.shutdown()和shutdownNow()的区别?
+
+​	过
+
+#### 18.线程池是什么 为什么要使用线程池
+
+​	线程池是一种标准的资源池模式 资源池会在用户出现之前
+​		提前预留活跃资源 从而在用户出现的第一时间
+​		直接提供给用户资源
+​	并且将资源的创建和销毁都委托给资源池完成 从而优化用户体验
+
+	有效的提高效率 优化用户体验
+
+
+
+#### 19.创建线程池的三种方法
+
+​	newFixedThreadPool(int) : (固定大小)修复后可重用的
+​	newCachedThreadPoo() : 缓存机制的
+​	newSingleThreadExecutor() : 单一实例的
+
+#### 20.如果要自己创建线程池执行器 需要指定几个参数 各自代表什么含义
+
+​	5个
+​	1.线程池当中核心线程的数量
+​	2.线程池当中最大线程数量
+​	3.KeepAliveTime 保持活着的时间   数词
+​	4.TimeUnit 时间单位 		量词
+​	5.一个队列 用于存放排队的线程任务
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
