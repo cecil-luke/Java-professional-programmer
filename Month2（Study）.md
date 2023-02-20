@@ -1523,7 +1523,162 @@ try{
 
 
 
+# day29
 
+#### java.io.File		文件
+
+构造方法：
+	new File(String 路径)
+	new File(String 父目录,String 文件名)
+	new File(File 父目录对象,String 文件名)
+
+	*: 路径 = 相对路径 or 绝对路径
+	   相对路径: 从程序认定的主目录出发定位我们要找的文件
+	   绝对路径: 从盘符或者根目录出发定位我们要找的文件
+	
+		if(str.charAt(1) == ':' || str.startsWith("/")){
+			绝对路径
+		}else{
+			相对路径
+		}
+	
+	*: File.separator 路径分界符
+	
+	挖掘机技术哪家强？中国山东找蓝翔
+	蓝翔里面有小明.exe 请用兼容性最好的方式
+	定位文件小明.exe
+	
+	File f1 = new File("中国\\山东\\蓝翔\\小明.exe");
+						// 50
+	
+	File f2 = new File("中国/山东/蓝翔/小明.exe");
+						// 60
+	
+	StringBuffer buff = new StringBuffer();
+	buff.append("中国").append(File.separator);
+	buff.append("山东").append(File.separator);
+	buff.append("蓝翔").append(File.separator);
+	buff.append("小明.exe");
+	File f3 = new File(buff.toString());
+						// 80
+	File sd = new File("中国","山东");
+	File bf = new File(sd,"蓝翔");
+	File xm = new File(bf,"小明.exe");
+						//100
+
+#### 特等优先级方法：3个	listRoot() list() listFiles()
+
+​	static listRoots() : 列出当前计算机的所有根目录
+​	String[] **list()** : 列出一个目录当中所有的**文件名字**
+​	File[] **listFiles()** : 列出一个目录当中所有的**文件对象**
+
+#### 一等优先级方法：12个
+
+​	4 : 只读操作的方法
+
+	exists() : 判断File对象代表的目录或者文件是否已经存在
+		*: File对象既可以代表已经存在的文件
+			也可以代表尚不存在的文件
+	
+	isFile() : 判断File对象代表的是不是一个文件
+	isDirectory() : 判断File对象代表的是不是一个目录
+		*: File对象既可以代表一个文件 
+			又可以代表一个目录
+	
+	length() : 得到文件的字节个数 long类型
+		length    length()   size()   length()
+		数组       字符串     集合      文件
+		int        int        int      long
+		*: 该方法不要对目录调用 得到的是非预期结果
+	
+	3 写操作的方法
+	
+	========== 注意 如下三个方法高危 谨慎测试 ========
+	
+	delete() : 删除File对象代表的文件或者目录...
+		*: 注意 该方法不会经过回收站..就没了
+		*: 注意 如果要删除的是个目录 则必须保证目录是空的
+			否则删除失败
+	
+	mkdirs() : make directories = 创建多层目录结构
+		*: File类还有一个方法叫mkdir()
+			这个方法只能建一层不存在的目录结构
+	renameTo() : 重命名文件或者目录
+	
+		a.renameTo(c);   a源文件 c目标文件
+		*: a必须exists()   c必须!exists()
+		*: 如果a和c给出不同的目录结构 可以实现移动剪切
+
+
+	3 得到信息
+	getName() : 得到文件或者目录的名字
+	getParent() : 得到文件或者目录的父目录
+	getAbsolutePath() : 得到文件或者目录的绝对路径
+	
+	2 修改时间
+	setLastModified() : 设置文件最后一次修改时间
+	lastModified() : 得到文件最后一次修改时间
+
+*: 如何解析时间戳:
+		1. java.util.Date
+			getYear()   getMonth()+1  getDate()
+			getHours()  getMinutes()  getSeconds()
+	
+
+2. java.util.Calendar
+			    getInstance()   setTimeInMillis()  
+			**get(x)**   1 2+1 5  11 12 13  7-1
+	
+3. java.text.SimpleDateFormat
+			    **format()** : 从**时间戳**到**字符串**
+			**parse() + getTime()** : 从字符串到时间戳
+
+=================================================================
+
+#### 总结：
+
+#### File类的方法
+
+构造方法
+	new File(String 路径)
+	new File(String 父目录,String 文件名)
+	new File(File 父目录对象,String 文件名)
+
+#### 一等优先级方法 12
+
+​	4  exists()  isFile()  isDirectory()  length()
+​	3  delete()  mkdirs()  renameTo()	
+​	3  getName() getParent() getAbsolutePath()
+​	2  setLastModified()  lastModified()
+
+======================================
+
+#### 时间戳解析 解析时间的三种方式和n多方法~
+
+	1st. java.util.Date
+		getYear()+1900    getMonth()+1   getDate()
+		getHours()        getMinutes()   getSeconds()
+		getDay()
+	
+	2nd. java.util.Calendar
+		getInstance()
+		setTimeInMillis()
+		get(x)	1 2+1 5 11 12 13 7-1
+	
+	3rd. java.text.SimpleDateFormat
+		format() : long  ->  String
+		parse() + getTime() : String -> long
+
+
+
+
+
+
+
+
+
+
+​	
 
 
 
