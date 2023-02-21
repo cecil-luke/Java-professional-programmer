@@ -1671,12 +1671,99 @@ try{
 
 
 
+# day30
+
+#### review
+
+#### java.io.File
+
+#### 构造方法：
+
+​	new File(String 路径)
+​	new File(String 父目录,String 文件名)
+​	new File(File 父目录对象,String 文件名)
+
+	*: 相对路径 or 绝对路径
+	*: File.separator  路径分界符..
+
+#### 特等优先级方法：
+
+​	static listRoots() : 得到一台计算机的所有根目录
+​	String[] list() : 列出一个目录当中所有的文件名字
+​	File[] listFiles() : 列出一个目录当中所有的文件对象
+
+一等优先级方法：
+	4: exists()  isFile()  isDirectory()  length() 
+	3: delete()  mkdirs()  renameTo()
+	3: getName()  getParent()  getAbsolutePath()
+	2: setLastModified()   lastModified()
+
+#### 解析时间戳:
+
+​	1st. java.util.Date
+​		getYear()+1900   getMonth()+1  getDate()
+​		getHours()       getMinutes()  getSeconds()
+
+	2nd. java.util.Calendar
+		getInstance()
+		setTimeInMillis()
+		get(x)   1 2+1 5 11 12 13  7-1
+	
+	3rd. java.text.SimpleDateFormat
+		format() : long -> String
+		parse() + getTime() : String->long
 
 
 
+================================================================
 
+#### IO流
 
+IO流~    I = Input = 输入    O = Output = 输出
 
+	流 = 数据从源点传输到汇点的"管道"
+
+流的分类：
+	按照方向分：	输入流   输出流		*:参照物 = 当前程序
+	按照单位分：	字节流   字符流
+	按照功能分：	节点流   过滤流(包装流、处理流)
+
+一起上路：
+	
+**InputStream**	所有字节输入流统一的父类 抽象类
+	int read()
+	int read(byte[] data)
+	int read(byte[] data,int off,int len)
+
+**OutputStream**	所有字节输出流统一的父类 抽象类
+	write(int data)
+	write(byte[] data)
+	write(byte[] data,int off,int len)
+
+**FileInputStream**		输入流 字节流 节点流
+**FileOutputStream**	输出流 字节流 节点流
+	*: 它们都是节点流 构造方法允许传入File对象/String文件路径
+
+​	*: 它们都是节点流 但是不能连接目录 只能连接文件...
+​	*: FileInputStream 最常用的read(byte[])
+​	*: FileOutputStream 最常用的write(byte[],int,int)
+​	*: FileInputStream 以-1作为读取结束的标识
+​	*: FileOutputStream 是节点输出流
+​		节点输出流创建对象的时候 如果连接的文件不存在
+​		也会在创建流的那一刻 自动创建出来
+​		所以File类当中有个方法叫createNewFile() 咱没讲
+​		但是 如果连连接的目录结构都不存在
+​		不但不会创建 还会出现异常
+​		所以File类当中有个方法叫mkdirs() 一等优先级
+​	*: FileOutputStream是节点输出流 它有极强的杀伤性
+​		节点输出流创建对象的时候 即便连接的文件已经存在
+​		也会在创建流的那一刻被新的空白文件直接替换
+​		如果我们的需求是在原有内容之后追加连接新内容而不要替换
+​		可以构造方法传参 指定追加模式开启
+​		  new FileOutputStream("abc.txt",true);
+​	*: 必须学会标准try-catch 和 TWR两种处理异常
+
+=====================================================
 
 ​	
 
