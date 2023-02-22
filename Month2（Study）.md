@@ -1745,36 +1745,229 @@ IO流~    I = Input = 输入    O = Output = 输出
 	*: 它们都是节点流 构造方法允许传入File对象/String文件路径
 
 ​	*: 它们都是节点流 但是不能连接目录 只能连接文件...
-​	*: FileInputStream 最常用的read(byte[])
-​	*: FileOutputStream 最常用的write(byte[],int,int)
-​	*: FileInputStream 以-1作为读取结束的标识
-​	*: FileOutputStream 是节点输出流
+​	*: FileInputStream 最常用的**read(byte[])**
+​	*: FileOutputStream 最常用的**write(byte[],int,int)**
+​	*: FileInputStream 以**-1**作为读取结束的标识
+​	*: FileOutputStream 是<u>节点输出流</u>
 ​		节点输出流创建对象的时候 如果连接的文件不存在
 ​		也会在创建流的那一刻 自动创建出来
 ​		所以File类当中有个方法叫createNewFile() 咱没讲
 ​		但是 如果连连接的目录结构都不存在
-​		不但不会创建 还会出现异常
-​		所以File类当中有个方法叫mkdirs() 一等优先级
-​	*: FileOutputStream是节点输出流 它有极强的杀伤性
+​		<u>不但不会创建 还会出现异常</u>
+​		所以File类当中有个方法叫**mkdirs() 一等优先级**
+​	*: FileOutputStream是<u>节点输出流</u> 它有**极强的杀伤性**
 ​		节点输出流创建对象的时候 即便连接的文件已经存在
 ​		也会在创建流的那一刻被新的空白文件直接替换
 ​		如果我们的需求是在原有内容之后追加连接新内容而不要替换
-​		可以构造方法传参 指定追加模式开启
-​		  new FileOutputStream("abc.txt",true);
-​	*: 必须学会标准try-catch 和 TWR两种处理异常
+​		可以<u>构造方法传参</u> **指定追加模式开启**
+​		  **new FileOutputStream("abc.txt",true);**
+​	*: 必须学会标准**try-catch** 和 **TWR**两种处理异常
 
 =====================================================
 
 ​	
 
+# day31
+
+#### review
+
+流：数据从源点传输到汇点的"管道"
+
+三种分类：
+	按照方向：	输入流	输出流
+	按照单位：	字节流	字符流
+	按照功能：	节点流	过滤流
+
+InputStream	所有字节输入流统一的父类 抽象类
+	int read()
+	int read(byte[] data)			*****
+	int read(byte[] data,int off,int len)
+
+OutputStream	所有字节输出流统一的父类 抽象类
+	write(int data)
+	write(byte[] data)
+	write(byte[] data,int off,int len)	*****
+
+FileInputStream		输入流 字节流 节点流
+FileOutputStream	输出流 字节流 节点流
+	*: 它们都是节点流构造方法允许传入<u>File对象/String路径</u>
+	*: 它们都是节点流但是<u>只能连接文件不能连接目录</u> [**FileNotFoundException .. 拒绝访问**]
+	*: FileInputStream 最常用的**read(byte[])**
+	*: FileOutputStream 最常用的却是**write(byte[],int,int)**
+	*: FileInputStream 以**-1**作为读取结束的标识
+	*: FileOutputStream 是节点输出流
+		节点输出流创建对象的时候 如果连接的文件不存在
+		也会自动创建出来 不用程序员自己建
+		但是如果<u>连接的目录结构都不存在</u> 将直接异常(**FileNotFoundException ...系统找不到指定路径**)
+	*: 节点输出流创建对象的时候 如果连接的文件已经存在
+		也会在创建流的那一刻被新的空白文件**直接替换**
+		如果不想替换 而要**追加新内容** 构造方法必须传参
+		**new FileOutputStream("a.txt",true);**
+	*: **TWR** 带有资源控制的try catch语法 (自动关闭)
+
+=====================================================
+
+#### [课程内容]
+
+#### DataouputStream  DataInputStream
+
+InputStream		所有字节输入流统一的父类 抽象类
+OutputStream		所有字节输出流统一的父类 抽象类
 
 
 
+FileInputStream		输入流 字节流 节点流
+FileOutputStream	输出流 字节流 节点流
 
 
 
+BufferedInputStream	输入流 字节流 过滤流
+BufferedOutputStream	输出流 字节流 过滤流
+	*: 作为过滤流的它们是**为了给原本的流添加缓冲空间**
+		从而提高每次读写吞吐量 进而提高效率的
+	*: 它们都是过滤流 <u>不能直接连接文件 只能连接其它的流</u>
+	*: 它们的构造方法第二个参数 都可以指定缓冲空间大小
+		**默认8192字节 8k**
+	*: BufferedInputStream 最常用的是**read()**
+	*: BufferedOutputStream 最常用的是**write(int data)**
+	*: BufferedInputStream 同样以**-1**作为读取结束的标识
+	*: BufferedOutputStream 是<u>带缓冲区的输出流</u>
+		使用带缓冲区的输出流 务必注意及时**清空缓冲**
+		以防止数据滞留缓冲空间导致丢失...
+		缓冲区清空：
+			1.满了自动清空无需操作
+			2.关闭流的操作会触发清空缓冲
+			3.主动调用方法清空: **flush()**;
 
 
+
+DataInputStream		输入流 字节流 过滤流
+DataOutputStream	输出流 字节流 过滤流
+	*: 作为过滤流的它们 给原本的流添加读写基本数据类型的功能
+	*: 作为过滤流的它们 不能直接连接文件 只能连接其它的流
+
+	*: boolean char byte short int long float double
+	*: DataInputStream 核心方法 readXxxx() - 有返回值
+	*: DataOutputStream 核心方法 writeXxxx() - 有参数
+	*: DataInputStream 不能再以-1作为读取结束的标识了
+		而是一旦到达文件结尾还继续尝试读取
+		将直接触发EOFException -> End Of File
+
+#### ObjectInputStream ObjectOutputStream
+
+ObjectInputStream	输入流 字节流 过滤流
+ObjectOutputStream	输出流 字节流 过滤流
+	*: 作为过滤流的它们 给原本的流添加读写对象的功能
+	*: 作为过滤流的它们 不能直接连接文件 只能连接其它的流
+	*: ObjectInputStream 核心方法 **readObject() - 有返回值**
+	*: ObjectOutputStream 核心方法 **writeObject() - 有参数**
+	*: ObjectInputStream 同样不以-1作为读取结束的标识
+	*: 想要持久化 必须先要**序列化**
+		想要保存到磁盘上的对象的类型 
+		必须要实现**Serializable接口**
+		如果这个类型当中有其它引用类型的属性
+		就连这些属性的类型也必须要实现序列化接口
+		如果某些属性无关紧要 不需要参与持久化保存
+		可以使用修饰符**transient**修饰
+		transient 短暂的 转瞬即逝的 不参与持久化的
+	*: 如果想要持久化的是一个集合对象
+		则必须保证集合当中的元素的类型
+		必须实现序列化接口
+		如果要持久化的是一个使用了比较器的TreeSet或者TreeMap
+		就连这个比较器的类 也必须要实现序列化接口
+		（因为这个比较器是TreeSet或者TreeMap的一个属性）
+
+
+
+​	================================================================
+
+#### 字节流内容汇总
+
+字节流要点汇总：
+
+InputStream		所有字节输入流统一的父类 **抽象类**
+OutputStream	所有字节输出流统一的父类 **抽象类**
+
+FileInputStream	   节点流 用于连接文件
+FileOutputStream	节点流 用于连接文件
+	*:不能连接目录 只能连接文件
+	*:FileOutputStream **有极强的杀伤性**
+		new对象的时候 会覆盖文件 除非指定追加模式
+
+BufferedInputStream	给原本的流添加缓冲空间 从而提高读取效率
+	read()
+
+BufferedOutputStream	给原本的流添加缓冲空间 从而提高写出效率
+	write(int data)
+	*: 带缓冲区的输出流 一定注意及时清空缓冲 否则数据丢失
+
+
+DataInputStream		给原本的流添加读取基本数据类型的功能
+	readXxxx()
+DataOutputStream	给原本的流添加写出基本数据类型的功能
+	writeXxxx();
+
+ObjectInputStream	给原本的流添加读取对象的功能
+	readObject();
+ObjectOutputStream	给原本的流添加写出对象的功能
+	writeObject();
+
+
+
+#### *: 复制文件的时候 文件变大了 
+
+​	没有使用三个参数的write(byte[],int,int)
+​	会将上次读取的剩余数据 再次写出到目标文件
+
+#### *: 复制文件的时候 文件变小了 
+
+​	使用了带缓冲区的输出流 没有及时清空缓冲
+​	数据滞留在缓冲空间当中
+
+#### *: NotSerializableException
+
+​	要持久化到磁盘当中的对象的类型 没有实现序列化接口
+
+#### *: InvalidClassException
+
+​	不成立的类型异常
+​	使用ObjectOutputStream写出对象之后
+​		使用ObjectInputStream读取对象之前
+​		对这个类进行了<u>修改</u> 从而导致
+​		序列化的唯一序列号 不一致了
+
+
+
+	Buffered	Data		 Object
+	加缓冲提高效率	读写基本数据类型	 读写对象
+
+学好IO流必须要会的8大需求：
+
+	1.使用FileInputStream+FileOutputStream 
+		配合一个数组 完成文件复制
+	
+	2.使用BufferedInputStream + BufferedOutputStream
+		一次一个字节的 完成文件复制
+	
+	3.将内存当中一个基本数据类型的变量 DataOutputStream
+		例如 double PI = 3.14159265;
+		保存到磁盘文件当中
+	
+	4.从文件当中读取那个基本数据类型的double回来
+		DataInputStream    readDouble()
+	
+	5.将内存当中一个引用类型的对象 ObjectOutputStream
+		Student stu = new Student()保存到磁盘文件中
+		*：必须序列化...
+	
+	6.从文件当中读取一个引用类型的对象 ObjectInputStream
+	
+	7.
+	
+	8.
+
+
+===============================================================
 
 
 
