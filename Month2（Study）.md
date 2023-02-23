@@ -1966,16 +1966,193 @@ ObjectOutputStream	给原本的流添加写出对象的功能
 	
 	8.
 
-
 ===============================================================
 
+# day32
+
+#### review
+
+InputStream			所有字节输入流统一的父类 抽象类
+OutputStream		所有字节输出流统一的父类 抽象类
+FileInputStream		字节流 输入流 节点流
+FileOutputStream	 字节流 输出流 节点流
+BufferedInputStream		字节流 输入流 过滤流(添加缓冲提高读取效率) **read()**
+BufferedOutputStream	字节流 输出流 过滤流(添加缓冲提高写出效率) **write(int data)**
+DataInputStream		字节流 输入流 过滤流(提供读取基本数据类型的功能) **readXxxx()**
+DataOutputStream	字节流 输出流 过滤流(提供写出基本数据类型的功能) **writeXxxx()**
+ObjectInputStream		字节流 输入流 过滤流(提供读取对象的功能) **readObject()**
+ObjectOutputStream	字节流 输出流 过滤流(提供写出对象的功能) **writeObject()**
+
+=======================================================================
+
+#### 字符流最核心的两个需求
+
+7.以一行为单位**写出**文本文件   **PrintWriter**
+	核心代码：
+		PrintWriter pw = new PrintWriter("春晓.txt");
+		pw.println("春眠不觉晓");
+		pw.close();
+
+	TWR：
+		try(PrintWriter pw = new PrintWriter("春晓.txt")){
+			pw.println("春眠不觉晓");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+
+8.以一行为单位**读取**文本文件   **BufferedReader**
+	核心代码：
+		FileReader fr = new FileReader("focus.txt");
+		BufferedReader br = new BufferedReader(fr);
+		String str;
+		while((str = br.readLine())!=null){
+			System.out.println(str);
+		}
+		br.close();
+
+	TWR：
+		try(BufferedReader br = new BufferedReader(new FileReader("focus.txt"))){
+			String str;
+			while((str = br.readLine())!=null){
+				System.out.println(str);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+==============================================================
+
+#### focus
+
+**Reader**		所有字符**输入流**统一的父类 抽象类
+	int read()
+	int read(char[] data)
+	int read(char[] data,int off,int len)
+
+**Writer**		所有字符**输出流**统一的父类 抽象类
+	write(int data)
+	write(char[] data)
+	write(char[] data,int off,int len)
+
+**FileReade**r	字符流 输入流 节点流
+**FileWriter**	 字符流 输出流 节点流
+	*: 它们都是节点流 构造方法可以传入**File对象**/**String路径**
+	*: 它们都是节点流 但是只能连接文件 不能连接目录
+		否则直接出现异常 FileNotFoundException (拒绝访问)
+	*: FileReader 最常用的read(char[] data)
+	*: FileWriter 最常用的却是write(char[],int,int)
+	*: FileReader 以-1作为读取结束的标识
+	*: FileWriter 是节点输出流
+		节点输出流创建对象的时候 即便连接的文件不存在
+		也会在创建流的那一刻 自动创建出来 不需要自己建
+		File类有个createNewFile() 咱们没讲
+		但是如果其连接的目录结构都不存在 将直接异常
+		FIle类的**mkdirs()** **一等优先级**
+	*: **FileWriter** 是节点输出流 有极强的**杀伤性**
+		如果创建对象的时候 连接的文件已经存在
+		也会在创建流的那一刻 被新的空白文件直接替换
+		如果不想替换 想要追加连接新内容
+		可以构造方法传参 <u>指定追加模式开启</u>
+		new FileWriter("a.txt",**true**)
+
+**BufferedReader**		字符流 输入流 过滤流
+**BufferedWriter**		 字符流 输出流 过滤流
+	*: 作为**过滤流**的它们 给原本的流添加一个变长的缓冲空间
+		从而实现以行(hang)为单位的读写
+	*: 作为过滤流的它们 **不能直接**连接文件 **只能**连接其它的流
+	*: BufferedReader  String **readLine()**
+	*: BufferedWriter  write(String) + newLine()
+	*: BufferedReader 以**null**作为读取结束的标识
+
+**PrintWriter** 比 <u>BufferedWriter</u> 强大很多~
+	1.它既可以当做节点流 又可以当做过滤流
+		构造方法允许传入 File对象/String文件路径/流
+	2.它既可以连接字节流 又可以连接字符流
+		构造方法允许传入 OutputStream / Writer
+	3.当做**节点流**使用的时候 **构造方法第二个参数可以指定字符编码**
+		PrintWriter pw = new PrintWriter("a.txt",**"utf-8"**);
+	4.当做过滤流使用的时候 **构造方法第二个参数可以指定自动清空缓冲**
+		PrintWriter pw = new PrintWriter(fw,**true**);
+	5.println() = write() + newLine()
+	6.我们对他的孪生兄弟特别熟悉 PrintStream
+		**System.out**   out属性就是PrintStream类型的
+
+=======================================================================
+
+#### 复习
+
+1 用FileInputStream + FileOutputStream
+	配合一个大数组完成文件复制
+
+7 以行为单位写出文本文件(指定编码)
+	PrintWriter pw = new PrintWriter("a.txt","utf-8");
+	pw.println("内容");
+	pw.close(); //
+
+	*： PrintWriter pw = 
+		new PrintWriter(new FileWriter("a.txt",true),true);
+
+8 以一行为单位读取文本文件（万一要求指定编码就不能直接上字符流）
+	FileInputStream fis = new FileInputStream("a.txt");
+	InputStreamReader r = new InputStreamReader(fis,"utf-8");
+	BufferedReader br = new BufferedReader(r);
+	String str;
+	while((str = br.readLine())!=null){
+		System.out.println(str);
+	}
+	br.close();
+
+2 用BufferedInputStream + BufferedOutputStream
+	一次一个字节的完成文件复制
+3
+4
+5
+6
+
+
+
+*: File类方法
+	4 exists()   isFile()   isDirectory()  length()
+	3 delete()   mkdirs()   renameTo()
+	3 getName()  getParent()  getAbsolutePath()
+	2 lastModified()  setLastModified()
+
+
+	*: 特等优先级的	lastRoots()  list()  listFiles()
+	*: 写操作的	delete()  mkdirs()  renameTo()   setLastModified()
+	*: 特别长的    	getAbsolutePath()
+	
+	|   获得时间   lastModified()   setLastModified()
+	V
+
+*: 时间戳解析
+	java.util.Date
+		getYear()+1900    getMonth()+1   getDate()
+		getHours()        getMinutes()   getSeconds()
+
+	java.util.Calendar
+		getInstance()
+		setTimeInMillis()
+		get(x)   1 2+1 5 11 12 13    7-1
+	
+	java.text.SimpleDateFormat
+		有long 到 String : format()
+		有String 到 long : parse() + getTime()
+
+*: 递归遍历 核心代码
+
+*: 流
+	FileInputStream + FileOutputStream
+
+	EOFException -> DataInputStream ObjectInputStream
+	InvalidClassException -> 
+	
+	*: TWR!
+	*: 文件变大了 变小了
 
 
 
 
-
-
-
+​	=================================================================
 
 
 
