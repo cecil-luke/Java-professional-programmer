@@ -2078,13 +2078,15 @@ ObjectOutputStream	字节流 输出流 过滤流(提供写出对象的功能) **
 
 =======================================================================
 
-#### 复习
+
+
+#### 复习（）
 
 1 用FileInputStream + FileOutputStream
 	配合一个大数组完成文件复制
 
 7 以行为单位写出文本文件(指定编码)
-	PrintWriter pw = new PrintWriter("a.txt","utf-8");
+	**PrintWriter** pw = new PrintWriter("a.txt","utf-8");
 	pw.println("内容");
 	pw.close(); //
 
@@ -2092,23 +2094,21 @@ ObjectOutputStream	字节流 输出流 过滤流(提供写出对象的功能) **
 		new PrintWriter(new FileWriter("a.txt",true),true);
 
 8 以一行为单位读取文本文件（万一要求指定编码就不能直接上字符流）
-	FileInputStream fis = new FileInputStream("a.txt");
-	InputStreamReader r = new InputStreamReader(fis,"utf-8");
-	BufferedReader br = new BufferedReader(r);
+	**FileInputStream** fis = new FileInputStream("a.txt");
+	**InputStreamReader** r = new InputStreamReader(fis,"utf-8");
+	**BufferedReader** br = new BufferedReader(r);
 	String str;
 	while((str = br.readLine())!=null){
 		System.out.println(str);
 	}
 	br.close();
 
-2 用BufferedInputStream + BufferedOutputStream
+2 用**BufferedInputStream + BufferedOutputStream**
 	一次一个字节的完成文件复制
 3
 4
 5
 6
-
-
 
 *: File类方法
 	4 exists()   isFile()   isDirectory()  length()
@@ -2154,14 +2154,348 @@ ObjectOutputStream	字节流 输出流 过滤流(提供写出对象的功能) **
 
 ​	=================================================================
 
+# day33
+
+#### URL
+
+URL => 统一资源定位符 => 网址
+
+
+1.直接下载文件   -> 字节流 原封不动的直接读取和写出2进制数据
+	**URL** url = new URL("");
+	**URLConnection** uc = url.openConnection();
+	**InputStream** is = uc.getInputStream();
+	**FileOutputStream** fos = new FileOutputStream("..");
+	...
+
+2.读取互联网上的数据	-> 字符流
 
 
 
+# day34
+
+#### 01.请用兼容性最好的方式创建File对象代表文件 
+
+​	中国/山东/济南/易途/小明.exe
+
+	*: 路径分界符 和 File类构造方法
+	
+	a> String str = "中国"+File.separator+"山东"+File.separator+"济南"+File.separator+"易途"+File.separator+"小明.exe";
+	   File file = new File(str);
+	   *: 涉及到大量字符串连续追加 效率较差
+	
+	b> StringBuffer buff = new StringBuffer("中国");
+	   buff.append(File.separator).append("山东");
+	   buff.append(File.separator).append("济南");
+	   buff.append(File.separator).append("易途");
+	   buff.append(File.separator).append("小明.exe");
+	   File file = new File(buff.toString());
+	
+	c> File sd = new File("中国","山东");
+	   File jn = new File(sd,"济南");
+	   File etoak = new File(jn,"易途");
+	   File xm = new File(etoak,"小明.exe");
+
+#### 02.获取E盘下(e:/etoak/img/et2301/Jay.png)的文件最后修改时间
+
+​	并格式化为(年-月-日 时:分:秒)
+​	
+
+	File类方法得到最后修改时间 格式化显示时间
+	
+	File file = new File("e:/etoak/img/et2301/Jay.png");
+	long time = file.lastModified(); 
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	String ok = sdf.format(time);
+
+#### 03.递归遍历D:\所有.jpg图片
+
+​	略
+
+#### 04.请写出字节过滤流都有哪些 各自的作用是什么?
+
+​	BufferedInputStream	添加缓冲空间提高读取效率 [小卖部备货]
+​	BufferedOutputStream	添加缓冲空间提高写出效率 [你的肚子]
+​	DataInputStream		添加读取基本数据类型的功能
+​	DataOutputStream	添加写出基本数据类型的功能
+​	ObjectInputStream	添加读取对象的功能
+​	ObjectOutputStream	添加写出对象的功能
+
+#### 05.Java当中如何解析日期和时间 请列出三种不同方式（要求有具体方法）
+
+​	a> java.util.Date
+​		getYear()+1900   getMonth()+1    getDate()
+​		getHours()       getMinutes()    getSeconds()
+​		getTime()   getDay()
+
+	b> java.util.Calendar
+		getInstance()   setTimeInMillis()
+		get(x)    1 2+1 5 11 12 13   7-1
+	
+	c> java.text.SimpleDateForat
+		format()
+		parse()+getTime()
+
+#### 06.请将文件et2301.txt的最后一次修改时间修改为三天前?
+
+	三天前 = 原本修改时间的三天前
+	a> File file = new File("et2301.txt");
+	   long time = file.lastModified();
+	   time -= 3L*24*60*60*1000;
+	   file.setLastModified(time);
+	
+	三天前 = 现在的三天前
+	b> File file = new File("et2301.txt");
+	   long time = System.currentTimeMillis();
+	   time -= 3L*24*60*60*1000;
+	   file.setLastModified(time);
+
+#### 07.将字符串 String str = "2023-02-24 16:29"转换成时间戳(毫秒数)
+
+​	String str = "2023-02-24 16:29";
+​	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+​	long time = sdf.parse(str).getTime();
+
+#### 08.使用TWR语法完成文件复制 源文件(six.mp4)目标文件(666.mp4)
+
+​	try(FileInputStream fis = new FileInputStream("six.mp4");FileOutputStream fos = new FileOutputStream("666.mp4")){
+​		byte[] data = new byte[65536];
+​		int len;
+​		while((len = fis.read(data))!=-1){
+​			fos.write(data,0,len);
+​		}
+​	}catch(Exception e){
+​		e.printStackTrace();
+​	}
+
+#### 09.EOFException是什么异常 怎么触发这个异常?
+
+​	End Of File 意外达到文件结尾的异常
+
+	使用DataInputStream 或者 ObjectInputStream
+	读取数据的时候 已经到达文件结尾还继续尝试读取
+	将直接触发该异常
+
+#### 10.ObjectOutputStream的核心方法是什么?它如何表达读取结束?
+
+​	writeObject()
+​	这是输出流 不能读取数据
+
+#### 11.InvalidClassException在什么情况下会出现?
+
+​	使用ObjectOutputStream写出对象之后
+​	使用ObjectInputStream读取对象之前
+​	对这个类的属性和方法做了改动
+​	从而导致序列化的唯一版本号发生了变化 不一致了...
+
+#### 12.BufferedInputStream构造方法第二个参数是什么含义?
+
+​	指定缓冲空间的大小
+
+	缓冲 Buffer   [教室里面多留空座 叫缓冲]
+	缓存 Cache    [知道你要用这些对象 提前造好]
+
+#### 13.在复制文件的时候 如果文件变小了 通常是为什么?
+
+​	使用了带缓冲区的输出流 并没有及时清空缓冲
+​	所以导致程序执行结束时 数据滞留在缓冲区了
+
+#### 14.缓冲区在什么情况下会清空
+
+​	a> 满了自动清空 无需操作
+​	b> 关闭流的操作触发清空缓冲 (close() / TWR)
+​	c> 主动调用flush();
 
 
 
+#### 15.现在有utf-8编码的文本文件focus.txt 请逐行读取它的内容
+
+​	FileInputStream fis = new FileInputStream("focus.txt");
+​	InputStreamReader r = new InputStreamReader(fis,"utf-8");
+​	BufferedReader br = new BufferedReader(r);
+​	String str;
+​	while((str = br.readLine())!=null){
+​		System.out.println(str);
+​	}
+​	br.close();
+
+#### 16.请将《咏鹅》写出到ye.txt当中 要求ye.txt使用utf-8编码
+
+​	PrintWriter pw = new PrintWriter("ye.txt","utf-8");
+​	pw.println("《咏鹅》");
+​	pw.close();
+
+#### 17.PrintWriter pw = new PrintWriter(new FileWriter("a.txt",true),true);
+
+​	两个true的含义
+​	
+
+	第一个true是传给节点流FileWriter的 
+		代表追加模式打开目标文件 appendMode
+	
+	第二个true是传给PrintWriter的
+		代表自动清空缓冲区(见到换行) autoFlush
+
+#### 18.File类对磁盘有写操作的方法有哪些?
+
+​	delete()   mkdirs()   renameTo()
+​	setLastModified()
+​	
+
+	mkdir()    createNewFile()
+
+#### 19.请写出两种最常见的字符流 并写出它们的核心方法
+
+​	BufferedReader		readLine()
+​	PrintWriter		println()
+
+#### 20.文件下载
+
+​	过...
+​	URL url = new URL("...");
+​	URLConnection uc = url.openConnection();
+​	InputStream is = uc.getInputStream();
+
+	FileOutputStream fos = new FileOutputStream("etoak2301.png");
+	.....
 
 
 
+# day35
+
+#### **Socket	(java.net.Socket)**
+
+套接字 Socket => 一根"电话线"（当中包含两股线 一股输入 一股输出）
+
+CS架构    
+	C = Client = 客户端    S = Server = 服务器
+		例如：QQ  
+
+BS架构 (J2EE) 
+
+	服务器端：			客户端:
+
+====================================================================
+
+#### GUI
+
+GUI => G = **图形** U = **用户** I = **接口**
+	图形用户接口 => 用户图形界面
+
+	java.awt.*;		重量级组件   Button
+	javax.swing.*;		轻量级组件   JButton
+	
+	java.awt.event.*;	事件监听模型
+
+#### 开发用户图形界面常见的6个步骤：
+
+​	**1.选择容器和组件**
+​		**组件**：Component 界面上能够看到的任何事物都被称之为一个组件
+​		**容器**：Container 当组件当中能够添加其它组件的时候 这个组件就是容器
+​		
+
+		常见的容器： JFrame 窗体   JPanel 面板
+		常见的组件： 
+			JButton 按钮
+			JTextField 单行文本框
+			JPasswordField 单行密码框
+			JTextArea 多行文本域
+			JLabel 标签
+			JMenuBar 菜单条
+			JMenu 菜单
+			JMenuItem 菜单项
+
+**2.初始化容器和组件**
+**3.选择布局管理器**
+		a> **BorderLayout**  边框布局 它是JFrame的默认布局
+			把容器的可视范围分割为东西南北中五个区域
+			每个区域只允许添加一个组件
+			不尊重组件的原始大小
+			直接拉伸占满整块区域
+			当东西南北四个区域当中有未使用的区域的时候
+			将直接被中央及其小弟占领
+	
+
+​	b> **FlowLayout**  流水布局 它是JPanel的默认布局
+​			它按照从左到右的顺序依次摆放添加的组件
+​			尊重组件的原始大小 不会拉伸 不会缩放
+​			如果一行摆放不开 则自动换行并且依然居中对齐
+​	
+​	c> **GridLayout**  网格布局 它不是任何容器的默认布局
+​			按照指定的行数列数将可视范围分割成网格
+​			每个单元格 只能添加一个组件
+​			不尊重组件原始大小 直接拉伸占满整个单元格
+​			按照从左到右 自上而下的顺序 依次添加...
+
+**4.将组件添加进容器**
+		容器.add(组件);
+**5.添加事件监听器**
+**6.设置窗体属性**
+		a> 设置窗体大小
+		b> 设置是否可见
+		c> 设置默认关闭操作
+
+===========================================================
+
+~~~ java
+import java.awt.*;
+import javax.swing.*;
+public class LoginFrame{
+	JFrame frame;
+	JPanel top,center,bottom;
+
+	JLabel lab1,lab2,pic;
+	JTextField username,password;
+	JButton register,submit,reset;
+
+	JButton[] bts;
+	public LoginFrame(){
+		frame = new JFrame("易途盛世大酒店 只能点餐系统 v0.8");
+		top = new JPanel();
+		center = new JPanel(new BorderLayout());
+		bottom = new JPanel(new GridLayout(4,9));
+
+		lab1 = new JLabel("用户名:");
+		lab2 = new JLabel("密码:");
+		pic = new JLabel(new ImageIcon("jay.png"));
+		username = new JTextField(12);
+		password = new JPasswordField(12);
+		register = new JButton("注册");
+		submit = new JButton("登录");
+		reset = new JButton("重置");
+
+		bts = new JButton[36];
+		for(int i = 0;i<bts.length;i++){
+			bts[i] = new JButton(i<10 ? i+"" : (char)(i+87)+"");
+			bottom.add(bts[i]);
+		}
+
+		center.add(pic);
 
 
+		top.add(lab1);
+		top.add(username);
+		top.add(lab2);
+		top.add(password);
+		top.add(register);
+		top.add(submit);
+		top.add(reset);
+
+		frame.add(top,"North");
+		frame.add(center);
+		frame.add(bottom,"South");
+
+		frame.setSize(800,640);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(3);
+
+	}
+	public static void main(String[] args){
+		new LoginFrame();
+	}
+}
+~~~
+
+
+
+=============================================================================================
