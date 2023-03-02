@@ -1167,11 +1167,11 @@ try{
 
 #### *: 实现线程有哪些方式？
 
-​	1. extends Thread
+​	1. **extends Thread**
 ​		public void run(){}
-​	2. implements Runnable
+​	2. **implements Runnable**
 ​		public void run(){}
-​	3. implements Callable<T>
+​	3. **implements Callable<T>**
 ​		public T call()throws Exception{}
 
 #### *: 创建线程的第三种方式 优势是什么？
@@ -2407,7 +2407,7 @@ GUI => G = **图形** U = **用户** I = **接口**
 
 **2.初始化容器和组件**
 **3.选择布局管理器**
-		a> **BorderLayout**  边框布局 它是JFrame的默认布局
+		a> **BorderLayout**  边框布局 它是JFrame的<u>默认布局</u>
 			把容器的可视范围分割为东西南北中五个区域
 			每个区域只允许添加一个组件
 			不尊重组件的原始大小
@@ -2515,8 +2515,8 @@ public class LoginFrame{
 *: 注意 **成员内部类** 为了方便共享外部类的组件和容器
 	
 核心代码：
-		String cmd = **ae.getActionCommand()**;//得到动作指令...
-		String old = **password.getText()**;//得到原本的文字
+		String cmd = **ae.getActionCommand()**;//得到**动作指令**...
+		String old = **password.getText()**;//得到**原本的文字**
 		password**.setText**(old + cmd);
 
 #### 02.注册 登录
@@ -2571,8 +2571,42 @@ public class LoginFrame{
 
 
 
+#### Frame登录代码
 
-
+		submit = new JButton("登录");
+		submit.addActionListener((ae) -> {
+			//1.采集用户数据
+			String name = username.getText();
+			String pwd = password.getText();
+			//2.校验数据是否合法
+			if(name.trim().length() == 0 || pwd.trim().length() == 0){
+				JOptionPane.showMessageDialog(frame,"请先输入用户名和密码之后重试");
+				return;
+			}
+			//System.out.println("数据准备就绪 即将连接服务器");
+	
+			Request req = new Request();
+			req.setAskNo(1002);//登录
+			req.setParameter("username",name);
+			req.setParameter("password",pwd);
+	
+			Response res = ClientNetTools.sendAndRead(req);
+			int result = res.getResult();
+			//6.根据结果提示用户
+			if(result == 0){
+				JOptionPane.showMessageDialog(frame,"登录成功");
+				frame.setVisible(false);//隐藏登录窗体
+				try{
+					new OrderFrame(name);//弹出点菜窗体
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}else if(result == 1){
+				JOptionPane.showMessageDialog(frame,"用户名错误 请重新登录");
+			}else if(result == 2){
+				JOptionPane.showMessageDialog(frame,"密码错误 请重新登录");
+			}
+		});
 
 
 
