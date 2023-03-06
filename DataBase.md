@@ -280,7 +280,8 @@ select count(*) num from student;   经过函数修饰的**列**起**别名** �
 select count(1) num from student;
 select count(birthday) num from student;
 
-**去重 distinct**
+#### **去重 distinct**
+
 select count(distinct sal) num from student;
 
 **单行函数：**
@@ -440,9 +441,442 @@ https://localhost:1158/em
 
 
 
+# day03
+
+#### review
+
+Oracle
+
+SQL
+
+DDL
+create  alter  drop  truncate 
+
+DML
+insert  delete  update
+
+DQL
+select
+
+DCL
+grant  revoke
+
+TCL
+commit  rollback  savepoint
+
+Oracle的数据类型：
+字符型：varchar2(20)   char(6)
+数值型：number(5,1)
+日期型：date  timestamp
+
+##### 建表：
+
+create table student(
+id number(5),
+name varchar2(20),
+birthday date,
+sal number(5,1)
+);
+
+drop table student;
+
+##### 增删改查：
+
+新增数据：insert
+insert into student values(1,'zs',sysdate,5000);
+insert into student(id,name,sal) values(2,'ls',6000);
+
+删除数据：delete
+delete from student;
+delete from student where id = 1;
+
+修改数据：update
+update student set sal = sal + 500;
+update student set sal = sal + 500,name = 'lss' where id = 2;
+
+查询数据：select
+select * from student;
+select name,sal from student where id = 2;
+select name,sal from student where name = 'lss' and sal = 5500;
+select name,sal * 1.3 as salary from student;
+select name,sal from student where name like '张%';
+select name,sal from student where name like '张,%' escape ',';
+
+##### 事务：
+
+四个特性：原子性，一致性，隔离性，持久性  CIAD  ACID
+隔离性问题：脏读，幻读，不可重复读
+隔离级别：未提交读，提交读，可重复读，序列化
+
+is null
+is not null
+
+##### 函数：
+
+聚组函数：max()  min()  avg()  sum() count()
+单行函数：ceil()  floor()  abs()  sign()  power()  sqrt()  round()  trunc()
+
+========================================================
+
+#### Day 03
+
+##### 函数：(聚组、单行)
+
+聚组函数：max()  min()  avg()  sum() count()
+单行函数：ceil()  floor()  abs()  sign()  power()  sqrt()  round()  trunc()
+
+##### 字符函数：
+
+upper()：转换成大写
+lower()：转换成小写
+initcap()：首字母大写
+length()：求长度
+select name,upper(name) uname,lower(name) lname,initcap(name) iname,
+length(name) lename from student;
+
+##### substr(a1,a2,a3)：截取字符串
+
+a1：原字符串
+a2：从哪开始截取
+a3：截取长度
+select substr('woshizhizhuxia',3) str from dual;
+select substr('woshizhizhuxia',3,9) str from dual;
+
+##### replace(a1,a2,a3)：替换字符串
+
+a1：原字符串
+a2：要替换的字符
+a3：替换成的字符
+select replace('woshizhizhuxia','h') str from dual;
+select replace('woshizhizhuxia','h','0000') str from dual;
+
+##### instr(a1,a2,a3,a4)：索引字符串
+
+a1：原字符串
+a2：想要找到的字符
+a3：从哪开始找
+a4：第几次出现
+select instr('woshizhizhuxia','h') str from dual;
+select instr('woshizhizhuxia','h',5) str from dual;
+select instr('woshizhizhuxia','h',5,2) str from dual;
+
+##### concat(a1,a2)：拼接字符串
+
+select concat(name,sal) str from student;
+select concat(concat(name,birthday),sal) str from student;
+
+练习：
+新增字段phone，新增phone数据，15556785678，18888888888，13856987896
+查询效果展示如：155****5678，188****8888，138****7896
+--14查询员工名字中不包含字母“S”员工  -- 用三种做法
+--14查询员工名字中包含字母“S”员工  -- 用三种做法
+--15查询员工姓名的第2个字母为“M”的员工信息  -- 用三种做法
+
+##### 转换函数：
+
+###### to_number()：
+
+将一个字符类型的数值转换成数值类型  
+select name,phone from student where to_number(phone) = 15556785678;
+
+###### to_char()：
+
+1.将数值类型转换成字符类型
+select name,sal from student where to_char(sal) = '5150';
+2.将**日期类型**转换成**字符类型**
+select to_char(sysdate,'yyyy-mm-dd hh24:mi:ss') str from dual;
+select to_char(systimestamp,'yyyy-mm-dd hh24:mi:ss:ff3') str from dual;
+3.格式化字符串，常用在货币单位   
+select to_char('1000000','999,999,999.99') str from dual;
+
+###### to_date()：
+
+将一个字符类型的日期转换成日期类型
+select to_date('20230306111313','yyyy-mm-dd hh24:mi:ss') time from dual;
+
+练习：
+有一个字符串'20230306111616'，取出年，取出月，取出日
+
+展示效果：
+year     month     day
+2023        03         06
+
+##### 日期函数：
+
+两个日期可以相减，单位是天
+
+sqlplus中修改日期展示格式：
+<u>一次性修改方法：</u>
+alter session set nls_date_format = 'yyyy-mm-dd hh24:mi:ss';
+永久修改方法：详见环境变量
+
+yyyy    年    year   
+mm     月   month  带'月'的月份
+ddd     日   年中的日
+dd       日   月中的日
+d         日   周中的日
+hh24   24小时制
+hh12   12小时制
+mi       分
+ss        秒
+xff       毫秒
+ff3       毫秒保留三位
+
+###### add_months()：在某个日期上添加多少个月
+
+select add_months(sysdate,3) time from dual;
+
+###### months_between()：两个日期之间存在多少月
+
+select months_between(sysdate,to_date('20230606','yyyy-mm-dd')) time from dual;
+
+###### next_day()：下一个周几是哪天
+
+select next_day(sysdate,'星期一') time from dual;
+
+###### last_day()：给定日期所在月份的最后一天
+
+select last_day(sysdate) time from dual;
+
+练习：
+--10查询各月倒数第3天入职的员工信息
+
+##### 通用函数：
+
+###### nvl(原字符串,是空展示什么)：空值处理
+
+select name,nvl(birthday,sysdate) birth from student;
+
+###### nvl2(原字符串,不是空展示什么,是空展示什么)：空值处理二代
+
+select name,nvl2(birthday,birthday,sysdate) birth from student;
+
+练习：
+--8查询所有员工 工资和奖金的和  
+
+###### decode(c1,c2,c3,c4,c5...Cx,Cx+1)：
+
+c1是原字符串，从第二个参数开始，每两个参数看作是一组，拿每组的第一个参数和c1进行比较，如果相同则返回该组的第二个参数
+
+相当于：
+第一次比较：c2 == c1 ? c3 ：
+第二次比较：c4 == c1 ? c5 ：
+...
+
+如果参数个数是奇数个，并且最终判断没有相同的值，则返回空
+如果参数个数是偶数个，并且最终判断没有相同的值，则返回最后一个参数的值
+
+*：如果部门编号是10，则工资涨五百，如果部门编号是20，则工资减五百，其他部门加二百
+select ename,deptno,sal,decode(deptno,10,sal + 500,20,sal - 500,sal + 200) salary from emp;
+
+*：如果部门编号是10，则工资涨五百，如果部门编号是20，则工资减五百
+select ename,deptno,sal,decode(deptno,10,sal + 500,20,sal - 500) salary from emp;
+
+练习：
+如果工种为CLERK，则工资减三百，如果工种为SALESMAN，则工资加三百，其他工种减二百
+
+###### 条件取值语句：
+
+(case  -- 拿来做比较的值
+when -- 如果..
+then  -- 则..
+else   -- 否则..
+end)  -- 结束
+
+*：如果部门编号是10，则工资涨五百，如果部门编号是20，则工资减五百，其他部门加二百
+select ename,deptno,sal,(case deptno when 10 then sal + 500 when 20 then sal - 500 else sal + 200 end) salary from emp;
+
+*：如果部门编号是10，则工资涨五百，如果部门编号是20，则工资减五百
+select ename,deptno,sal,(case deptno when 10 then sal + 500 when 20 then sal - 500  end) salary from emp;
+
+练习：
+如果工种为CLERK，则工资减三百，如果工种为SALESMAN，则工资加三百，其他工种减二百
+
+###### 分组：group by
+
+在一张表中，将某个或者多个列上相同的值划分为一个组，那么这张表就被分为多个组
+*：如果以字段A分组，那么只能查询字段A，其他字段需要以组函数的形式出现
+select deptno from emp group by deptno;
+select deptno,job from emp group by deptno,job;
+select deptno,count(ename) num from emp group by deptno;
+
+练习：
+面试题第五题
+
+###### 条件：having
+
+select deptno,count(ename) num from emp group by deptno
+having count(ename) >= 5;
+
+练习：
+--29查询最低工资大于2500的各种工作
+
+分组：聚合统计
+
+###### 去重：distinct
+
+*：支持单列，多列的去重
+select distinct deptno from emp;
+select distinct deptno,ename from emp;
+
+###### 排序：order by
+
+升序：asc
+降序：desc
+
+select deptno from emp order by deptno;
+select deptno from emp order by deptno asc;
+select ename,deptno,sal from emp order by deptno asc,sal desc;
+
+###### 查询关键字的优先级：
+
+select       列名  -- 优先级高于order by
+from        表名  -- 优先级最高
+
+###### 连表查询
+
+where      条件  -- 优先级次高
+group by 分组  -- 优先级次于where
+having     条件  -- 优先级一定在group by之后
+order by  排序  -- 优先级最低
+
+
+select deptno, count(ename)  num
+from emp
+where job = 'CLERK'
+group by deptno 
+having count(ename) >= 2
+order by num desc;
+
+##### 约束：constraint
+
+###### 主键约束：primary key
+
+​	主键：在一张表中能够**唯一**定位一条数据的列称为**主键列**
+​	*：非空且唯一
+
+	*：建表时添加主键
+	create table test(
+	id number(5) primary key,
+	name varchar2(20));
+	
+	*：建表后添加主键
+	create table test2(id number(5),name varchar2(20));
+	alter table test2 add constraint zj primary key(id);
+
+###### 外键约束：foreign key    *：references
+
+​	外键：在**子表中**有一个列引用了父**表**中的主键列，那么这个列在子表中就被称为**外键**
+​	*：<u>一张表可以有多个外键</u>
+
+	表名		主键		外键
+1)	emp		empno		deptno		子表
+	   dept		deptno				父表
+	emp.deptno = dept.deptno
+
+2)	dept		deptno		salno		子表
+	   salgrade		salno				父表
+	dept.salno = salgrade.salno
+
+3)	emp		empno		deptno  salno	子表
+	   dept		deptno				父表
+	  salgrade		salno				父表
+	emp.deptno = dept.deptno
+	emp.salno = salgrade.salno	
+
+非空约束：not null
+唯一约束：unique
+检查约束：check
+
+<u>查看当前用户有哪些约束：</u>
+select constraint_name,constraint_type,table_name from user_constraints;
+
+**：
+先建父表，在建子表，先删子表，再删父表
+
+create table school(
+id number(5) primary key,
+name varchar2(20) unique not null,
+addr varchar2(20));
+
+insert into school values(1,'北京大学','北京');
+insert into school values(2,'清华大学','北京');
+insert into school values(3,'厦门大学','厦门');
+insert into school values(4,'山东师范','济南');
+
+create table teacher(
+id number(5) primary key,
+name varchar2(20) not null,
+hobby varchar2(20));
+
+insert into teacher values(1,'琛哥','剑道');
+insert into teacher values(2,'周哥','打篮球');
+insert into teacher values(3,'乐哥','敲代码');
+insert into teacher values(4,'老大','键盘');
+
+create table class(
+id number(5) primary key,
+name varchar2(20) not null unique,
+tid number(5) references teacher(id));
+
+insert into class values(1,'ET2210',3);
+insert into class values(2,'ET2211',2);
+insert into class values(3,'ET2212',1);
+
+create table student(
+id number(5) primary key,
+name varchar2(20) not null,
+birthday date,
+sal number(5,1) check(sal between 5000 and 10000),
+email varchar2(30) unique,
+sid number(5) references school(id),
+cid number(5) references class(id));
+
+insert into student values(1,'葫芦娃',sysdate,5000,'hlw@126.com',1,2);
+insert into student values(2,'金刚',to_date('19981212101010','yyyy-mm-dd hh24:mi:ss'),6000,'jg@163.com',2,2);
+insert into student values(3,'蜘蛛侠',to_date('19961212101010','yyyy-mm-dd hh24:mi:ss'),7000,'zzx@yahoo.com',1,1);
+insert into student values(4,'白龙',to_date('19951212101010','yyyy-mm-dd hh24:mi:ss'),8000,'bl@etoak.com',3,3);
+
+
+表名		主键			外键
+school		id	
+teacher		id
+class		id		       tid(teacher.id)
+student		id		cid(class.id)   sid(school.id)
+
+student.cid = class.id
+student.sid = school.id
+class.tid = teacher.id
+
+###### 嵌套查询 = 子查询 = 某些条件是通过查询得出来的
+
+select 嵌套查询 from 嵌套查询 where 嵌套查询 group by 嵌套查询;
+
+*：谁和葫芦娃一个学校的？
+1）葫芦娃是哪个学校的？
+select sid from student where name = '葫芦娃';
+2）谁还是这个学校的？
+select name from student where sid = 1;
+
+select name from student where sid = (select sid from student where name = '葫芦娃') and name <> '葫芦娃';
+
+select name from student where (sid,name) = (select sid,name from student where name = '葫芦娃');
+
+练习：
+--24查询工资比SMITH员工工资高的所有员工信息
+
+
+*：学生都上那些学校？
+select student.name,(select school.name from school where student.sid = school.id) schname from student;
+
+练习：
+--2查询所有工种为CLERK的员工的工号、员工名和部门名。
+
+emp.deptno = dept.deptno
 
 
 
+===========================================================
 
 
 
