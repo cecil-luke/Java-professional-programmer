@@ -880,6 +880,311 @@ emp.deptno = dept.deptno
 
 
 
+select school.name school,teacher.name teacher,class.name class,student.name student from student join school on student.sid = school.id  join class on class.id = student.cid join  teacher on class.tid = teacher.id; 
+
+
+
+# day04 
+
+#### review
+
+##### 函数
+
+**聚组函数：max()  min()  avg()  sum()  count()**
+**单行函数：ceil()  floor()  abs()  sign()  power()  sqrt()  round()  trunc()**
+日期函数：add_months()  months_between()  next_day()  last_day()
+字符函数：upper()  lower()  initcap()  length()
+	substr(3/2)  replace(3/2)  instr(4/3/2)  concat(2)
+	lpad()  rpad()  trim()  ltrim()  rtrim()
+转换函数：to_number()  to_char()  to_date()
+通用函数：nvl(2)  nvl2(3)
+
+lpad(a1,a2,a3)：左侧补全
+rpad(a1,a2,a3)：右侧补全
+select lpad(phone,11,'138') phone from test;
+
+trim()：默认去除两侧空格
+trim(a1 from a2)：把a2的两侧去除a1
+select trim('a' from 'aaabaabaaa') str from dual;
+
+**ltrim()：左侧去除**
+**rtrim()：右侧去除**
+select ltrim('        abc') str from dual;
+select ltrim('        abc',' ') str from dual;
+select ltrim('        abc','a') str from dual;
+
+,decode() 别名,
+
+,(case when then else end) 别名,
+
+
+分组：group by
+条件：having 
+
+去重：distinct
+
+排序：order by
+升序：asc
+降序：desc
+
+##### 查询关键字的优先级：
+
+select 
+from
+连表查询
+where
+group by
+having
+order by
+
+##### 约束：
+
+主键约束：**primary key**
+外键约束：**foreign key**    	*：references
+非空约束：not null
+唯一约束：unique
+检查约束：check
+
+##### 嵌套查询：子查询
+
+select empno,ename,(select dname from dept where emp.deptno = dept.deptno) dname 
+from emp
+where job = 'CLERK';
+
+##### 自查询：
+
+select * from A,B;
+select empno,ename,dname
+from emp,dept
+where emp.deptno = dept.deptno and job = 'CLERK';
+
+=======================================================================
+
+#### 复制表：
+
+1.复制表结构和表数据
+create table emp2 **as** select * from emp;
+2.复制表结构
+create table emp3 as select * from emp **where 1 = 2**;
+3.复制指定**列**的表结构和表数据
+create table emp4 as select **empno,ename** from emp;
+4.复制表在新表中给列重命名
+create table emp5(id,name) as select empno,ename from emp;
+5.一次性添加多条数据
+insert into emp3 select * from emp;
+
+========================================================================
+
+#### Day 04
+
+#### 连表查询：
+
+##### **内连接**：inner join on = join on
+
+​	*：两张表有关联关系的数据
+​	*：from 表 join 表 on 关联关系
+​	
+
+	select student.name stuname,school.name schname
+	from student
+	join school on student.sid = school.id;
+	
+	select student.name stuname,school.name schname,class.name cname
+	from student
+	join school on student.sid = school.id
+	join class on class.ID = student.cid
+	where student.name = '葫芦娃';
+
+练习：
+面试题的第二题
+练习：
+1.展示学校名称，老师姓名，班级名称，学生姓名（一条语句）
+2.每个班级的学生平均工资是多少，要求展示班级名称
+3.每个班级有多少人，分别都是哪些同学，要求展示班级名称，按照人数降序排列
+
+##### **外连接**：不仅包含有关联关系的数据，还包含没有关联关系的数据
+
+**左外连接**：left join on
+	*：<u>以左表为主</u>，左表的所有数据都展示，对应不上的右表的数据以**空**展示
+	*：左表关联上右表的数据 + 关联不上的左表的数据
+	*：from 左表 left join 右表 on 关联关系
+	
+
+	select school.name schname,student.name stuname 
+	from school
+	left join student on student.sid = school.id;
+
+练习：
+--27查询所有部门及其员工信息，包括那些没有员工的部门
+
+##### 右外连接：right join on
+
+​	*：<u>以右表为主</u>，右表的所有数据都展示，对应不上的左表的数据以空展示
+​	*：左表关联上右表的数据 + 关联不上的右表的数据
+​	*：from 左表 right join 右表 on 关联关系
+
+	select school.name schname,student.name stuname 
+	from student
+	right join school on student.sid = school.id;
+	
+	select school.name schname,student.name stuname,class.name cname
+	from student
+	left join school on student.sid = school.id
+	right join class on student.cid = class.id;
+
+##### 全外连接：full join on
+
+​	*：<u>两张表的数据都展示</u>
+​	*：左表关联上右表的数据 + 关联不上的左表的数据 + 关联不上的右表的数据
+
+	select student.name stuname,school.name schname
+	from student
+	full join school on student.sid = school.id;
+
+##### 交叉连接：cross join
+
+​	*：两张表的数据一一对应，交叉形成最后结果
+​	select book.bname,student.name
+​	from student
+​	cross join book;
+
+##### 自查询：
+
+select school.name schname,student.name stuname 
+from school,student
+where student.sid = school.id;
+
+select school.name schname,student.name stuname 
+from school,student
+where student.sid = school.id(+);
+
+select school.name schname,student.name stuname 
+from school,student
+where student.sid(+) = school.id;
+
+##### 伪列：
+
+##### **rownum = 行号**
+
+*：Oracle用来**分页**的依据，一个**有序的整数列值**，每多一条自动加一
+*：不能使用表名.rownum的写法，如果rownum用在where之后，rownum>=**1**  rownum<=**任意值**
+
+1）第一页数据，编号1-10
+select content from lyric where rownum <= 10;
+2）第二页数据，编号11-20
+select content from
+(select rownum rn,content from lyric where rownum <= 20) lyrics
+where lyrics.rn >= 11;
+3）第三页数据，编号21-30
+select content from
+(select rownum rn,content from lyric where rownum <= 30) lyrics
+where lyrics.rn >= 21;
+4）带有**排序效果的分页**
+select content from
+(select rownum rn,content from (select * from lyric order by content desc) where rownum <= 20) lyrics
+where lyrics.rn >= 11;
+
+***：
+curpage：当前页       2     3
+pagesize：每页条数  10    25
+当前页的开始数：(curpage - 1) * pagesize + 1   11     51
+当前页的截止数：curpage * pagesize                  20    75
+
+**rowid**：数据库会给每条数据添加物理地址唯一标识
+*：适用于删除完全重复的数据
+delete from lyric where rowid not in
+(select max(rowid) from lyric group by content);
+
+练习：
+删除表中5-10条数据
+
+##### in：表示是查询结果中的任意一个值
+
+字段 in (值1,值2...)
+相当于：
+字段 = 值1 or 字段 = 值2 or ...
+select id,name from school where id **in** (select sid from student);
+
+练习：
+--35列出工资等于30号部门中某个员工工资的所有员工的姓名和工资。
+
+##### not in：表示不能是查询结果中的任意一个值
+
+字段 not in (值1,值2...)
+相当于：
+字段 <> 值1 and 字段 <> 值2 and ...
+select id,name from school where id not in (select sid from student);
+
+
+some/any：用法和in相同，in用在无符号的情况下，some/any用在有符号的情况下
+	
+select id,name from school where id = some (select sid from student);
+select id,name from school where id > any (select sid from student);
+
+all：比所有值都大，或者比所有值都小
+select id,name from school where id > all (select sid from student);
+
+***：
+
+>any   >min
+><any   <max
+>all     >max
+><all     <min
+
+练习：
+--36查询工资高于30号部门中工作的所有员工的工资的员工姓名和工资
+
+*：在某些情况下，in的效率低，所以用exists代替
+
+##### exists：存在
+
+##### not exists：不存在
+
+select id,name from school where exists (select sid from student
+where student.sid = school.id);
+
+#### 联合关键字：
+
+##### union：结果唯一，并且按照默认顺序排序
+
+##### union all：结果不唯一
+
+select id,name from school where name like '山东%'
+union
+select id,name from school where name like '%大学';
+
+select id,name from school where name like '山东%'
+union all
+select id,name from school where name like '%大学';
+
+intersect：求交集
+select id,name from school where name like '山东%'
+intersect
+select id,name from school where name like '%大学';
+
+minus：从第一个结果集中减去第二个结果集中重复的数据
+select id,name from school where name like '山东%'
+minus
+select id,name from school where name like '%大学';
+
+
+
+=======================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
