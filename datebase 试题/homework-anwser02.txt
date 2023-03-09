@@ -1,0 +1,77 @@
+--31查询最低工资低于2000的部门及其员工信息
+select dept.dname,dept.loc,emp.* from dept join emp on dept.deptno = emp.deptno where dept.deptno in(select deptno from emp group by deptno having min(sal) < 2000);
+
+select * from dept
+left join emp on emp.deptno = dept.deptno
+where dept.deptno not in(select dept.deptno from dept left join emp on emp.deptno = dept.deptno group by dept.deptno having min(sal) >= 2000);
+--32查询在SALES部门工作的员工的姓名信息
+select ename,dname from emp,dept where emp.deptno = dept.deptno and dname = 'SALES';
+
+select ename from emp where deptno = ( select deptno from dept where dname = 'SALES');
+--33查询工资高于公司平均工资的所有员工信息
+select * from emp where sal > (select avg(sal) from emp);
+--34查询与SMITH员工从事相同工作的所有员工信息
+select * from emp where job = (select job from emp where ename='SMITH') and ename <> 'SMITH';
+--35列出工资等于30号部门中某个员工工资的所有员工的姓名和工资。
+select ename,sal,deptno from emp where sal in (select sal from emp where deptno = 30) and deptno <> 30;
+
+select e.ename,e.sal from(select sal s,deptno d from emp where deptno = 30)
+join emp e on e.deptno <> d where e.sal = s;
+--36查询工资高于30号部门中工作的所有员工的工资的员工姓名和工资
+select ename,sal from emp where sal > (select max(sal) from emp where deptno = 30);
+select ename,sal from emp where sal > all (select sal from emp where deptno = 30);
+--37查询每个部门中的员工数量、平均工资和平均工作年限
+select deptno,count(empno),floor(avg(sal)),floor(avg(sysdate - HIREDATE)/365) from emp GROUP BY deptno;
+
+--39查询各个部门的详细信息以及部门人数、部门平均工资
+select deptno,count(ename),avg(sal)  from emp 
+join dept on dept.deptno = emp.deptno
+group by emp.deptno
+
+select dept.*,a.c,a.avg from dept left join (select deptno d,count(ename) c,round(avg(sal)) avg from emp GROUP BY deptno) a on d = dept.deptno; 
+--40查询各种工作的最低工资
+select job,min(sal) from emp group by job;
+--41查询各个部门中的不同工种的最高工资
+select dept.dname,emp.job,max(sal) from dept
+left join emp on emp.deptno = dept.deptno
+group by dept.dname,emp.job;
+select deptno,job,max(sal)from emp group by deptno,job;
+--42查询10号部门员工以及领导的信息
+select e1.*,e2.* from emp e1 
+left join emp e2 on e1.mgr = e2.EMPNO where e1.DEPTNO = 10;
+
+select * from emp where empno in
+(select mgr from emp where deptno = 10) or deptno =10;
+--43查询各个部门的人数及平均工资
+select deptno,count(deptno) 部门人数,round(avg(sal)) 平均工资 from emp group by DEPTNO;
+--44查询工资为某个部门平均工资的员工信息
+select * from emp where sal in (
+select avg(sal) from emp group by DEPTNO);
+--45查询工资高于本部门平均工资的员工的信息
+select e.* from emp e join(select deptno, round(avg(sal)) avgsal from emp group by deptno) d on e.deptno = d.deptno and e.sal > d.avgsal;
+
+select * from emp a where a.sal>(select avg(sal) from emp b where a.deptno=b.deptno);
+--46查询工资高于本部门平均工资的员工的信息及其部门的平均工资
+select e.* ,avgsal from emp e join(select deptno, round(avg(sal)) avgsal from emp group by deptno) d on e.deptno = d.deptno and e.sal > d.avgsal;
+--47查询工资高于20号部门某个员工工资的员工的信息
+select emp.* from emp where sal > any (select sal from emp where deptno = 20);
+--48统计各个工种的人数与平均工资
+select job,count(empno),avg(sal) from emp group by job;
+--49统计每个部门中各个工种的人数与平均工资
+select job,deptno,count(empno),avg(sal) from emp group by deptno,job;
+--50查询工资、奖金与10 号部门某个员工工资、奖金都相同的员工的信息
+select e1.* from emp e1 join (select sal,comm from emp e2 where deptno=10) a on a.sal=e1.sal and nvl(e1.comm,0)=nvl(a.comm,0) and deptno<>10;
+--51查询部门人数大于5的部门的员工的信息
+select * from emp where deptno in(select deptno from emp group by deptno having count(*)>5);
+--52查询所有员工工资都大于1000的部门的信息
+SELECT * from dept where 1000<(select min(sal) from emp where emp.deptno=dept.deptno);
+
+select * from dept where deptno in(select deptno from emp group by deptno having min(sal)>1000);
+--53查询所有员工工资都大于1000的部门的信息及其员工信息
+select * from emp join(select * from dept where deptno in(select deptno from emp group by deptno having min(sal)>1000)) a on emp.deptno=a.deptno; 
+
+select * from dept d join emp e on d.deptno=e.deptno where 1000<(select min(sal) from emp where deptno=d.deptno);
+--54查询所有员工工资都在900~3000之间的部门的信息
+select * from dept where deptno in (select deptno from emp group by deptno having min(sal)>900 and max(sal)<3000);
+--55查询所有工资都在900~3000之间的员工所在部门的员工信息
+select * from emp where deptno in (select deptno from emp group by deptno having min(sal)>900 and max(sal)<3000);
