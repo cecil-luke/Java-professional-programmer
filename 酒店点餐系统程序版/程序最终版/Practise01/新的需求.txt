@@ -1,0 +1,25 @@
+甲方爸爸提出了新的需求 饭店老板需要如下的查询功能
+	1.根据时间段 查询所有订单详情
+
+	in : 2023-01-01    2023-03-11	
+	out:
+	订单编号    下单用户    时间    菜品数量    总价
+
+	select dd.id as 订单编号, max(user.username) as 下单用户,
+		min(dd.date) as 时间,count(food.id) as 菜品数量,sum(food.price) as 总价
+				from ddfood
+		left join food on food.id = ddfood.fid
+		left join dd on dd.id = ddfood.did
+		left join user on user.id = dd.uid
+		where dd.date between ? and ?
+		group by dd.id;
+
+	2.根据用户名 查询这个用户的所有消费情况
+	in : JayZhou
+	out:
+	订单编号    时间    菜品数量   菜单总价
+
+	3.根据订单号 查询一个订单内的具体情况
+	in :  31a12kl3j123u83o4jio123io12u3i12
+	out:
+		菜品名称   菜品单价  下单时间

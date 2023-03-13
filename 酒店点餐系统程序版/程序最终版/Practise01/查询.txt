@@ -1,0 +1,18 @@
+select id,(select (select username from user where id=uid) as username fr
+om dd where id=did) as uid,(select name from food where id=fid) as name from ddf
+ood;
+
+select dd.id,user.username,food.name from ddfood
+left join food on food.id = ddfood.fid
+left join dd on dd.id = ddfood.did
+left join user on dd.uid = user.id;
+
+mysql> select id,(select (select username from user where id=uid) from dd where
+id=did) as username,(select name from food where id=fid) as name from ddfood;
+
+select id,(select (select username from user where id=uid) as username fr
+om dd where id=did) as uid,(select name from food where id=fid) as name from ddf
+ood;
+
+select id,(select uid from dd where id=did) as uid,(select name from food
+where id=fid) as name from ddfood;

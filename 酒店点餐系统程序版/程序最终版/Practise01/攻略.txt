@@ -1,0 +1,14 @@
+01.修改Response当中的代码 当中必须有个携带数据给前台的Map
+	
+02.从下向上的搭建 写出你那需求所需要的sql语句~
+
+03.dao层接口 当中三个方法 按照时间查询 按照用户名查询 按照订单号查询
+
+04.dao层的实现类 使用PreparedStatement 完成上述三个抽象方法
+
+05.service 小厨弟弟 必须持有一个dao层对象 要去调用dao层方法
+
+06.manager 取前台的参数 例如startTime endTime 
+	调用小厨弟弟去查询数据
+	将查询到的数据放入Response
+
