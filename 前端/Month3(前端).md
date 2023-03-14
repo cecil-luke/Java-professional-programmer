@@ -498,3 +498,609 @@ div{
 }
 ```
 
+# day02
+
+### 4-css基本选择器.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4:css基本选择器</title>
+    <style>
+        /* 1:标记选择器
+            tagName{
+                直接使用标签名作为选择元素的依据,这种引入方式极易引起
+                误操作
+            }
+        */
+        span{
+            background-color: yellow;
+        }
+        /* 2:类别选择器
+            .class{
+                在元素中添加 class 属性,以.class 作为选择元素的依据
+                注意,class 全文不唯一,一个元素可以存在多个 class 属性
+            }
+        */
+        .test2{
+            background-color: blueviolet;
+        }
+        /* 3:id 选择器
+            #id{
+                每个元素可以添加一个 id 属性,注意这个 id 属性全文唯一
+                一个元素也只能添加一个,以 #id 作为选择元素依据
+            }
+        */
+        #test3{
+            background-color: blue;
+        }
+    </style>
+</head>
+<body>
+    <!-- span 与 label 被称之为便签标签,结束没有换行,一般搭配
+    js 使用,单独使用几乎没有任何效果 -->
+    <span>测试1</span>
+    <span class="test2" >测试2</span>
+    <span id="test3" class="test2" >测试3</span>
+    <!-- 
+        如果三种基本选择器出现冲突 优先级如下
+        标记选择器 < 类别选择器 < id 选择器
+        如果还存在行内式,则一切以行内式为准
+    -->
+    <span id="test3" class="test2"
+    style="background-color: crimson;">测试4</span>
+</body>
+</html>
+```
+
+### 5-css复合选择器.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5:css复合选择器</title>
+    <style>
+        /* 1:交集选择器
+            tagName.class{}
+            tagName#id{}
+            由一个标记后面紧跟类别或者 id,必须同时满足两个条件
+            才可以成功选取
+        */
+        span.test2{
+            /* 文本倾斜 */
+            font-style: italic;
+        }
+        /* 2:并集选择器
+            sel1,sel2,sel3,selN{
+                由多个基本或者复合选择器用逗号隔开,只要满足其中任意一个
+                就可以成功选取
+            }
+        */
+        label.test2,span.test2,h3.title,h4{
+            background-color: tomato;
+        }
+        /* 3:后代选择器
+            根据左祖先右后代的层级关系,选择具有特定层级关系的
+            最右侧的子元素
+            sel1 sel2 selN{
+
+            }
+        */
+        div#outter em#inner{
+            color:teal;
+        }
+        /* 4:全选选择器 
+            *{
+                相当于 ctrl+a 选择所有元素
+            }
+        */
+        *{
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <span>测试 1</span>
+    <label class="test2">测试 2</label>
+    <span class="test2">测试 3</span>
+    <h3 class="title">三级标题</h3>
+    <h4 id="etoak">四级标题</h4>
+    <div id="outter">济南的<em id="inner">春</em>天开始了</div>
+</body>
+</html>
+```
+
+### 6-css元素类型.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6:Css元素类型</title>
+    <style>
+        span{
+            background-color: pink;
+            /* 设置宽度 */
+            width:300px;
+            /* 设置高度 */
+            height:400px;
+            /* 设置内部文本对齐方式,默认居左,此处为居中对齐 */
+            text-align: center;
+        }
+        div{
+            background-color: lightblue;
+            /* 设置宽度 */
+            width:300px;
+            /* 设置高度 */
+            height:400px;
+            /* 设置内部文本对齐方式,默认居左,此处为居中对齐 */
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+        Css元素类型
+            在 css 中,将元素分为很多种类型,其中主要差异较大的有以下
+            两种
+            1:块元素(block 元素)
+                eg: div p h1-h6 ul ol li table 布局元素
+                块元素是页面中的主流元素,基本上页面都是由块元素主要组成
+                块元素结尾都自带换行,一行只能书写一个,从上到下排列,设置
+                盒子模型有效,可以设置行高,设置对齐方式
+                块元素在不主动设置宽度的前提下和父元素同宽,如果没有父元素
+                则与浏览器同宽
+            2:内联元素(inline 元素,行内元素)
+                eg: span label a img input 等等
+                内联元素在页面中主要用来进行信息的提示灯,结尾没有换行,
+                从左往右排列,一行可以排列多个,设置盒子模型无效,设置对齐方式
+                无效
+                img input:又被称之为 内联块元素(inline-block)
+                虽然是内联元素,但是设置盒子模型有效
+
+    -->
+    <!-- style="display: block;" 以块元素显示元素 -->
+    <span style="display: block;">
+        我是 span我是 span我是 span我是 span我是 span我是 span
+        我是 span我是 span我是 span我是 span我是 span我是 span
+        我是 span我是 span我是 span我是 span我是 span我是 span
+    </span>
+    <hr>
+    <!-- style="display: inline;" 以内联元素显示元素 -->
+    <div style="display: inline;">
+        我是 div我是 div我是 div我是 div我是 div我是 div
+        我是 div我是 div我是 div我是 div我是 div我是 div
+        我是 div我是 div我是 div我是 div我是 div我是 div
+    </div>
+    <!-- display:none;隐藏元素 -->
+    <div style="display: none;">
+        我是 div我是 div我是 div我是 div我是 div我是 div
+        我是 div我是 div我是 div我是 div我是 div我是 div
+        我是 div我是 div我是 div我是 div我是 div我是 div
+    </div>
+</body>
+</html>
+```
+
+### 7-css盒子模型.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7:Css盒子模型</title>
+    <style>
+        /* 
+            标准文本流(文档流 document normal flow)
+                其实就是指一种默认的状态,页面中主要由块元素组成,这些元素
+            结尾自带换行,因此默认情况下在没有任何 css 渲染的前提下,这些元素
+            从上往下排列,这种状态类似水流一样,当我们挪走其中的某个元素,后面
+            的元素会递补,继续保持水流从上往下,在书写页面时应该首先书写 html 结构
+            当所有的结构都书写完毕,呈现标准文本流之后,才开始书写 css,最终
+            添加 js,切忌边写 html 边写 css
+            盒子模型
+                在css 中将各种元素看做一个一个矩形的盒子,这些盒子具有四个
+            边框,从上往下摆放在页面中,通过设置 border 属性可以渲染盒子的边框
+            通过设置 margin 属性可以设置盒子边框以外的空间位置,通过设置
+            padding 属性可以设置盒子边框以内的空间位置,元素的宽度通过 width
+            来设置 高度则有 height 来进行设置,最终共有 14 个参数,这 14 个参数
+            被称之为盒子模型,其中大部分元素只有块元素才可以设置
+        */
+        *{
+            /* 去掉默认留白部分 */
+            margin:0;
+            padding:0;
+        }
+
+        /* 谷歌和火狐存在差异 双方一个认为 html 是正文
+        一个认为 body 是正文,因此这里两边使用并集 */
+        html,body{
+            /* 设置高度参照物 */
+            height:100%;
+        }
+
+        .container{
+            /* 渲染边框:边框类型 边框粗细 边框颜色 
+                边框类型 solid double dotted
+            */
+            border:solid 2px red;
+            /* 
+                1:网页整体居中,使用具体像素
+                margin:0 auto;
+                width:xxxpx;
+                height:xxxpx;
+                2:网页整体居中,使用百分比,注意这个百分比
+                永远是与父元素进行比较,如果没有父元素,则与
+                浏览器进行比较,注意如果设置百分比,则必须设置
+                宽度和高度的参照物,其中宽度的参照物在 head 标签
+                内已经存在
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                所以宽度默认浏览器就是百分之百,但是注意高度并没有
+                参照物,因此如果我们不设置,高度使用百分比无效  
+                设置高度参照物 
+                    html,body{
+                        height:100%;
+                    }
+                3:网页整体居中,使用视口单位
+                vw:viewport width
+                vh:viewport height
+                表示占据当前设备视口的宽度和高度,不需要设置参照物
+                注意也不是与父元素比较,而是与当前设备比较
+            */
+            margin:0 auto;
+            /* width:700px;
+            height:800px; */
+            /* width:80%;
+            height:150%; */
+            width:80vw;
+            height:100vh;
+        }
+        h2{
+            border:solid 2px blue;
+            /* 设置外边距 */
+            /* margin-top: 50px; */
+            /* 设置左外边距 */
+            /* margin-left: 20px;
+            margin-bottom:30px;
+            margin-right:100px; */
+            /* 简化写法
+                margin:上 右 下 左;
+                margin:上 (右左) 下;
+                margin:(上下) (右左);
+                margin:(上右下左);
+            */
+            margin:50px 100px 30px 20px;
+            padding-top: 20px;
+            padding-left: 50px;
+            padding-bottom: 10px;
+            /* padding 依然可以使用缩略写法 */
+            border-top: double 10px hotpink;
+            border-right: dotted 15px yellowgreen;
+            border-bottom: dotted 8px black;
+        }
+        ul{
+            border:solid 2px aqua;
+        }
+        li{
+            border:solid 2px purple;
+        }
+        p{
+            border:solid 2px yellow;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>二级标题</h2>
+        <ul>
+            <li>列表1</li>
+            <li>列表2</li>
+            <li>列表3</li>
+        </ul>
+        <p>我是段落</p>
+    </div>   
+</body>
+</html>
+```
+
+### 8-css浮动.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8:浮动</title>
+    <style>
+        /* 
+            浮动:
+            元素在设置浮动之后,开始朝着浮动方向不断缩小,当缩小到无法再次
+            缩小时,漂浮在页面上,之后的元素为了维持标准文本流递补到之前元素
+            的位置,如果多个元素都设置浮动则同时漂浮在页面上,从左往右或者从右往左
+            排列,这也是最简单的一种打破页面标准文本流的方式
+            同时元素也可以设置 clear 属性来屏蔽因为受到其他元素浮动影响造成的影响
+        */
+        html,body{
+            margin:0;
+            padding:0;
+        }
+
+        .container{
+            margin:0 auto;
+            width:80vw;
+            height:100vh;
+            background-color: yellow;
+            border:solid 1px yellow;
+        }
+
+        .box1{
+            margin-top: 10px;
+            height: 100px;
+            background-color: pink;
+            /* 设置左浮动 */
+            float: left;
+        }
+        .box2{
+            margin-top: 10px;
+            height:120px;
+            background-color: hotpink;
+            float: left;
+        }
+        .box3{
+            margin-top: 10px;
+            height:140px;
+            background-color: deeppink;
+            float: left;
+        }
+        p{
+            background-color: lightblue;
+            /* 设置元素不受其他元素浮动影响 
+                clear:left|right|both;
+            */
+            clear: left;
+        }
+        ul{
+            /* 设置去掉列表徽记 */
+            list-style-type: none;
+            margin-top: 100px;
+        }
+        ul li{
+            /* 设置列表项浮动 */
+            float: left;
+            margin-right: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box1">盒子1</div>
+        <div class="box2">盒子2</div>
+        <div class="box3">盒子3</div>
+        <p>
+            我是段落我是段落我是段落我是段落我是段落我是段落
+            我是段落我是段落我是段落我是段落我是段落我是段落
+        </p>
+        <ul>
+            <li>列表1</li>
+            <li>列表2</li>
+            <li>列表3</li>
+            <li>列表4</li>
+            <li>列表5</li>
+        </ul>
+    </div>
+</body>
+</html>
+```
+
+### 9-css定位.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9:定位</title>
+    <style>
+        .container{
+            border:solid 1px black;
+            position: relative;
+            margin:0 auto;
+            width:80vw;
+            height:100vh;
+        }
+        .sub1{
+            border:solid 2px crimson;
+            /* 
+                1:相对定位
+                元素根据原先所在位置的左上角进行定位,偏移量
+                top bottom left 和 right ,定位之后元素不改变原先的
+                类型,原来的位置依然被占用
+            */
+            position: relative;
+            /* 向下偏移 200 像素 */
+            top:200px;
+            /* 向右偏移 300 像素 */
+            left:300px;
+        }
+        .sub2{
+            border:solid 2px coral;
+            /* 
+                2:绝对定位
+                    元素根据其距离最近的定位过的祖先元素的左上角进行定位
+                    定位之后元素不再保持原先的类型,原来的位置被其他元素占用
+                    偏移量与相对定位一直,top bottom left right
+                    如果元素的所有祖先元素都没有定位,则根据 body 也就是浏览器
+                    左上角进行定位,如果在设置全局居中时,则有可能出现问题
+            */
+            position:absolute;
+            top:400px;
+            left:100px;
+        }
+        .sub3{
+            border:solid 2px yellow;
+        }
+        .sub4{
+            border:solid 2px yellowgreen;
+        }
+        .sub5{
+            border:solid 2px aqua;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sub1">层1</div>
+        <div class="sub2">层2</div>
+        <div class="sub3">层3</div>
+        <div class="sub4">层4</div>
+        <div class="sub5">层5</div>
+    </div>
+</body>
+</html>
+```
+
+
+
+---
+
+
+
+# day03
+
+---
+
+### flex弹性盒子的**名词解释**是重点其中
+
+
+
+<img src=".\img\QQ图片20230314190508.png" style="zoom:50%;" />
+
+* **flex-container**
+
+  采⽤ Flex 布局的元素，称为 **Flex 容器**（**flex container**），简称"**容器**"。
+
+* **item**
+
+  它的所有⼦元素⾃动成为容器成员，称为 **Flex 项⽬**（**flex item**），简称"**项⽬**"。
+
+* **主轴**
+
+   容器<u>默认</u>存在<u>两根轴</u>：**⽔平的主轴（main axis）**和**垂直的交叉轴（cross axis）**。主轴的开始位置（与边 框的交叉点）叫做 **main start** ，结束位置叫做 **main end** ；
+
+* **交叉轴**
+
+  **交叉轴**的开始位置叫做 **cross start** ，结束位置叫做 **cross end** 。 项⽬<u>默认</u>沿主轴排列。单个项⽬占据的主轴空间叫做 **main size** ，占据的交叉轴空间叫做 **cross size** 
+
+### **flex-direction:重点**
+
+flex-direction 属性**决定主轴**的⽅向（即项⽬的排列⽅向）。如果未显式设置 flex-direction 属性，Flex容器则会采⽤其**默认值 row** 。
+
+<img src=".\img\QQ图片20230314191906.png" style="zoom:50%;" />
+
+### **justify-content:重点**
+
+justify-content 属性定义了项⽬在**主轴**上的对⻬⽅式。
+
+<img src=".\img\QQ图片20230314192340.png" style="zoom: 80%;" />
+
+在Flex容器中使⽤ <u>justify-content</u> 来控制Flex项⽬在Flex容器主轴⽅向的对⻬⽅式，也可以⽤来分 配Flex容器中主轴⽅向的剩余空间。使⽤ justify-content 分配Flex容器剩余空间，主要是将剩余空 间按不同的对⻬⽅式，将剩余空间分配给Flex项⽬的两侧，即控制Flex项⽬与Flex项⽬之间的**间距**。 
+
+<img src=".\img\QQ图片20230314192559.png" style="zoom: 50%;" />
+
+它可能取5个值，具体对⻬⽅式与轴的⽅向有关。下⾯假设主轴为从左到右。 
+
+**flex-start （默认值**）：左对⻬ 
+
+**flex-end ：**右对⻬ center ： 居中 
+
+**space-between ：**两端对⻬，项⽬之间的间隔都相等。 
+
+**space-around ：**每个项⽬两侧的间隔相等。
+
+所以，项⽬之间的间隔⽐项⽬与边框的间隔⼤⼀ 倍。 注意后<u>三种排列的区别</u> 
+
+<img src=".\img\QQ图片20230314193542.png" style="zoom:67%;" />
+
+* **space-between** 会让第⼀个Flex项⽬的盒⼦起始边缘与Flex容器主轴起点相稳合，最后⼀个Flex 项⽬的盒⼦结束边缘与Flex容器主轴终点相稳合，其它相邻Flex项⽬之间间距相等。当Flex容器中只 有⼀个Flex项⽬时，其表现⾏为和 **flex-start** 等同 
+
+* **space-around** 会让第⼀个Flex项⽬的盒⼦起始边缘与Flex容器主轴起点间距和最后⼀个Flex项⽬ 的盒⼦结束边缘与Flex容器主轴终点间距相等，并且等于其他相邻两个Flex项⽬之间间距的⼀半。 当Flex容器中只有⼀个Flex项⽬时，其表现⾏为和 **center** 等同 
+
+* **space-evenly** 会让第⼀个Flex项⽬的盒⼦起始边缘与Flex容器主轴起点间距和最后⼀个Flex项⽬ 的盒⼦结束边缘与Flex容器主轴终点间距相等，并且等于其他相邻两个Flex项⽬之间间距。当Flex容 器中只有⼀个Flex项⽬时，其表现⾏为和 center 等同 
+
+如果Flex容器没有额外的剩余空间，或者说剩余空间为负值时， justify-content 的值表现形式： 
+
+​	**flex-start** 会让Flex项⽬在Flex容器主轴结束点处溢出 
+
+​	**flex-end** 会让Flex项⽬在Flex容器主轴起点处溢出 
+
+​	**center** 会让Flex项⽬在Flex容器两端溢出 
+
+   **space-between** 和 flex-start 相同 
+
+   **space-around** 和 center 相同 
+
+   **space-evenly** 和 center 相同
+
+
+
+### **align-items:重点**
+
+align-items 属性定义项⽬在**交叉轴**上如何对⻬。
+
+<img src=".\img\QQ图片20230314193746.png" style="zoom:67%;" />
+
+<img src=".\img\QQ图片20230314193844.png" style="zoom:50%;" />
+
+它可能取5个值。具体的对⻬⽅式与交叉轴的⽅向有关，下⾯假设交叉轴从上到下。 
+
+* flex-start ：交叉轴的起点对⻬。 
+
+* flex-end ：交叉轴的终点对⻬。 
+
+* center ：交叉轴的中点对⻬。
+
+* baseline : 项⽬的第⼀⾏⽂字的基线对⻬。 
+
+* .box { align-items: flex-start | flex-end | center | baseline | stretch; } 1 2 3 
+
+* stretch （默认值）：如果项⽬未设置⾼度或设为auto，将占满整个容器的⾼度。 
+
+> align-items 的默认值是 stretch ，但只有Flex项⽬示显式设置 height (或 width )值，Flex项 ⽬才会被拉伸填满整个Flex容器。如果Flex容器没有剩余空间或剩余空间为负值是： 
+
+* flex-start 会让Flex项⽬在Flex容器侧轴终点处溢出 
+
+*　flex-end 会让Flex项⽬在Flex容器侧轴起点处溢出 
+*　center 会让Flex项⽬在Flex容器侧轴两侧溢出 
+
+* baseline 会让Flex项⽬在Flex容器侧轴终点溢出，有点类似于 flex-start
+
+### **flex:1;重点**
+
+<img src=".\img\QQ图片20230314195024.png" style="zoom:80%;" />
+
+---
+
+
+
+
+
+
+
