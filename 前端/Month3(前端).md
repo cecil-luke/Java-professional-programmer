@@ -1100,6 +1100,667 @@ align-items 属性定义项⽬在**交叉轴**上如何对⻬。
 
 
 
+### day03
+
+###  10-用户登录.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10:用户登录</title>
+    <!-- 引入全局 css -->
+    <link rel="stylesheet" href="./css/global.css">
+    <!-- 引入登录的 css -->
+    <link rel="stylesheet" href="./css/login.css">
+    <!-- 引入图标 -->
+    <link rel="icon" href="./assets/favicon.ico">
+</head>
+<body>
+    <div class="login-container">
+        <form action="./12-圣杯布局.html" class="login-form">
+            
+            <h1>用户登录</h1>
+            
+            <input type="text" name="username" 
+            placeholder="请输入用户姓名" required autocomplete="off"
+            autofocus>
+
+            <input type="password" name="password"
+            placeholder="请输入用户密码" required autocomplete="off">
+            
+            <div>
+                <input type="submit" value="登录">
+                
+                <input type="reset" value="取消">
+                
+                <input type="button" value="注册">
+            </div>
+        </form>
+    </div>
+    <script>
+        document.querySelector('input[type=button]')
+        .onclick=()=>{
+            location.href = './12-圣杯布局.html'
+        }
+    </script>
+</body>
+</html>
+```
+
+#### login.css
+
+```css
+@charset "utf-8";
+/* 设置登录的样式 */
+/* 设置最外侧大容器 */
+.login-container{
+    /* 设置容器绝对定位 */
+    position: absolute;
+    /* 设置容器宽度 */
+    width:100vw;
+    /* 设置容器高度 */
+    height:100vh;
+    /* 设置容器背景图片 no-repeat:表示如果图片大小不合适
+    则不会重叠摆放 */
+    background: url("../assets/bg1.jpeg") no-repeat;
+    /* 设置背景图尺寸 宽度 高度 */
+    background-size: 100vw 100vh;
+    /* 设置背景图不会随着缩放变动 */
+    background-attachment: fixed;
+    /* 容器开启弹性盒子 */
+    display: flex;
+    /* 设置项目,也就是表单 主轴 交叉轴居中 此时默认 水平是主轴
+    纵向是交叉轴 */
+    justify-content: center;
+    align-items: center;
+}
+
+/* 设置表单 */
+.login-form{
+    /* 设置表单宽度 */
+    width:350px;
+    /* 设置表单背景色 和 透明度 
+    rgba(红色,绿色,蓝色,透明度)
+    红绿蓝为 0-255 的整数 如果都是 255 则是白色
+    透明度 0 完全透明 1 完全不透明 */
+    background-color: rgba(255, 255, 255, 0.6);
+    /* 设置边框为圆角 数字越大越圆,如果设置为 50%则变为圆球 
+    表格不能设置 */
+    border-radius: 30px;
+    /* 给表单开启弹性盒子 */
+    display: flex;
+    /* 设置表单内的项目从上往下排列,默认是 row 从左往右 */
+    flex-direction:column;
+    /* 设置交叉轴水平居中摆放,注意这里从左往右是交叉轴了,从上往下
+    才是主轴 因为排列顺序是从上往下 */
+    align-items: center;
+}
+
+/* 
+    设置单行文本输入框和单行文本密码框 
+    [属性名=属性值]{}
+    拿取一个元素,其中属性名等于属性值,注意必须精确匹配
+    这叫属性选择器
+*/
+input[type=text],
+input[type=password]{
+    /* 去掉输入框边框 */
+    border:none;
+    /* 去掉获取焦点后边框 */
+    outline: none;
+    /* 设置输入框为圆角 */
+    border-radius: 10px;
+    /* 设置输入框外边距 */
+    margin:5px;
+    /* 设置输入框内边距 */
+    padding:5px;
+    /* 添加阴影 */
+    box-shadow: 5px 5px 5px silver;
+}
+
+/* 
+    设置三个按钮
+    [属性名^=属性值开头]{}
+    [属性名*=包含属性值]{}
+    [属性名$=属性值结尾]{}
+*/
+input[type^=sub],
+input[type*=ese],
+input[type$=tton]{
+    /* 设置按钮外边距 */
+    margin:10px;
+    /* 去掉按钮边框 */
+    border:none;
+    /* 更改为圆角 */
+    border-radius: 10px;
+    /* 设置按钮宽度 */
+    width:50px;
+    /* 添加按钮背景色 */
+    background-color: cornflowerblue;
+    /* 添加按钮字体颜色 */
+    color:whitesmoke;
+    /* 添加阴影 前三个参数为阴影偏移量 第四个参数为阴影颜色 */
+    box-shadow: 5px 5px 5px gray;
+}
+```
+
+#### global.css(全局布置)
+
+```css
+/* 此处为全局 css 设置的位置 */
+@charset "utf-8";
+
+html,body{
+    /* 去掉块元素留白部分 */
+    margin:0;
+    padding:0;
+    /* 设置全文使用的字体 */
+    font-family: 喜鹊招牌体;
+    /* 设置百分比参照物,否则全文无法使用高度百分比单位 */
+    height:100%;
+}
+```
+
+### 11-用户注册.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11:用户注册</title>
+    <link rel="stylesheet" href="./css/global.css">
+    <link rel="stylesheet" href="./css/register.css">
+    <link rel="icon" href="./assets/favicon.ico">
+</head>
+<body>
+    <div class="reg-container">
+        <form action="./10-用户登录.html" class="reg-form">
+            
+            <h1>用户注册</h1>
+
+            <input type="text" name="username" 
+            placeholder="请输入用户姓名" autofocus 
+            autocomplete="off" required>
+            
+            <input type="password" name="password"
+            placeholder="请输入用户密码"
+            autocomplete="off" required>
+
+            <input type="text" name="realname" 
+            placeholder="请输入真实姓名"
+            autocomplete="off" required>
+            
+            <input type="text" name="email" 
+            placeholder="请输入邮箱地址" required>
+
+            <input type="tel" name="phone"
+            placeholder="请输入电话号码" required>
+
+            <div>
+                性别: <input type="radio" name="gender" value="0"
+                checked>男
+                <input type="radio" name="gender" value="1">女 
+            </div>
+
+            <div>
+                权限: <input type="radio" name="role" value="0" 
+                checked>用户
+                <input type="radio" name="role" value="1">管理员
+            </div>
+
+            <div>
+                <input type="submit" value="注册">
+                <input type="reset" value="取消">
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+#### register.css
+
+```css
+@charset "utf-8";
+
+/* 设置最外侧大容器 */
+.reg-container {
+    /* 设置容器绝对定位 */
+    position: absolute;
+    /* 设置容器宽度 */
+    width: 100vw;
+    /* 设置容器高度 */
+    height: 100vh;
+    /* 设置容器背景图片 no-repeat:表示如果图片大小不合适
+    则不会重叠摆放 */
+    background: url("../assets/bg5.jpeg") no-repeat;
+    /* 设置背景图尺寸 宽度 高度 */
+    background-size: 100vw 100vh;
+    /* 设置背景图不会随着缩放变动 */
+    background-attachment: fixed;
+    /* 容器开启弹性盒子 */
+    display: flex;
+    /* 设置项目,也就是表单 主轴 交叉轴居中 此时默认 水平是主轴
+    纵向是交叉轴 */
+    justify-content: center;
+    align-items: center;
+}
+
+/* 设置表单 */
+.reg-form {
+    /* 设置表单宽度 */
+    width: 350px;
+    /* 设置表单背景色 和 透明度 
+    rgba(红色,绿色,蓝色,透明度)
+    红绿蓝为 0-255 的整数 如果都是 255 则是白色
+    透明度 0 完全透明 1 完全不透明 */
+    background-color: rgba(255, 255, 255, 0.6);
+    /* 设置边框为圆角 数字越大越圆,如果设置为 50%则变为圆球 
+    表格不能设置 */
+    border-radius: 30px;
+    /* 给表单开启弹性盒子 */
+    display: flex;
+    /* 设置表单内的项目从上往下排列,默认是 row 从左往右 */
+    flex-direction: column;
+    /* 设置交叉轴水平居中摆放,注意这里从左往右是交叉轴了,从上往下
+    才是主轴 因为排列顺序是从上往下 */
+    align-items: center;
+}
+
+input[type=text],
+input[type=password],
+input[type=email],
+input[type=tel] {
+    /* 去掉输入框边框 */
+    border: none;
+    /* 去掉获取焦点后边框 */
+    outline: none;
+    /* 设置输入框为圆角 */
+    border-radius: 10px;
+    /* 设置输入框外边距 */
+    margin: 5px;
+    /* 设置输入框内边距 */
+    padding: 5px;
+    /* 添加阴影 */
+    box-shadow: 5px 5px 5px silver;
+}
+
+input[type^=sub],
+input[type*=ese] {
+    /* 设置按钮外边距 */
+    margin: 10px;
+    /* 去掉按钮边框 */
+    border: none;
+    /* 更改为圆角 */
+    border-radius: 10px;
+    /* 设置按钮宽度 */
+    width: 50px;
+    /* 添加按钮背景色 */
+    background-color: cornflowerblue;
+    /* 添加按钮字体颜色 */
+    color: whitesmoke;
+    /* 添加阴影 前三个参数为阴影偏移量 第四个参数为阴影颜色 */
+    box-shadow: 5px 5px 5px gray;
+}
+```
+
+### 12-圣杯布局.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13:表格</title>
+    <link rel="stylesheet" href="./css/global.css">
+    <link rel="stylesheet" href="./css/table.css">
+    <link rel="icon" href="./assets/favicon.ico">
+</head>
+<body>
+    <div class="table-container">
+        <!-- 
+            table:表示渲染一个表格
+                tr:表示表格中的行
+                td:表示表格中的列
+                横行竖列,注意表格最简化必须存在 table tr td
+                嵌套关系不能变
+        -->
+        <table class="tb">
+            <!-- caption:表格的标题,不是必须 -->
+            <caption>表格标题</caption>
+            <!-- thead:表头,一般嵌套表格的首行,多搭配 css 使用 -->
+            <thead>
+                <tr>
+                    <!-- th:表示列,效果同 td,但是使用在表头中
+                    内部文字居中 加粗,多使用在表头中 -->
+                    <th>列1</th>
+                    <th>列2</th>
+                    <th>列3</th>
+                    <th>列4</th>
+                    <th>列5</th>
+                </tr>
+            </thead>
+            <!-- tbody:一般嵌套表格主体,多搭配 css 使用
+            注意如果我们不书写,则自动添加 tbody -->
+            <tbody>
+                <tr>
+                    <td>列1</td>
+                    <td>列2</td>
+                    <td>列3</td>
+                    <td>列4</td>
+                    <td>列5</td>
+                </tr>
+                <tr>
+                    <td>列1</td>
+                    <td>列2</td>
+                    <td>列3</td>
+                    <td>列4</td>
+                    <td>列5</td>
+                </tr>
+                <tr>
+                    <td>列1</td>
+                    <td>列2</td>
+                    <td>列3</td>
+                    <td>列4</td>
+                    <td>列5</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+```
+
+#### table.css
+
+```css
+@charset "utf-8";
+
+/* 设置外侧容器 */
+.table-container{
+    margin:0 auto;
+    width:80vw;
+    display: flex;
+    justify-content: center;
+    /* 从交叉轴起始位置排列 */
+    align-items: flex-start;
+}
+
+/* 设置表格 */
+.tb{
+    /* 设置表格宽度 */
+    width:60vw;
+    /* 向下偏移 100 像素 */
+    margin-top: 100px;
+    /* 存在多条边框时合并为一根 */
+    border-collapse: collapse;
+    /* 设置表格内部文本居中 */
+    text-align: center;
+}
+
+/* 设置表格边框 */
+.tb,tr,td,th{
+    /* 设置表格的边框类型 */
+    border:solid 1px #ddd;
+}
+
+/* 设置表头 */
+.tb thead{
+    background-color: coral;
+    color: navy;
+}
+/* 设置表格主体 */
+.tb tbody{
+    background-color: azure;
+    color:gray;
+}
+```
+
+### 13-表格.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13:表格</title>
+    <link rel="stylesheet" href="./css/global.css">
+    <link rel="stylesheet" href="./css/table.css">
+    <link rel="icon" href="./assets/favicon.ico">
+</head>
+<body>
+    <div class="table-container">
+        <!-- 
+            table:表示渲染一个表格
+                tr:表示表格中的行
+                td:表示表格中的列
+                横行竖列,注意表格最简化必须存在 table tr td
+                嵌套关系不能变
+        -->
+        <table class="tb">
+            <!-- caption:表格的标题,不是必须 -->
+            <caption>表格标题</caption>
+            <!-- thead:表头,一般嵌套表格的首行,多搭配 css 使用 -->
+            <thead>
+                <tr>
+                    <!-- th:表示列,效果同 td,但是使用在表头中
+                    内部文字居中 加粗,多使用在表头中 -->
+                    <th>列1</th>
+                    <th>列2</th>
+                    <th>列3</th>
+                    <th>列4</th>
+                    <th>列5</th>
+                </tr>
+            </thead>
+            <!-- tbody:一般嵌套表格主体,多搭配 css 使用
+            注意如果我们不书写,则自动添加 tbody -->
+            <tbody>
+                <tr>
+                    <td>列1</td>
+                    <td>列2</td>
+                    <td>列3</td>
+                    <td>列4</td>
+                    <td>列5</td>
+                </tr>
+                <tr>
+                    <td>列1</td>
+                    <td>列2</td>
+                    <td>列3</td>
+                    <td>列4</td>
+                    <td>列5</td>
+                </tr>
+                <tr>
+                    <td>列1</td>
+                    <td>列2</td>
+                    <td>列3</td>
+                    <td>列4</td>
+                    <td>列5</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+```
+
+#### teble.css
+
+```css
+@charset "utf-8";
+
+/* 设置外侧容器 */
+.table-container{
+    margin:0 auto;
+    width:80vw;
+    display: flex;
+    justify-content: center;
+    /* 从交叉轴起始位置排列 */
+    align-items: flex-start;
+}
+
+/* 设置表格 */
+.tb{
+    /* 设置表格宽度 */
+    width:60vw;
+    /* 向下偏移 100 像素 */
+    margin-top: 100px;
+    /* 存在多条边框时合并为一根 */
+    border-collapse: collapse;
+    /* 设置表格内部文本居中 */
+    text-align: center;
+}
+
+/* 设置表格边框 */
+.tb,tr,td,th{
+    /* 设置表格的边框类型 */
+    border:solid 1px #ddd;
+}
+
+/* 设置表头 */
+.tb thead{
+    background-color: coral;
+    color: navy;
+}
+/* 设置表格主体 */
+.tb tbody{
+    background-color: azure;
+    color:gray;
+}
+```
+
+
+
+---
+
+
+
+### Javascript基本语法
+
+#### ES规范
+
+> 完全遵循 ECMA 的 ES 规范,ES5 和 ES6 差异较大,没有兼容性问题,每个浏览器都支持
+
+> Java 基本数据类型:byte short char int float long double boolean
+
+#### 基本数据类型(值数据类型)
+
++ **string**:字符串
+
+  ```javascript
+  //ES5
+  var str = "etoak";
+  var count = 100;
+  //ES6 使用 let 和 const 取代 var,作为标识符
+  //let:用来设置变量
+  //const:用来设置常量
+  //ES6语句具有 ASI 特性,语句结尾自动添加分号,我们不需要书写,但是要注意,语句必须是最终的结尾
+  //在 ES6 推荐使用单引号取代双引号
+  let str2 = 'etoak'
+  const count = 100
+  ```
+
++ **number**:表示数字,相当于 java 中的 int+float,范围是 正负2^53-1
+
+  + **NaN**:not a number 的简写,表示不是一个数字
+  + **Infinity**:正无穷
+  + **-Infinity**:负无穷
+  + **number() parseInt()  -0 +**
+
++ **boolean**:true 和 false,在布尔中存在**真假值**一说
+
+  + **0 null NaN undefined false** '' 这些被称之为**假值**
+
+  + 除去以上的数据,被称之为**真值**
+
+  + 在流程控制时,真假值就可以当成 true 和 false 使用
+
+    ```javascript
+    let str = ''
+    if(!str){
+        //执行这里
+    }
+    const arr = [1,2,3,4]
+    //只要数组长度不为 0 就执行分支内
+    if(arr.length){
+        //执行这里
+    }
+    ```
+
++ **null**
+
+  + type of 数据类型为 'Object'
+
++ **undefined**:表示未定义,或者没有数据类型
+
+  ```javascript
+  //java
+  String str = "etoak";
+  int count;
+  //js
+  let str  //undefined
+  ```
+
++ **bigint(ES8)**:范围超过了 2^53-1 用来弥补number对于超大数据的局限
+
+  ```javascript
+  let count = 100	//number
+  let count2 = 100n //bigint
+  ```
+
++ **symbol(ES6)**:表示一个独一无二的数据,底层开辟内存地址
+
+#### 复杂数据类型(地址数据类型,引用数据类型)
+
++ **Object**:对象
+  + **Array**:数组
+  + **Function**:函数
+  + **RegExp**:正则表达式
+  + **Math**:内置对象,用来进行数学运算
+  + **Date**:内置对象,用来进行日期运算
+
+#### BOM(Browser Object Model 浏览器对象模型)
+
+> 提供了一组内置的对象,用来与浏览器进行交互,存在一定的兼容性问题
+
++ **window**:表示整个浏览器窗口,顶层对象,全局变量
+  + **document**:表示页面的正文部分,通过 document 可以借助 DOM 来操纵页面的结构和样式
+  + **location**:表示浏览器的地址栏,一般可以获取地址信息,控制跳转等
+  + **history**:表示浏览器的历史记录,缓存等信息
+  + **navigator**:表示当前浏览器的信息,例如版本,内核,品牌等等
+  + **screen**:捕捉当前页面屏幕信息,例如解析度,分辨率,色彩,鼠标指针
+  + **frame**:页面的一个框架,是 **iframe** 的前身,已经不推荐使用
+
+#### DOM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
