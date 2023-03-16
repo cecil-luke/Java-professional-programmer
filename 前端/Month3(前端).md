@@ -1021,7 +1021,7 @@ justify-content 属性定义了项⽬在**主轴**上的对⻬⽅式。
 
 <img src=".\img\QQ图片20230314192340.png" style="zoom: 80%;" />
 
-在Flex容器中使⽤ <u>justify-content</u> 来控制Flex项⽬在Flex容器主轴⽅向的对⻬⽅式，也可以⽤来分 配Flex容器中主轴⽅向的剩余空间。使⽤ justify-content 分配Flex容器剩余空间，主要是将剩余空 间按不同的对⻬⽅式，将剩余空间分配给Flex项⽬的两侧，即控制Flex项⽬与Flex项⽬之间的**间距**。 
+在Flex容器中使⽤ **<u>justify-content</u>** 来控制Flex项⽬在Flex容器**主轴⽅向**的对⻬⽅式，也可以⽤来分配Flex容器中主轴⽅向的**剩余空间**。使⽤ justify-content 分配Flex容器剩余空间，主要是将剩余空间按不同的对⻬⽅式，将剩余空间分配给Flex项⽬的两侧，即控制Flex项⽬与Flex项⽬之间的**间距**。 
 
 <img src=".\img\QQ图片20230314192559.png" style="zoom: 50%;" />
 
@@ -1741,7 +1741,809 @@ input[type*=ese] {
   + **screen**:捕捉当前页面屏幕信息,例如解析度,分辨率,色彩,鼠标指针
   + **frame**:页面的一个框架,是 **iframe** 的前身,已经不推荐使用
 
-#### DOM
+#### DOM**(Document Object Model 文档对象模型)**
+
+> 提供了一个模型,js 可以借助 DOM 对页面的结构和样式进行操作,这个模型由以下这些节点组成
+>
+> DOM存在严重的兼容性问题
+
++ **文档节点**:就是指页面的根元素,在 html 中就是指 html 节点,一个 html 只有一个文档节点
++ **元素节点**:就是指页面中的各种元素,js 存在多种选择器,通过这些选择器可以使用 js 获取元素节点
+    + ES5
+        + **Node**  document.<u>getElement</u>**ById**('id')
+        + **NodeList**     document.getElements**ByTagName**('tagName')
+        + **NodeList**     document.getElements**ByName**('name')
+        + **NodeList**     document.getElements**ByClassName**('class')
+    + ES6
+        + Node  document.**querySelector**('sel')
+        + NodeList    document.**querySelectorAll**('sel')
++ **属性节点**:一般存在于元素节点上   <tagName 属性名="属性值" />
+    + **元素节点**.**set**Attribute('属性名','属性值')
+    + 元素节点.**get**Attribute('属性名')
+    + 元素节点.**remove**Attribute('属性名')
++ **文本节点**:就是指页面中的文本
++ **注释节点**:就是指页面中的注释
+
+---
+
+# day04
+
+### js能够直接修改页面的结构和样式吗?如果不能为什么?
+
+js不能直接修改页面的结构和样式,当浏览器从上往下解析,如果解析无误,全部解析结束之后,会生成一个 **DOM**(Document Object Model文档对象模型)这个模型结构与样式与用户书写的完全一致,由各种节点组成,它是根在上方的树,大致如下
+
+```text
+                  document
+                     |
+                    html
+                     |
+                -----------
+                |         |
+               head      body
+                |         | 
+            -------      --------
+            |     |      |      |
+           title meta   button  table
+                                   |
+                                   tr
+                                   |
+                                   td
+```
+
+模型生成之后与当前页面完全一致,当使用 js 要修改页面时,<u>一般是通过 document 对象来修改DOM模型</u>,我们书写的任意的脚本都是对模型进行 **crud 操作**,当修改结束之后,模型与页面不再保持一致,**则浏览器重新渲染页面使页面与模型保持一致**,所以说并不是 js 直接去修改了 html 和 css,而是 **js 修改了 DOM 模型**,浏览器为了与 DOM 保持一致,重新渲染页面
+
+第一个页面的例子,如果我们注释掉 window.onload 则会因为 模型根本没有创建完毕,就去模型中根据 id 属性 btn 来获取元素节点失败,从而绑定单击事件失败
+
+---
+
+### var 为什么被 let 和 const 取代了
+
+> 以下是 var 存在的一些问题,以下例子为恶例
+
+#### 无视块级作用域
+
+```javascript
+    function demo(){
+        var count = 100
+    }
+    console.log(count)  //100
+    demo()
+```
+
+#### 可以重复赋值
+
+```javascript
+    var count = 100
+    ....
+    ....
+    var count = true
+    ....
+    ....
+    var count = 'etoak'
+```
+
+#### 可以先调用,后声明
+
+```javascript
+    function demo(){
+        count++
+        count--
+        count += '!!!'
+        count += 'etoak'
+        var count = 10
+    }
+    demo()
+```
+
+---
+
+### 1-初始js.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1:初识 js</title>
+    <!-- 类似 css 内嵌式,将 js 脚本直接书写在 script 标签 -->
+    <script>
+        /* js 注释与 java 完全一致,在此处不能书写 html 与 css 
+        
+            window:BOM七对象之首,表示当前整个浏览器窗口
+            onload:激发事件,所有的激发事件都以 on 开头,此处表示
+            窗口载入无误,此处表示 窗口载入没有任何问题,之后激发一个
+            函数 etoak
+        */
+        window.onload = etoak
+
+        /* 
+            函数的格式
+
+            function 函数名(实参){
+                函数体
+            }
+        */
+        function etoak() {
+            console.log('这是无所不能的控制台打印!!!')
+            //console.info('这是无所不能的控制台打印2!!!')
+            //console.error('自己吓唬自己!!')
+            /* 弹出一个对话框 */
+            //alert('济南降温了!!!')
+            /* 根据 id 从正文中获取一个元素节点,这个元素节点数据类型为
+            对象 */
+            let nodeBtn = document.getElementById('btn')
+            /* 给元素节点绑定的一个事件,事件激发执行一个匿名函数 */
+            nodeBtn.onclick = function () {
+                //alert('测试!!!!')
+                /* 获取表格的元素节点 */
+                let nodeTb = document.getElementById('tb')
+                //debugger
+                /* 
+                    创建一个 tr 元素节点 
+                    <tr></tr>
+                */
+                let nodeTr = document.createElement('tr')
+                /* 
+                    修改 tr 元素节点的结构
+                    innerHTML:向元素中插入超文本(支持标签)
+                    修改前: <tr></tr>
+                    修改后: <tr><td>添加的一行</td></tr>
+                */
+                nodeTr.innerHTML = '<td>添加的一行</td>'
+                /* 向现有元素中插入元素节点,后面的元素节点作为子元素
+                如果现有元素中已经存在子元素,则插入的子元素,在现有子元素
+                之后 
+                    <table id="tb" border="1px">
+                        <tr>
+                            <td>默认一行</td>
+                        </tr>
+                        <tr><td>添加的一行</td></tr>
+                        <tr><td>添加的一行</td></tr>
+                    </table>
+                */
+                nodeTb.append(nodeTr)
+                /* 生成 0-255的随机整数 */
+                let r = Math.floor(Math.random() * 256)
+                let g = Math.floor(Math.random() * 256)
+                let b = Math.floor(Math.random() * 256)
+                /* 
+                    使用 js 渲染元素节点的样式
+                    元素节点.style.样式名 = 样式值
+                    样式名必须使用小驼峰格式,如果原先为连字符,则自己转换为
+                    小驼峰
+                    background-color => backgroundColor
+                    font-size => fontSize
+                */
+                //nodeTb.style.backgroundColor = 'rgb('+r+','+g+','+b+')'
+                //ES6新特性 模板字符串 `${要输出的数据}` 可以避免字符串繁琐的拼接
+                nodeTb.style.backgroundColor = `rgb(${r},${g},${b})`
+            }
+        }
+
+    </script>
+</head>
+
+<body>
+    <!-- 
+        js如何调错 
+        1:独立完成,不要依赖同位
+        2:出错第一时间查看浏览器 f12 开发人员工具的控制台
+        总结自己出过的错误
+        3:多使用 console.log() 控制台打印,这个打印功能异常强大
+        没有打印不了的数据
+        4:添加断点 debugger
+    -->
+    <button id="btn">点我试试!</button>
+
+    <table id="tb" border="1px">
+        <tr>
+            <td>默认一行</td>
+        </tr>
+    </table>
+    <script>
+        /* 
+            将 js 脚本书写在文末有以下好处
+            1:优先加载 html 和 css
+            2:保证模型创建完毕
+        */
+    </script>
+</body>
+
+</html>
+```
+
+### 2-引入js的方式和函数的执行.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2:js引入方式和函数得执行</title>
+</head>
+<!-- 1:类似 css 行内式,不推荐使用 -->
+<!-- <body onload="javascript:alert('测试!')"> -->
+<!-- <body onload="alert('测试!')"> -->
+<!-- 这种书写方式可以使用,这里函数 etoak 被调用 传递了
+三个实参 -->
+
+<body onload="etoak(100,true,'测试')">
+
+    <script>
+        /* 此处函数中三个为形参 可以随意书写 */
+        function etoak(arg1, arg2, arg3) {
+            console.log(arg1, arg2, arg3)
+        }
+
+        /* 函数要么绑定事件,要直接调用 */
+        function test() {
+            console.log('测试---------')
+            let SEASON = 3
+            if (SEASON >= 1 && SEASON <= 3) {
+                console.log('春天来了')
+            } else if (SEASON >= 4 && SEASON <= 6) {
+                console.log('夏天来了')
+            } else if (SEASON >= 7 && SEASON <= 9) {
+                console.log('秋天来了')
+            } else if (SEASON >= 10 && SEASON <= 12) {
+                console.log('冬天来了')
+            }
+
+            /* 弹出对话框,内部可填写内容,如果不写就是后面的
+            默认值 */
+            let val = prompt('现在是几月?为什么这么冷?', 3)
+            console.log(typeof +val, typeof (val - 0))
+            /* 
+                =:赋值
+                ==:比较两个数据是否一致,如果不是同一种类型,则
+                转换为同一种类型,再进行比较
+                ===:比较两个数据是否一致,如果数据类型不一致,立刻
+                返回 false,如果一致,再进行比较
+            */
+            if (+val === 3) {
+                console.log('春天就要来了,再等一周就热了!!')
+            }
+
+            /* 直接从页面输出,支持标签 */
+            let i = 100
+            let j = 'etoak'
+            let x = true
+            let y = 1.1
+            let z = null
+
+            document.write(`${i}+${j}=${i + j}<br>`)
+            document.write(`${i}+${y}=${i + y}<br>`)
+            document.write(`${i}+${z}=${i + z}<br>`)
+            document.write(`${x}+${j}=${x + j}<br>`)
+            document.write(`${y}+${j}=${y + j}<br>`)
+            document.write(`${x}+${y}=${x + y}<br>`)
+            document.write(`${y}+${z}=${y + z}<br>`)
+
+            /* 使用 document.write 从页面输出 99 乘法表 */
+            let str = ''
+            for(let a = 1;a<=9;a++){
+                for(let b = 1;b<=a;b++){
+                    str += `${b}*${a}=${b*a}\t`
+                }
+                str += '<br>'
+            }
+            document.write(str)
+        }
+
+        test()
+
+        /* 使用函数表达式来书写函数 */
+        /* 
+            ES6新特性 箭头函数
+            如果出现匿名函数,则可以省略 function 单词
+            在参数之后添加 =>,如果只有一个参数,则小括号
+            可以省略,如果没有或者一个以上参数,则小括号不能省略
+            如果函数体只有一句,或者直接书写的 return 语句,则
+            大括号 return 都可以省略
+        */
+        let test2 = () => console.log('thisistest2---------')
+
+        //console.log(test2)
+        test2()
+    </script>
+</body>
+
+</html>
+```
+
+### 3-字符串函数.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3:字符串函数</title>
+</head>
+<body>
+    <script>
+        let str = 'http://www.etoak.com'
+
+        /* 
+            Java:
+                String          length()
+                Array           length
+                List            size()
+            Js:
+                length
+        */
+        console.log(`字符串长度是---->${str.length}`)
+        console.log(`将 e 替换为 a---->${str.replace('e','a')}`)
+        console.log(`从左往右第一个 w 的索引是---->${str.indexOf('w')}`)
+        console.log(`从左往右最后一个 w 的索引是---->${str.lastIndexOf('w')}`)
+        console.log(`获取索引是 8 的字符---->${str.charAt(8)}`)
+        /* 
+            substring(x,y)
+                x:表示从索引值 x 开始截取(包含)
+                y:截取到索引值 y(不包含) 
+            substr(x,length)
+                x:表示从索引值 x 开始截取(包含)
+                length:表示截取的长度
+            以上两个函数参数可以只写一个,用法相同,不能是负值
+            slice(x,y):与 substring 完全一致,但是 x,y可以设置
+            负值,从右往左算
+        */
+        console.log(`截取字符串---->${str.substring(3,5)}`)
+        console.log(`截取字符串---->${str.substr(3,5)}`)
+        /* split():分割字符串,在括号内设置的分隔符处开始分割 */
+        let knife = str.split('.')
+        for(let i = 0;i<knife.length;i++){
+            console.log(knife[i])
+        }    
+    </script>
+</body>
+</html>
+```
+
+### 4-数组.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4:数组</title>
+</head>
+<body>
+    <script>
+        /* 1:直接通过复杂类型提供的构造器创建 */
+        const arr = new Array()
+        arr[0] = 100
+        arr[1] = true
+        arr[2] = 'etoak'
+        arr[3] = null
+        /* ES5 for in 循环 */
+        for(let index in arr){
+            console.log(arr[index])
+        }
+        /* 2:直接创建数组 */
+        const arr1 = [1,2,3,4,5]
+        console.log(arr1)
+        /* push():从数组结尾追加数据 */
+        arr1.push(99)
+        console.log(arr1)
+        /* unshift():从数组头部添加数据 */
+        arr1.unshift(0)
+        console.log(arr1)
+        /* shift():从数组头部删除数据 */
+        arr1.shift()
+        console.log(arr1)
+        /* pop():从数组结尾删除数据 */
+        arr1.pop()
+        console.log(arr1)
+        /* reverse():逆序排列 */
+        arr1.reverse()
+        console.log(arr1)
+        /* sort():正序排列 */
+        arr1.sort()
+        /* splice():删除
+            splice(起始索引,删除个数,替换的值)
+        */
+        arr1.splice(0,1,777)
+        //[777, 2, 3, 4, 5]
+        console.log(arr1)
+        /* 
+            push() unshift() shift() pop() sort()
+            reverse() splice()
+            以上七个函数可以对原数组进行修改
+            -------------------------------
+            以下三个函数对原数组没有任何影响,会生成新的数组
+
+            filter():过滤函数
+            数组.filter(function(alias){
+                return 过滤条件
+            })
+            只要符合过滤条件,则返回,最终生成一个新的数组,
+            原数组不受影响
+        */
+        const newArr = arr1.filter( a => a>=4 )
+        console.log(newArr)
+        /* 
+            find():与 filter()几乎完全一致,仅仅返回
+            第一个符合条件的
+        */
+        let val = arr1.find( a => a>=4 )
+        console.log(val)
+        /* 
+            map():多使用在对象中,如果使用在数组中,
+            如果书写表达式,则仅仅返回一个数组,符合表达式
+            则返回 true 不符合 返回 false
+        */
+        const newArr2 = arr1.map( a => a>=4 )
+        console.log(newArr2)
+
+        /* indexOf():查询字符的索引
+        如果查询不到则返回-1 */
+        let value = arr1.indexOf(8888)
+        console.log(value)
+
+        /* 
+            对于基本数据类型来说,let 赋值则是变量
+            const 赋值为常量,数据不能存在任何变动,但是
+            对于复杂类型来说,如果使用 let 则每次变动都要
+            重新进行寻址,内存要开辟地址,而如果使用 const 则
+            事先划定好了地址,不会进行频繁的寻址,非常节省资源
+        */
+            
+        const demo = [1,2,3,4,5]
+        /* ES6 for of 迭代 */
+        for(let value of demo){
+            console.log(value)
+        }
+
+        /* ES6 forEach */
+        demo.forEach((a,index) => 
+        console.log(`第${index}个元素是${a}`))
+    </script>
+</body>
+</html>
+```
+
+
+
+#### 常用的几个函数push() unshift() shift() pop() sort() reverse() splice() ||filter() find() map()
+
+#### let const
+
+​	   对于基本数据类型来说,**let** 赋值则是**变量**
+
+​      **const** 赋值为**常量**,数据不能存在任何变动,但是
+
+​      对于复杂类型来说,<u>如果使用 let 则每次变动都要</u>
+
+​      <u>重新进行寻址</u>,内存要开辟地址,而如果使用 const 则
+
+​      事先划定好了地址,不会进行频繁的寻址,非常节省资源
+
+#### for遍历的几种方式
+
+```html
+/* ES5 for in 循环 */
+for(let index in arr){
+	console.log(arr[index])
+}
+        /* ES6 for of 迭代 */
+        for(let value of demo){
+            console.log(value)
+        }
+
+/* ES6 forEach */
+demo.forEach((a,index) => 
+	console.log(`第${index}个元素是${a}`))
+```
+
+### 5-对象.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5:对象</title>
+</head>
+<body>
+    <script>
+        /* 1:使用对象字面量创建对象
+            let|const 对象名 = {
+                属性名:属性值,
+                属性名:属性值,
+                属性名:属性值,
+            } 
+            属性名:没有引号,就表示一个属性,浏览器在解析时
+            会将其解析为字符串,但是我们书写时,不要书写引号
+            属性值:根据数据类型决定
+        */
+        let name = '胡桃'
+
+        const person = {
+            /* 
+                ES6新特性
+                如果属性名与属性值恰好重名,则仅仅书写属性名
+            */
+            name,
+            age:17,
+            hobby:['逛街','恶作剧'],
+            info:{
+                address:'璃月',
+            }
+        }
+        console.log(person)
+        /* 
+            使用对象自带的两个迭代
+            迭代所有的属性名
+        */
+        console.log(Object.keys(person))
+        /* 迭代所有的属性值 */
+        console.log(Object.values(person))
+        /* 
+            获取某个属性值
+            属性值 = 对象.属性名
+            属性值 = 对象['属性名']
+        */
+        console.log(person.name,person['name']
+        ,person.hobby[0],person.info.address)
+
+        /* 删除属性和属性值 delete 对象.属性名
+        如果删除成功则返回 true 失败 false */
+        console.log(delete person.age)
+
+        /* 
+            添加属性
+            对象.属性名 = 属性值
+        */
+        person.myAge = 17
+
+        /* 2:直接使用构造器构造 */
+        const obj = new Object()
+        obj.name = '张三'
+        obj.age = 30
+        console.log(obj)
+    </script>
+</body>
+</html>
+```
+
+#### 对象自带的两个迭代
+
+```html
+let person = {
+	name,
+	age,
+	hobby,
+}
+		/* 
+            使用对象自带的两个迭代
+            迭代所有的属性名
+        */
+        console.log(Object.keys(person))
+
+        /* 迭代所有的属性值 */
+        console.log(Object.values(person))
+```
+
+#### 添加对象属性
+
+```html
+        /* 
+            添加属性
+            对象.属性名 = 属性值
+        */
+        person.myAge = 17
+
+        /* 2:直接使用构造器构造 */
+        const obj = new Object()
+        obj.name = '张三'
+        obj.age = 30
+        console.log(obj)
+```
+
+### 6-动态表格.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6:动态表格</title>
+    <link rel="stylesheet" href="./css/dynamicTable.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <input type="text" placeholder="请输入姓名"
+            autofocus autocomplete="off">
+            性别: <input type="radio" name="gender" value="0"
+            checked>女
+            <input type="radio" name="gender" value="1">男
+            归属地: 
+            <select name="location" id="location">
+                <option value="济南">济南</option>
+                <option value="青岛">青岛</option>
+                <option value="淄博">淄博</option>
+                <option value="济宁">济宁</option>
+            </select>
+            <input type="button" value="添加"
+            onclick="add()">
+        </header>
+        <section class="main"></section>
+    </div>
+    <!-- 引入外部独立的 js 文件,注意存在先后顺序,从上往下先引
+    外部资源 -->
+    <script src="./js/datas.js"></script>
+    <script>
+        /* 函数 A:此函数用来组装动态表格 */
+        function query(){
+            let table = 
+            `<table class="tb">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>居住地</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>`
+            
+            empList.forEach((emp,index)=>{
+                table += 
+                `<tr>
+                    <td>${index+1}</td>
+                    <td>${emp.name}</td>
+                    <td>${emp.gender===0?'女':'男'}</td>
+                    <td>${emp['location']}</td>
+                    <td><span style="cursor:pointer"
+                    onclick="remove(${index})">删除</span></td>
+                </tr>`
+            })
+
+            table += '</tbody></table>'
+
+            document.querySelector('.main').innerHTML = table
+        }
+
+        query()
+
+        /* 函数 B:此函数用来进行删除操作 */
+        function remove(index){
+            /* 弹出一个可选择式对话框 */
+            if(confirm('您确定删除本条记录吗?')){
+                /* 删除 */
+                empList.splice(index,1)
+                /* 回过头来重新查询,这种操作被称之为:回显
+                这里复用函数 A */
+                query()
+            }
+        }
+    
+        /* 函数 C:此函数用来进行添加操作 */
+        function add(){
+            /* 
+                1:获取用户姓名 
+                trim():去掉字符串两侧空格
+            */
+            let name = 
+            document.querySelector('input[type=text]').value.trim()
+
+            if(!name){
+                alert('请输入有效内容...')
+                return
+            }
+
+            /* 2:获取性别 */
+            /* 设置性别默认值 */
+            let gender = 0
+
+            let nodeRadios = 
+            document.getElementsByName('gender')
+
+            nodeRadios.forEach(nodeRadio=>{
+                /* 如果某一个被选中了 */
+                if(nodeRadio.checked){
+                    gender = (nodeRadio.value-0)
+                }
+            })
+
+            /* 3:获取归属地 */
+            let location = 
+            document.getElementById('location').value
+
+            /* 添加进数组 */
+            empList.push({
+                /* 注意此处由于没有真正的主键,因此直接使用数组
+                长度+1 这是非常不标准的书写方式 */
+                id:empList.length+1,
+                name,
+                gender,
+                location,
+            })
+            
+            /* 回显 */
+            query()
+        }
+    
+    </script>
+</body>
+</html>
+```
+
+---
+---
+> 
+>
+> 
+
+---
+
+
+
+#### substring-substr-slice区别
+
+![](G:\ET2301\JavaStudy\Java-professional-programmer\前端\img\substring-substr-slice区别.png)
+
+
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
