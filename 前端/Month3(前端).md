@@ -1725,6 +1725,7 @@ input[type*=ese] {
 + **Object**:对象
   + **Array**:数组
   + **Function**:函数
+    + <u>函数不管在任何情况下都有返回值,要么就是我们显式书写的 return ,要么返回 undefined</u>
   + **RegExp**:正则表达式
   + **Math**:内置对象,用来进行数学运算
   + **Date**:内置对象,用来进行日期运算
@@ -2505,13 +2506,581 @@ let person = {
 
 ---
 
+# day05
+
+### 7-分离运算符.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7:分离运算符</title>
+</head>
+<body>
+    <script>
+        /* 
+            ES6 新特性 分离运算符 可以使用在 字符串 数组 对象中 
+            ...:用三个点表示分离运算符
+            就是将...后面的字符串 数组 或者对象 分离
+            又被称之为 spread syntax 分离语法
+            
+            1:字符串
+                将字符串分为一个一个字符
+        */
+        let str = 'etoak'
+        console.log(...str,[...str])
+        /* 
+            2:数组
+                将数组中的数据从中括号中取出来
+        */
+        const arr = [1,2,3,4,5]
+        console.log(...arr)
+        const arr2 = [...arr,99,true]
+        console.log(arr,arr2)
+        
+        /* 
+            const test = function(a,b,c,d,e){
+                return a+b+c+d+e
+            }
+        */
+        const test = (a,b,c,d,e) => a+b+c+d+e
+        console.log(test(...arr))
+
+        /* 3:对象
+            ...对象:就是将对象中的属性名 属性值从对象中取出
+        */
+        const obj = {
+            name:'张三',
+            age:20,
+        }
+
+        const obj2 = {...obj,address:'济南',}
+        console.log(obj,obj2)
+        
+
+    </script>
+</body>
+</html>
+```
+
+### 8-深拷贝和浅拷贝.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8:浅拷贝和深拷贝</title>
+</head>
+<body>
+    <script>
+        /* 
+            深拷贝:拷贝之后,修改其中任意一个,另一个不受影响,即所谓,你变我不变
+            浅拷贝:拷贝之后,修改其中任意一个,则另一个也会被修改,即所谓,你变我也变
+
+            1:等号
+                基本数据类型,则是深拷贝
+                复杂数据类型,则是浅拷贝
+        */
+        let str1 = 'etoak'
+        let str2 = str1
+        console.log(str1,str2)
+        str2 += '!!!!'
+        console.log(str1, str2)
+
+        const arr1 = [1,2,3,4,5]
+        const arr2 = arr1
+        console.log(arr1,arr2)
+        arr2.push(99)
+        console.log(arr1, arr2)
+        /* 
+            2:分离运算符 Array.from() slice() Object.assign()
+                对于基本数据类型,分离运算符肯定是深拷贝
+                对于复杂类型,则要具体分析
+                    如果修改的表层数据为基本类型,则深拷贝
+                    如果修改的表层数据为复杂类型,则浅拷贝
+                注意在打印时,对于复杂类型,点开箭头要查看复杂类型
+                内部结构时,浏览器会重新寻址进行一次查询,保证数据是最新
+                的,因此这里头两次打印 也会变为最新的 '学习'
+        */
+        const obj1 = {
+            name:'胡桃',
+            age:17,
+            hobby:['逛街','恶作剧'],
+            info:{
+                address:'济南',
+            },
+        }
+
+        const obj2 = {...obj1}
+        console.log(obj1,obj2)
+        obj2.name = '甘雨'
+        obj2.age = 26
+        obj2.hobby[0] = '学习'
+        console.log(obj1, obj2)
+
+        /* 
+            3:  JSON.parse(JSON.stringify())
+            肯定是深拷贝,又名万能转换器
+        */
+
+    </script>
+</body>
+</html>
+```
+
+---
+
+### jQuery（NODE | NPM）
+
+#### Write Less Do More
+
+> 由美国人John Resig 独立发布Javascript前端类库，jQuery可以使用更简短的代码通过对js的封装实现更多功能，完全借鉴了css选择器机制，可以通过许多手段更快速更精确的拿取元素，实现了代码链机制，基本解决了浏览器差异性问题
+
+#### <u>使用jQuery类库的步骤</u>
+
+1. 安装Node
+2. 安装Node之后NPM平台就安装成功了
+3. 进入终端 输入 npm -v 可以查看npm平台版本号
+4. 使用npm初始化本工程，相当于用npm接管我们的前端工程
+5. npm init -y
+6. 更改国内节点 npm set registry https://registry.npm.taobao.org/
+7. 下载jQuery依赖  npm i jquery
+8. 在 node_modules中找到jquery/dist/jquery.js 引入页面即可使用 dist:distribution的简写，表示发布版
+
+---
+
+### 1-Jquery选择器.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1:jquery选择器</title>
+</head>
+<body>
+    <div class="container">
+        <span>段落之前的 span</span>
+        <p id="pra">
+            <span>段落内部的 span</span>
+        </p>
+        <span>段落之后紧邻的 span</span>
+        <span>段落之后不紧邻的 span</span>
+    </div>
+    <!-- 
+        引入 jQuery 依赖,注意一定要先引入,再写我们自己的 
+        dist:distribution的简写,表示发布版
+    -->
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script>
+        /* 
+            # jQuery 元素与 js 的元素节点是同一种元素吗?如果不是为什么?两者
+            如何进行转换?
+
+            <span id="etoak">测试</span>
+
+            js:
+                let nodeSp = document.getElementById('etoak')
+                <span id="etoak">测试</span>
+            
+            jQuery:
+                let $sp = $('#etoak')
+                [<span id="etoak">测试</span>]
+
+            jQuery元素与 js 元素节点不是同一种元素,它是对 js 节点的一个
+            轻度的封装,jQuery元素只能使用自己的 函数 方法 属性 同样 js 节点
+            也只能使用自己的函数 方法 属性,两者不能通用
+
+            nodeSp.innerHTML = XXXX
+            $sp.html(XXXX)
+
+            两者如何转换
+            jQuery => js节点
+            $sp.get(0)
+            $sp[0]
+
+            js节点 => jQuery
+            $(nodeSp)
+            $(document)
+            $(location)
+            $(history)
+            -------------------------------------------
+            jQuery选择器
+            1:  $('tagName')
+            2:  $('.class')
+            3:  $('#id')
+            4:  $('tagName.class')
+                $('tagName#id')
+            5:  $('sel1,sel2,selN')
+            6:  $('sel1 sel2 selN')
+            7:  $('*')
+            8:  $('[属性名=属性值]')
+            9:  $('[属性名^=属性值开头]')
+            10: $('[属性名$=属性值结尾]')
+            11: $('[属性名*=包含属性值]')
+
+            12: $('sel1 > sel2')
+            获取特定元素的子元素,注意仅仅只能获取子元素
+
+            使用 jquery 渲染样式
+            sel.css('样式名','样式值')
+            sel.css({
+                样式名:样式值,
+                样式名:样式值,
+                样式名:样式值,
+            })
+            注意没有引号的写法中,样式名必须使用小驼峰格式
+        */
+        $('.container > span').css({
+            backgroundColor:'coral',
+            color:'whitesmoke',
+        })
+        /* 
+            13: $('sel1 + sel2')
+                以下三个条件必须全部满足
+                a:向下选取
+                b:必须紧邻
+                c:互为兄弟
+        */
+        $('p#pra + span').css('border','solid 2px purple')
+        /* 
+            14: $('sel1 ~ sel2')
+                以下两个条件必须全部满足
+                a:向下选取
+                b:互为兄弟
+        */
+        $('p#pra ~ span').css('font-style','italic')
+    </script>
+</body>
+</html>
+```
+
+### jQuery 元素与 js 的元素节点是同一种元素吗?如果不是为什么?两者如何进行转换?
+​      jQuery元素与 js 元素节点**不是**同一种元素,它是对 js 节点的一个
+
+​      **轻度的封装**,jQuery元素只能使用自己的 **函数 方法 属性** 同样 js 节点
+
+​      也只能使用自己的**函数 方法 属性**,<u>两者不能通用</u>
+
+### 2-事件动作.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2:事件动作</title>
+    <style>
+        .red{
+            background-color: crimson;
+        }
+        .blue{
+            background-color: cornflowerblue;
+        }
+    </style>
+</head>
+<body>
+    <button>你点我试试!</button>
+    
+    <input type="button" value="添加一行">
+
+    <table border="1px" class="tb">
+        <tr>
+            <td>默认的一行</td>
+        </tr>
+    </table>
+
+    <div style="width:100px;height:100px;border:solid 1px #ddd">
+        测试域
+    </div>
+
+    <ul class="myul">
+        <li>列表1</li>
+        <li>列表2</li>
+        <li>列表3</li>
+        <li>列表4</li>
+        <li>列表5</li>
+    </ul>
+
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script>
+        /* 表示全文加载无误之后执行 ready()内部的回调函数
+        ready()非常类似 js 中得 window.onload,不同的是
+        ready()可以书写多个,从上往下执行,window.onload 全文只能书写一次
+        ready()还对内部的脚本起到的保护的作用,效果等同于 js 中的
+        自调用函数 */
+        $(document).ready(function(){
+            /* 1:给特定 jQuery 元素绑定多个事件
+                sel.on('事件1 事件2 事件N',function(){
+
+                })
+
+                $(':contains(text)'):获取包含特定文本的
+                指定元素
+                jQuery的事件就是 js 的事件去掉 on 前缀
+                mouseout:鼠标滑出
+                mouseover:鼠标滑过
+            */
+            $('button:contains(点我)').on('click mouseout',
+            function(){
+                /* 
+                    $(this):表示已经获取的元素列表 
+                    attr(属性名,属性值):把元素的属性名更改为属性值
+                */
+                $(this).attr('disabled',true)
+            })
+
+            /* 
+                2:给元素绑定特定事件
+                sel.事件(function(){
+
+                })
+            */
+            $(document).dblclick(function(){
+                console.log('谁双击我了!!!')
+            })
+
+            $('input[type=button]').click(function(){
+                /* append():向元素中追加子元素 */
+                $('.tb').append('<tr><td>添加的一行</td></tr>')
+            })
+
+            /* 3:鼠标滑过元素
+            
+                sel.hover(
+                    function(){
+                        //鼠标滑过执行此函数
+                    },
+                    function(){
+                        //鼠标滑出执行此函数
+                    }
+                )
+            */
+            $('div:contains(测试域)').hover(
+                function(){
+                    /* 
+                        addClass():添加 class 属性
+                        removeClass():删除 class 属性
+                        toggleClass():如果存在则删除,如果不存在则添加
+                        一个元素可以添加多个class
+                        注意 id 无上面任何操作
+                    */
+                    $(this).removeClass().addClass('red')
+                },
+                function(){
+                    $(this).removeClass().addClass('blue')
+                }
+            )
+
+            /* 
+                4:迭代                 
+                sel.each(function(index,alias){
+
+                })
+            */
+            $('.myul li').each(function(index){
+                if(index===3){
+                    $(this).addClass('red')
+                }
+            })
+        })
+    </script>
+</body>
+</html>
+```
+
+---
+
+---
+
+### 第一周复习
+
+​              
+
+1.请简单作答js中Function是否肯定存在返回值,如果不是为什么?如果存在返回什么?(10分)
+
+肯定存在返回值,要么是return的数据要么是undefined
+
+肯定存在返回值，要么是return的数据 要么是undefined
+
+2.请简述JavaScript中基本数据类型有哪些?复杂数据类型有哪些(仅写出类型即可,单词拼写错误不得分10分)
+
+基本数据类型 string number null undefined boolean symbol bigint
+
+复杂数据类型 Object Array Function RegExp Math Date
+
+基本数据类型 string number null undefined boolean symbol bigint
+复杂数据类型 Object Array Function RegExp Math Date
+
+3.请说出flex弹性布局中,什么是弹性容器?什么是项目?什么是主轴?什么是交叉轴? (请画图表示10分)
+
+见课件pdf图片
+
+ 
+
+4.请画图表示什么是盒子模型(共14个参数,单词拼写错误 少些 漏写均不得分10分)
+
+见课件图片
+
+ 
+
+5.请详细简述CssFlex弹性盒子中 flex:1 是什么意思? (注意单词拼写错误不得分10分)
+
+注意此参数仅仅针对项目,完全版书写如下,flex:flex-grow flex-shrink flex-basis;
+
+默认值 flex:0 1 auto;
+
+flex-grow:默认是0,如果弹性容器具有剩余空间,则本项目也不放大,如果更改为1,则如果弹性容器具有剩余空间,则本项目放大装满整个容器
+
+flex-shrink:默认是1,如果弹性容器缩小,剩余空间减少,则项目会随之减小,如果设置为0,则项目不会变小,溢出容器
+
+flex-basis:默认是auto,就是设置本项目的盒子模型参数,但是优先级较本身的设置低,所以这里一般不设置盒子模型,使用默认值auto,那么根据以上三个参数最终书写为
+
+flex:0 1 auto;默认值可以省略,所以更改为 flex:0;
+
+我们现在需要项目的特性是如果容器存在剩余空间,则项目放大,如果没有剩余空间,则项目缩小,所以这里要将0改为1
+
+最终 flex:1;
+
+ 
+
+6.请说出三种Css可以使用页面整体居中的单位书写方式 (10分)
+
+px 像素
+
+%百分比 注意必须设置 html,body{height:100%}
+
+vw,vh 
+
+px:像素,固定单位
+
+%:百分比,与自己的父元素进行比较
+
+vw:当前视口的宽度 vh:当前视口的高度,
+
+ 
+
+7.现有数组const arr = [3,16,22,78,55,0],请写出脚本获取一个新数组,要求数据必须大于等于40,原数组不能受到任何影响,请写出脚本;要求返回第一个大于等于70的数字,请写出脚本(两问各5分,仅写出关键脚本即可,不需要书写函数调用等,单词拼写错误不得分 )
+
+const newArr = arr.filter(a => a >=40)
+
+let val = arr.find(a => a>=70)
+
+ 
+
+8.根据以下要求书写脚本: 使用对象字面量创建Js对象,对象名为 stu ,属性名分别为 username realname gender email,属性值分别为 'tom' '张三' 0 'et@et.com',方法 run(),调用方法在控制台输出 'tom的真实姓名是张三,邮箱地址为et@et.com ,请写出关键脚本(单词拼写错误不得分10分)
+
+const stu = {
+
+username:'tom',
+
+realname:'张三’,
+
+gender:0,
+
+email:’et@et.com’,
+
+run(){
+
+console.log(`${this.name}的真实姓名是${this.realname},邮箱地址是${this.email}`)
+
+}
+
+ 
+
+9.请说出Js数组中七个修改数组的函数的作用(仅写出函数名,简述其作用即可,单词拼写错误不得分10分)
+
+push():数组末尾增 unshift():数组头部增 shift():数组头部删 pop():数组尾部删 sort():正序排列 reverse():逆序排列splice():根据传入的索引 删除或者替换
+
+ 
+
+10.请说出几种你所知道的ES6规范新特性,不得少于5个(10分)
+
+ for of
+
+ forEach
+
+let const
+
+箭头函数
+
+模板字符串
+
+对象属性简略写法
+
+symbol
+
+方法简略写法
+
+document.querySelector()
+
+document.querySelectorAll()
+
+---
 
 
 
+### NPM使用指南
+
+> **NPM使用指南.pdf  仔细查阅,要求能够非常熟练的使用 npm <u>初始化工程</u>,<u>下载依赖</u>,能够分清什么是 <u>生产依赖</u> 什么是 <u>开发依赖</u>** 
+
+```nginx
+##初始化项目
+命令: npm init 
+##全部由系统决定，不再⾃⼰填写相关信息
+命令: npm init -y 
+##查看全局安装的⽬录
+命令: npm root -g 
+##修改全局安装的⽬录地址
+命令: npm config set prefix "c:\XXX" 
+##查看全局已经安装的模块
+命令: npm list -g 
+##⽣产环境安装 || ⽣产环境安装将依赖信息添加进package.json⽂件的dependencies中（⽣产环境依赖）
+命令:  npm i modelName@版本号 --save
+ 	  npm i modelName@版本号 -S
+##开发环境安装 || 开发环境安装将依赖信息添加进package.json⽂件的devDependencies中（开发环境依赖）
+命令:  npm i modelName@版本号 --save-dev
+	  npm i modelName@版本号 -D
+##
+##其他常用指令
+##
+命令: npm install 
+##如果在现成的⼯程中只有package.json⽂件，⽽没有node_Moduels⽂件夹，这是我们需要通过此命令下
+##载这些js库，输⼊此命令后，会⾃动根据package.json中的依赖来下载js类库和其它依赖
+
+命令: npm list 
+##查看本地安装的所有模块
+
+命令: npm view modelName version 
+##查看远程模块最新版本
+##eg: npm view jquery version
+
+命令: npm uninstall modelName 
+##卸载局部模块
+
+命令: npm uninstall -g modelName 
+##卸载全局模块
+
+命令: npm get registry 
+##查看当前使⽤的镜像
+
+命令: npm config set registry https://registry.npm.taobao.org
+##更换淘宝镜像，⽹络状况较为稳定
+```
 
 
 
-
+---
 
 
 
