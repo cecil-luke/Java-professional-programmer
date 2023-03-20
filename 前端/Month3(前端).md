@@ -3082,6 +3082,717 @@ document.querySelectorAll()
 
 ---
 
+# day06
+
+###  理解 json 如何进行转换
+
+​      1.JSON字符串转换为对象或数组：使用JSON.parse()方法将JSON字符串转换为JavaScript对象或数组
+
+​      2.对象或数组转换为JSON字符串：使用JSON.stringify()方法将JavaScript对象或数组转换为JSON字符串
+
+​      3.JSON数据转换为XML：使用第三方库入xml2js或xmlbuilder等将JSON数据转换为XML格式
+
+​      4.XML数据转换为JSON：同样使用第三方库将XML数据转换为JSON格式
+
+​      5.JSON数据转换为其他格式CSV、YAML等：同样适用第三方库将JSON数据转换为其他格式
+
+​      需要根实际需求选择不同的转换方式
+
+ 	4.理解什么是异步什么是同步
+
+### 同步和异步是指程序执行的方式
+
+​      1.同步执行指程序按照顺序执行每一条语句，每一条语句执行完成后再执行下一条语句。在执行一条语句的过程中，如果遇到阻塞，整个程序会暂停等待，直到这条语句执行完成才会继续执行下一条语句
+
+​      2.异步执行指程序不会按照顺序执行每一条语句，而是在执行某些语句时不会阻塞程序的执行，而是继续执行下一条语句。当异步操作完成后，程序会通过回调函数等方式通知程序异步操作已完成，程序再执行回调函数中的代码。
+
+​      3.异步执行的好处是可以提高程序的并发性和响应性，避免程序在等待某些操作完成是被阻塞。常见的异步操作包括网络请求、文件读写、定时器等
+
+---
+
+## 什么是 JSON
+
+> JavaScript Object Notation
+>
+> 一种轻量级的数据交换格式,是目前首选的链接前后端的纽带
+>
+> JSON 其实就是一种特殊格式的字符串,在后端(Java)可以被 System.out.print直接打印,在前端(JS)可以被 console.log()或者 alert()直接打印
+
+### JSON 的格式
+
++ map格式
+
+  ```json
+  {"key":value,"key":value,"key":value,"key":value}
+  "key":表示键,必须使用双引号,不得使用单引号,反引号,无引号,本质上肯定是个字符串
+  value:表示值,根据数据类型决定,任意类型都可以封装,包括json 在内,只有封装后端时,不能是 java.sql.Date()
+  ```
+
++ 数组格式
+
+  ```json
+  [value,value,value,value,value,value]
+  value:表示值,根据数据类型决定,任意类型都可以封装,包括json 在内,只有封装后端时,不能是 java.sql.Date()
+  ```
+
+### 前端如何处理后端发送过来的 json
+
+后端发送 json 给前端之后,前端获取 json 可以通过 **console.log()**或者 **alert()**直接打印,但是仅此而已,无法很方便的获取内部的数据
+
+```js
+//以下为接受过来的 json 数据
+{
+    "id":1,
+    "name":"胡桃",
+}
+//在 js 中提供了转换器,可以将 json 字符串转换为前端使用的数据类型
+const obj = JSON.parse(json数据)
+/*
+	转换规则:
+		1:如果是 map 格式的 json,则会被转换为 js 对象
+		其中键被转换为对象的属性名,值被转换为对象的属性值
+		2:如果是 数组 格式的 json,则会被转换为 js 数组
+		内部数据全部转换为 js 类型
+*/
+//转换结束之后
+const obj = {
+    id:1,
+    name:'胡桃',
+}
+
+let name = obj.name
+```
+
+### 前端如何发送 json 给后端
+
+```js
+const obj = {
+    id:1,
+    name:'胡桃',
+}
+//前端如果要发送数据给后端,则必须要转换为 json 使用内置的转换器即可,转换之后对象变为 map 格式的 json,数组变为数组格式的 json
+let text = JSON.stringify(obj)
+/*
+	{
+		"id":1,
+		"name":"胡桃"
+	}
+*/
+```
+
+### 注意!
+
++ **JSON.parse(JSON.stringify())**如果嵌套在一切又被称之为万能转换器,肯定是**深拷贝**,但是对一些数据有限制,谨慎使用
+
++ 注意 当后端发送json 给前端时,很多前端框架,会自动使用 **JSON.parse()**进行转换,因此我们不需要自己转换了,**jQuery Mock Vue**,如果我们不清楚数据是否被转换了,则直接打印即可
+
+  ----
+
+## 什么是异步
+
+  > 在前端中,异步技术和 Node技术得诞生,正式标志的 web2.0 革命的到来,前端终于可以和后端分庭抗礼,从而诞生了著名的**前后端分离思想**
+
+  + 同步
+    + 用户发出请求之后,必须等待响应的返回,如果响应迟迟没有返回,则用户只能等待在那里,什么也不能干,当响应返回,整个页面会被完全刷新
+    + 链接提交,表单提交都属于同步请求
+  + 异步
+    + 用户发出请求,不需要等待响应的返回,用户可以继续自己的操作,当响应返回,整个页面不会完全刷新,而仅仅部分刷新
+    + 本质上 js 帮我们发送请求,js 帮我们接受响应,用户不必自己发送请求,接受响应了
+    + 异步技术的组成
+      + JavaScript	核心语法
+      + xml      用来传输 封装数据,但是目前已经被 json 替代
+      + json     已经替代了 xml,作为前后端数据交互的首选
+      + html    渲染结构
+      + css       渲染样式
+
+  + 注意
+    + 如果存在一个场合,同步和异步同时出现,则异步根本不执行
+
+---
+
+### 3-异步注册.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3:异步注册</title>
+    <link rel="stylesheet" href="./css/global.css">
+    <link rel="stylesheet" href="./css/register.css">
+    <link rel="icon" href="./assets/favicon.ico">
+</head>
+<body>
+    <div class="reg-container">
+        <form class="reg-form">
+            
+            <h1>用户注册</h1>
+
+            <input type="text" name="username" 
+            placeholder="请输入用户姓名" autofocus 
+            autocomplete="off" required
+            pattern="[a-zA-Z0-9_]{6,10}" 
+            title="姓名在 6 到 10 位之间只能是英文数字下划线组成">
+            <span class="username-msg"></span>
+            
+            <input type="password" name="password"
+            placeholder="请输入用户密码"
+            autocomplete="off" required 
+            pattern="[a-zA-Z0-9_]{6,32}" 
+            title="密码在 6 到 32 位之间只能是英文数字下划线组成">
+            <span class="password-msg"></span>
+
+            <input type="text" name="realname" 
+            placeholder="请输入真实姓名"
+            autocomplete="off" required>
+            <span class="realname-msg"></span>
+            
+            <input type="text" name="email" 
+            placeholder="请输入邮箱地址" required
+            pattern="[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+"
+            title="请输入标准邮箱格式">
+
+            <input type="tel" name="phone"
+            placeholder="请输入电话号码" required
+            pattern="(?:(?:\+|00)86)?1(?:(?:3[\d])|(?:4[5-79])|(?:5[0-35-9])|(?:6[5-7])|(?:7[0-8])|(?:8[\d])|(?:9[189]))\d{8}"
+            title="请输入标准中国大陆标准手机号码">
+
+            <div>
+                性别: <input type="radio" name="gender" value="0"
+                checked>男
+                <input type="radio" name="gender" value="1">女 
+            </div>
+
+            <div>
+                权限: <input type="radio" name="role" value="0" 
+                checked>用户
+                <input type="radio" name="role" value="1">管理员
+            </div>
+
+            <div>
+                <input type="submit" value="注册">
+                <input type="reset" value="取消">
+            </div>
+        </form>
+    </div>
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script>
+        /* 
+            $(document).ready(function(){
+                以下为 此方法的 语法糖
+            })
+        */
+        $(function(){
+            /* 1:获取用户姓名 */
+            let username = ''
+
+            /* 此函数用来进行验证 */
+            function checkUsername(){
+                /* 
+                    $.trim():去掉字符串两端空格
+                    val():获取 jQuery 元素的 value 属性,一般使用在
+                    表单中
+                */
+                username = $.trim($('input[name=username]').val())
+                let $sp = $('span.username-msg')
+                if(username.length<6||username.length>10){
+                    $sp.html('<img src="./assets/wrong.png">用户姓名必须在 6 到 10 位之间')
+                    .css('color','red')
+                    return false
+                }
+                $sp.html('<img src="./assets/right.png">用户姓名符合要求')
+                .css('color', 'green')
+                return true
+            }
+        
+            /* 失去焦点激发验证 */
+            $('input[name=username]').blur(function(){
+                checkUsername()
+            })
+
+            /* -------------------------- */
+            /* 2:获取用户密码 */
+            let password = ''
+
+            function checkPassword(){
+                password = $.trim($('input[name=password]').val())
+                let $sp = $('span.password-msg')
+
+                if(password.length<6||password.length>32){
+                    $sp.html('<img src="./assets/wrong.png">用户密码必须在 6 到 32 位之间')
+                    .css('color','red')
+                    return false
+                }
+                $sp.html('<img src="./assets/right.png">用户密码符合要求')
+                .css('color', 'green')
+                return true
+            }
+
+            $('input[name=password]').blur(function(){
+                checkPassword()
+            })
+            /* ------------------------------ */
+            /* 3:获取真实姓名 */
+            let realname = ''
+            
+            /* 此函数用来进行验证 */
+            function checkRealname() {
+                realname = $.trim($('input[name=realname]').val())
+                let $sp = $('span.realname-msg')
+                if (realname.length < 6 || realname.length > 10) {
+                    $sp.html('<img src="./assets/wrong.png">真实姓名必须在 6 到 10 位之间')
+                        .css('color', 'red')
+                    return false
+                }
+                $sp.html('<img src="./assets/right.png">真实姓名符合要求')
+                    .css('color', 'green')
+                return true
+            }
+
+            /* 失去焦点激发验证 */
+            $('input[name=realname]').blur(function () {
+                checkRealname()
+            })
+            /* ------------------------------- */
+            /* 4:获取邮箱 */
+            let email = ''
+
+            $('input[name=email]').blur(function(){
+                email = $.trim($(this).val())
+            })
+
+            /* ------------------------------- */
+            /* 5:获取电话 */
+            let phone = ''
+
+            $('input[name=phone]').blur(function(){
+                phone = $.trim($(this).val())
+            })
+        
+            /* ------------------------------- */
+            /* 6:获取性别 */
+            let gender = 0  //默认是男 0
+            $('input[name=gender]').click(function(){
+                gender = $(this).val()
+            })
+            /* ------------------------------- */
+            /* 7:获取权限 */
+            let role = 0 //默认是用户 0
+            $('input[name=role]').click(function(){
+                role = $(this).val()
+            })
+
+            /* 提交表单,注意这里默认是同步请求 
+                submit:事件表单提交时,在 js 里是 onsubmit
+            */
+            $('.reg-form').submit(function(){
+                if(checkUsername()&&checkPassword()&&checkRealname()){
+                    /* 使用 jQuery 内置的异步模块来进行异步注册 */
+                    $.ajax({
+                        /* 1:发送异步的目的地 */
+                        url:'http://db.etoak.com:9527/testUser/add',
+                        /* 2:发送异步的类型 */
+                        type:'post',
+                        /* 3:是否使用异步,默认使用,可以不写,注意如果使用异步
+                        则代码永远不会跳出回调函数 */
+                        async:true,
+                        /* 4:设置要发送给后端的数据 
+                        注意这里是 MIME 类型,供浏览器进行解析 
+                            text/html       html
+                            text/xml        xml
+                            text/css        css
+                            image/jpeg      jpeg
+                            application/json    json
+                            application/plain   字符串
+                        */
+                        contentType:'application/json',
+                        /* 5:要给后端发送的数据 */
+                        data:JSON.stringify({
+                            username,
+                            password,
+                            realname,
+                            email,
+                            phone,
+                            gender,
+                            role,
+                        }),
+                        /* 6:返回的类型
+                        在 ajax 中支持五种类型的返回值处理
+                        text html xml script json
+                        注意如果是 json,则自动转换为 js 对象或者数组,
+                        不需要我们自己 JSON.parse() */
+                        dataType:'json',
+                        /* 7:如果一切正常的回调函数 
+                        response:形参 表示后端返回的数据 */
+                        success(response){
+                            console.log(response)
+                            if(response.flag){
+                                /* 主动跳转到登录页,准备开始进行登录 */
+                                $(location).attr('href','./4-异步登录.html')
+                            }
+                        },
+                    })
+                }
+
+                /* 屏蔽激发事件,这里会导致同步提交被阻止,因为我们要
+                发送异步,如果不阻止,则异步和同步出现在同一个场合,则异步
+                根本不执行 */
+                return false
+            })
+
+        })
+    </script>
+</body>
+</html>
+```
+
+### 4-异步登录.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4:异步登录</title>
+    <!-- 引入全局 css -->
+    <link rel="stylesheet" href="./css/global.css">
+    <!-- 引入登录的 css -->
+    <link rel="stylesheet" href="./css/login.css">
+    <!-- 引入图标 -->
+    <link rel="icon" href="./assets/favicon.ico">
+</head>
+<body>
+    <div class="login-container">
+        
+        <form class="login-form">    
+            <h1>用户登录</h1>
+
+            <input type="text" name="username" 
+            placeholder="请输入用户姓名" required autocomplete="off"
+            autofocus>
+            <span class="username-msg"></span>
+
+            <input type="password" name="password"
+            placeholder="请输入用户密码" required autocomplete="off">
+            <span class="password-msg"></span>
+            
+            <div>
+                <input type="submit" value="登录">
+                
+                <input type="reset" value="取消">
+                
+                <input type="button" value="注册">
+            </div>
+        </form>
+    </div>
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script>
+        /* document.querySelector('input[type=button]')
+        .onclick=()=>{
+            location.href = './12-圣杯布局.html'
+        } */
+        $(function(){
+            /* 此函数用来控制注册跳转 */
+            goReg()
+            /* ------------------------ */
+            /* 用户姓名和用户密码的验证 */
+            let username = ''
+
+            function checkUsername(){
+                /* $(':text'):获取单行文本输入框 */
+                username = $.trim($(':text').val())
+                let $sp = $('span.username-msg')
+                if(username.length<6||username.length>10){
+                    $sp.html('<img src="./assets/wrong.png">用户姓名必须在 6 到 10 位之间')
+                    .css('color','red')
+                    return false
+                }
+                $sp.html('<img src="./assets/right.png">用户姓名符合要求')
+                    .css('color', 'green')
+                return true
+            }
+
+            $(':text').blur(function(){
+                checkUsername()
+            })
+        
+            let password = ''
+            
+            function checkPassword(){
+                /* $(':password'):获取单行文本密码框 */
+                password = $.trim($(':password').val())
+                let $sp = $('span.password-msg')
+                if(password.length<6||password.length>32){
+                    $sp.html('<img src="./assets/wrong.png">用户密码必须在 6 到 32 位之间')
+                    .css('color','red')
+                    return false
+                }
+                $sp.html('<img src="./assets/right.png">用户密码符合要求')
+                .css('color', 'green')
+                return true
+            }
+
+            $(':password').blur(function(){
+                checkPassword()
+            })
+        
+            $('.login-form').submit(function(){
+                if(checkUsername()&&checkPassword()){
+                    $.ajax({
+                        url:`http://db.etoak.com:9527/testUser/login?							username=${username}&password=${password}`,
+                        type:'get',
+                        dataType:'json',
+                        success(response){
+                            console.log(response)
+                            if(response.data){
+                                $(location).attr('href','./5-圣杯布局.html')
+                            }
+                        }
+                    })
+                }
+                return false
+            })
+        
+        })
+
+        function goReg(){
+            $('input[type=button]').on('click',function(){
+                $(location).attr('href','./3-异步注册.html')
+            })
+        }
+    </script>
+</body>
+</html>
+```
+
+# day07
+
+### Vue的工作原理简化版(不涉及生命周期 数据劫持 数据代理)
+
+​        浏览器从上往下**解析模板**,插值语法与指令语法,浏览器根本
+
+​        无法解析,因此这些指令全部出现在标签上,插值语法也直接
+
+​        显示在页面上,此时浏览器解析结束之后,这种状态称之为**虚拟**
+
+​        **DOM**
+
+​        之后 Vue 实例开始根据 **el** 解析相应的模板,将数据插入插值语法
+
+​        激活指令绑定功能,最终解析结束之后,页面中直接显示初始化的数据
+
+​        此时称之为**真实 DOM**,我们最终见到的就是覆盖虚拟 DOM 之后的
+
+​        真实 DOM
+
+---
+
+## Vue 渐进式框架
+
+### Vue发展历史
+
+> 2013年底，时任Google原型设计的中国无锡人尤雨溪在Angular的启发下开始创建了一个十分轻巧的库，VUE.js2014年抱着"我花了这么多时间，不能只有我一个人用，我应该和别人分享，他们也会感觉到 Vue 的好处，他们也会喜欢上 Vue 的。"的简单想法，尤雨溪将这个自己研发的库放到了GitHub上之后开始在Patreon平台众筹全职开发 Vue 的资金。2015年10月1.0版本正式发布，一举成功。成为Js中最为著名的渐进式框架Vue (读音 /vjuː/，类似于 view) 是一套用于构建用户界面的渐进式框架。与其它大型框架不同的是，Vue 被设计为可以自底向上逐层应用。Vue 的核心库只关注视图层，不仅易于上手，还便于与第三方库或既有项目整合。在所有的框架中，Vue 可能与 React 最像，但从更广泛的意义上说，在所有框架中，尤雨溪创造了一个概念叫"渐进的框架"。因为 Vue 的核心组成只是数据绑定和组件，和 React 差不多。它只是解决了一小部分很重要的痛点。与 React 相比，Vue 可能更简单易用，只知道一些 HTML，JavaScript 和 CSS 知识的人都可以很快入门 Vue。在VUE的官方文档中是这样介绍它的简单小巧的核心 渐进式技术栈，VUE的大小仅有17k，所谓渐进式Progressive，是指你可以一步步，有阶段的来使用Vue.js，不必一开始就使用所有东西VUE在设计上使用了**MVVM**（Model-View-View-Model）模式，MVVM模式是由经典的MVC衍生来的，当View视图层发生变化时，会自动更新的ViewModel（视图模型），反之亦然，**View**和**ViewModel**之间通过**双向绑定**（data-binding）建立联系
+
++ Vue流行的几个重要原因
+  - Vue.js体积极小，编码简洁优雅，运行效率高
+  - 没有任何dom操作（对比jQuery），大大提高了网站的应用程序的开发效率
+  - 在进行SPA（Single Page Application单页面应用程序）具有巨大的优势
+
++ 其它流行的Js框架
+  - jQuery 诞生于2005年，曾经的王者，现在属于白垩纪时代的产物，Js各种类库的入门，但是由于要操作Dom，所以显得非常繁琐，目前使用依然较多
+  - Angular 2009年诞生，个人开发使用，后来被Google收购了，目前体验越来越差，正在走下坡路
+  - React 2013年五月开源的，起源于Facebook的内部项目，多使用在大型企业，Vue就是借鉴了React的基础上而诞生
+
++ BATE级别的公司
+  - React > Angular = Vue >> jQuery
++ 中小型公司
+  - Vue >> React > Angular = jQuery
+
+`Vue不支持IE8及以下版本，由于Vue使用了ES5的特性，IE8不支持ES5新特性`
+`Vue3.0于2021年4月5日正式宣布不再支持IE11`
+
+---
+
+## Vue 前端八股文
+
+1. 什么是单向绑定?什么是双向绑定?
+
++ **单向绑定**
+  + 修改 Vue 实例中data初始化的数据,则页面模板中的数据随之发生更改,两者绑定在一起,则称之为单向绑定,也叫数据实现了可响应式,**插值语法**和**指令语法**都自带单向绑定功能
++ **双向绑定**
+  + 修改**页面模板**中的数据,则管理模板的 **Vue 实例**中 data 中的数据随之发生更改,这称之为双向绑定,默认情况下只有 v-model 支持双向绑定,其它情况可以使用计算属性实现双向绑定
+
+---
+
+## 1-初始Vue.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1:初识Vue</title>
+</head>
+<body>
+    <!-- 设置一个元素(可随意设置),这个元素及其内部的元素被称之为
+    模板(template) -->
+    <div id="app">
+        <!-- 在 Vue 中存在两种基本语法
+                1:插值语法
+                    <tagName>{{ 初始化的值 }}</tagName>{{ 初始化的值 }}
+                    又被称之为大胡子表达式,专门使用在标签外
+                    不能显示 null 和 undefined,无法进行复杂的业务逻辑,
+                    只能简单的显示初始化的数据,自带单向绑定功能    
+        -->
+        {{ msg }}
+        {{ count/10 }}
+        {{ flag?'IOS':'Android' }}
+        {{ text.split('.').reverse().join('@') }}
+        {{ info.address }}
+        {{ val1 }}
+        {{ val2 }}
+        <!-- 
+                2:指令语法
+                    <tagName v-指令名="绑定的值"  />
+                指令语法中的各种指令是 Vue 基本语法中最大的一个模块
+                我们要熟练使用各种 vue 指令,这些指令必须书写在标签上
+                不能使用在标签外,指令名之前肯定存在 v-前缀,可以不绑定值
+            
+            v-html:向元素中插入超文本,相当于 js 中的 innerHTML
+            v-text:向元素中插入文本,相当于 js 中的 innerText
+        -->
+        <p v-html="value"></p>
+        <p v-text="value"></p>
+        <!-- 
+            v-once:一次性插值,之后不再存在绑定效果
+        -->
+        <p v-once>{{ count }}</p>
+        <!-- v-model:专门使用在表单项中,除了单向绑定之后,还自带
+        双向绑定功能,这也是唯一自带双向绑定功能的指令元素 -->
+        <input type="text" v-model="msg">
+
+        <!-- v-model:不能取反,如果使用在复选框中,则
+        如果v-model 后面为真值,则勾选,假值不勾选 
+            如果主动勾选,则 v-model 后面绑定的值就是 true
+            不勾选,则是 false
+        -->
+        <input type="checkbox" v-model="flag">
+        <!-- 
+            v-bind:绑定元素的属性,使之对应初始化的值
+            <tagName v-bind:属性名="初始化的值" />
+            语法糖:
+            <tagName :属性名="初始化的值" />
+        -->
+        <img :src="mySrc" :title="myTitle"
+        :style="myStyle">
+
+        <!-- 
+            v-on:绑定元素的动作
+                <tagName v-on:事件="函数" />
+            语法糖:
+                <tagName @事件="函数" />
+            事件写法就是 js 去掉 on 前缀,注意函数如果没有参数
+            则不书写括号
+        -->
+        <button @click="touch">点我试试!</button>
+        <input type="text" v-model="count"
+        :style="myCss">
+    </div>
+    <!-- 如果书写在模板以外,则根本不会被 Vue 实例解析 -->
+    {{ msg }}
+    <!-- 引入 Vue 依赖 -->
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        /* 引入 Vue 依赖之后,可以通过 Vue 依赖提供的构造器,构造
+        一个 Vue 实例 */
+        const vm = new Vue({
+            /* el:element的简写,表示要管理的模板,这里使用到了 css 选择器
+            这也是为数不多使用 css 选择器的脚本 */
+            el:'#app',
+            /* data:表示模板中初始化的数据 */
+            data:{
+                msg:'这里是初始化的值',
+                count:100,
+                flag:true,
+                text:'123.456.789',
+                info:{
+                    address:'济南',
+                },
+                val1:null,
+                val2:undefined,
+                value:'<em style="color:red">剑心爱吃爆米花</em>',
+                mySrc:'./assets/logo.png',
+                myTitle:'渐进式框架',
+                myStyle:'width:100px',
+                myCss:'background-color:rgb(255,0,255)',
+            },
+            /* beforeMount() {
+                debugger
+            }, */
+            /* 设置函数(方法) */
+            methods:{
+                touch(){
+                    /* this:如果书写在 Vue 实例中,则表示
+                    本实例,这里就是 vm,通过 this,可以获取
+                    整个 Vue 实例中所有的数据 */
+                    this.count++
+                    let r = Math.floor(Math.random() * 256)
+                    let g = Math.floor(Math.random() * 256)
+                    let b = Math.floor(Math.random() * 256)
+                    this.myCss = 
+                    `background-color:rgb(${r},${g},${b})`
+                },
+            },
+        })
+
+        /* $el:表示 Vue 实例管理的模板地址 */
+        console.log(vm,vm.$el,vm.count,vm.msg,vm.info['address'])
+        /* 
+            Vue的工作原理简化版(不涉及生命周期 数据劫持 数据代理)
+                浏览器从上往下解析模板,插值语法与指令语法,浏览器根本
+                无法解析,因此这些指令全部出现在标签上,插值语法也直接
+                显示在页面上,此时浏览器解析结束之后,这种状态称之为虚拟
+                DOM
+                之后 Vue 实例开始根据 el 解析相应的模板,将数据插入插值语法
+                激活指令绑定功能,最终解析结束之后,页面中直接显示初始化的数据
+                此时称之为真实 DOM,我们最终见到的就是覆盖虚拟 DOM 之后的
+                真实 DOM
+        */
+
+    </script>
+</body>
+</html>
+```
+
+---
+
+
+
+
+​    
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
 
 
 
