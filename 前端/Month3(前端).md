@@ -3772,10 +3772,795 @@ let text = JSON.stringify(obj)
 
 ---
 
+# day08
+
+## Vue 前端八股文
+
+### 1.什么是单向绑定?什么是双向绑定?
+
++ 单向绑定
+  + 修改 **Vue 实例中data初始化的数据**,则**页面模板中的数据**随之发生更改,两者绑定在一起,则称之为<u>单向绑定</u>,也叫<u>数据实现了可响应式</u>,*插值语法*和*指令语法*都自带单向绑定功能
++ 双向绑定
+  + 修改页面模板中的数据,则管理模板的 Vue 实例中 data 中的数据随之发生更改,这称之为<u>双向绑定</u>,默认情况下只有 <u>v-model</u> 支持双向绑定,其它情况可以使用计算属性实现双向绑定
+
+### 2.Vue2如何进行样式渲染
+   + 绑定 class
+     + <tagName :class="初始化的值" /> 初始化的值对应 class 属性
+     + <tagName :class="{类名:初始化的值,类名:初始化的值}" /> 如果初始化的值为真,则类名存在,如果为假,则类名不存在
+     + <tagName :class="['类名','类名']" />这里就是一个元素多个类名,没有初始化的数据,注意不要漏加引号,因为这是数组
+   + 绑定 style
+     + <tagName :style="初始化的值" />初始化的值就对应行内式的样式值
+     + <tagName :style="{样式名:初始化的值,样式名:初始化的值,}">样式名必须使用小驼峰格式,没有引号,初始化的值对应样式值
+
+### 3.说明 函数 计算属性 侦听器的不同以及使用场合
+
+#### 函数
+
+  + 一般绑定事件,当事件激发被调用,也可以直接被调用,函数<u>仅仅支持单向绑定功能,没有缓存机制</u>,只要被调用立即执行,函数体内部可以书写异步代码,可以有选择的书写 return 语句
+  + 函数<u>多绑定事件</u>,支持<u>异步功能</u>,没有<u>双向绑定功能</u>
+
+#### 计算属性
+  + 计算属性就是一个属性,由它依赖的初始化的值通过计算得来,只要它依赖的数据发生更改,则计算属性重新执行,计算属性没有括号,也不会传值,<u>仅仅是个属性,自带缓存机制</u>,不管被强制调用多少次,都仅仅执行一次,除非依赖的属性发生更改,计算属性在书写 **get** 和 **set** 之后**支持单双向绑定**,由于 get 中必须书写 <u>return 语句</u>,因此无法书写异步代码
+
+#### 侦听器
+  + 一般不去考虑单双向绑定问题,就是设置一个值,侦听器去侦听这个数据,<u>只要这个数据发生更改,则侦听器执行</u>,如果设置 **immediate** 属性,则立即执行侦听器一次,侦听器默认只能侦听基本类型,无法侦听复杂类型,如果要侦听复杂类型,则必须设置 **deep:true**,开启深度侦听
+  + 计算属性能做的事,侦听器都能做到,但是侦听器能做的事,计算属性不一定能实现,例如异步功能
+
+### 4.Vue2条件渲染的方式
+
+  + **v-if**
+    + 如果后面是真值,则元素显示,如果后面是假值,则元素不显示,<u>底层根本不渲染</u>,由于<u>切换消耗较大</u>,因此,适用于切换不频繁的场合
+  + **v-show**
+    + 如果后面是真值,则元素显示,如果后面是假值,则元素不显示,底层依然渲染,**只不过添加了一个 display:none** 的行内式,初始载入消耗较大,但是之后切换消耗较小,因此适用于切换频繁的场合
+  + **v-else-if v-else**
+    + 一般搭配 v-if 使用,不能搭配 v-show,必须紧邻,用来组成简单的流程控制
+
+### 5.如何使用事件原型获取元素节点
+
+​	<!-- 事件原型 
+
+​      如果函数中没有任何参数,则默认传递一个事件原型
+
+​    -->
+
+​    <button @click="touch1">测试 1</button>
+
+​    <!-- 如果函数中存在实参,则默认不再传递事件原型,如果想传递,则必须
+
+​    手动书写 $event 就是实参的事件原型 -->
+
+​    <button @click="touch2('hello',$event)">测试 2</button>
+
+​		
+
+### 6.简述你使用过的事件修饰符
+
+​      事件修饰符
+
+​        对事件的一个补充,存在多种书写方式
+
+​        @事件.事件修饰符="函数"
+
+​        @事件.stop:屏蔽事件冒泡
+
+​		@事件.once:事件仅仅激发一次
+
+​		@事件.prevent:屏蔽某些事件固有的功能,例如
+
+​    	 表单提交 链接提交 keyup:事件 键盘键位抬起
+
+​         keydown:事件 键盘键位落下
+
+​        @keyup.键位名:可以监听某个键位的操作
+
+​		@keydown.tab:注意 tab 键必须搭配 keydown 
+
+​    	 @keyup.shift.键位
+
+​        @keyup.ctrl.键位
+
+​        @keyup.alt.键位
+
+### 7.Vue如何进行列表渲染(迭代数组和迭代对象)
+
+​        v-for:迭代数组
+
+​        v-for="(alias,index) in 数组"
+
+​        alias:别名
+
+​        index:索引 可以不写,如果不写,小括号省略
+
+​        in:可以替换 of 
+
+​        数组:必须是 Vue 实例初始化的数组
+
+​        此指令书写在哪个元素中,则这个元素开始迭代
 
 
 
-​    
+​        此处 v-for 存在一个底层就地复用算法导致的 bug
+
+​        当使用 unshift() 从数组头部插入数据,并且用户可操作时
+
+​        可能会出现问题,更改用户已经选取的内容,为了杜绝这个问题
+
+​        一般使用 可选组件 key 来绑定 主键
+
+​        如果使用 ElementUI 等组件时出现没有主键,但是要强制
+
+​        使用 key,则可以绑定索引
+
+### 8.使用过滤器应该注意什么
+
+​		使用过滤器必须存在数据字典
+
+​	     过滤器两个使用的注意点
+
+​        1:过滤器中不能使用 this,因为 this 在过滤器中是 undefined
+
+​        2:过滤器不能与 v-model 连用
+
+
+
+---
+
+## 2-样式渲染.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2:样式渲染</title>
+    <style>
+        .box1{
+            background-color: purple;
+        }
+        .box2{
+            background-color: teal;
+        }
+        .box3{
+            background-color: hotpink;
+        }
+        .box4{
+            background-color: deeppink;
+        }
+        .box5{
+            color:whitesmoke;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 样式渲染
+                就是使用 Vue 来控制页面的css样式
+                共有两种思路
+                1:绑定 class
+                2:绑定 style
+
+            1.1 <tagName :class="初始化的值" />
+            初始化的值对应 class 属性
+        -->
+        <p :class="test1">1.1:绑定 class,后面是字符串</p>
+        <!-- 1.2(使用最多!!) 
+                <tagName :class="{类名:初始化的值,类名:初始化的值}" /> 
+                如果初始化的值为真,则类名存在,如果为假,则类名不存在
+        -->
+        <p :class="{box2:val2,box3:val3}">1.2:绑定 class,后面是对象</p>
+        <!-- 1.3
+                <tagName :class="['类名','类名']" />
+                这里就是一个元素多个类名,没有初始化的数据,注意
+                不要漏加引号,因为这是数组
+        -->
+        <p :class="['box4','box5']">1.3:绑定 class,后面是数组</p>
+        <!-- --------------------------------------------- -->
+        <!-- 
+            2.1:
+            <tagName :style="初始化的值" />
+            初始化的值就对应行内式的样式值
+            2.2:
+            <tagName :style="{样式名:初始化的值,样式名:初始化的值,}">
+            样式名必须使用小驼峰格式,没有引号,初始化的值对应样式值
+        -->
+        <p :style="{backgroundColor:value1,color:value2}">2.2:绑定 style,后面是个对象</p>
+    
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        /* 删除控制台提示 */
+        Vue.config.productionTip = false
+
+        new Vue({
+            el:'#app',
+            data:{
+                /* 1.1这里的值才是类名 */
+                test1:'box1',
+                val2:0,
+                val3:true,
+                value1:'yellow',
+                value2:'green',
+            },
+        })
+    </script>
+</body>
+</html>
+```
+
+## 3-函数计算属性侦听器.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3:函数 计算属性 侦听器</title>
+</head>
+<body>
+    <div id="app">
+        <!-- v-model.number:在双向绑定时,自动转换为 number 类型,注意
+        如果无法转换,则不转换 -->
+        前端成绩: <input type="text" v-model.number="frontendScore"> <br>
+        后端成绩: <input type="text" v-model.number="backendScore"> <br>
+        <hr>
+        <!-- 注意这里是调用函数,并没有绑定事件,因此没有参数也书写了括号 -->
+        总成绩(函数-单向绑定): 
+        <input type="text" v-model="sumScore()"> <br>
+        总成绩(函数-单向绑定):
+        {{ sumScore() }}
+        <hr>
+        <!-- 注意计算属性没有括号,也不会传值 -->
+        总成绩(计算属性-单向绑定):
+        <input type="text" v-model.number="totalScore"> <br>
+        总成绩(计算属性-单向绑定):{{ totalScore }} 
+        <hr>
+        <!-- v-model.lazy:开启懒加载,点击回车才能激活双向绑定 -->
+        总成绩(计算属性-双向绑定):
+        <input type="text" v-model.number.lazy="totalScores">
+        <hr>
+        总成绩(侦听器):
+        <input type="text" v-model="totalWatch">
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        const vm = new Vue({
+            /* 以下属性 统称为 配置项 options
+            vue2采用的是 Options API
+            vue3采用的是 Composition API 组合式 api */
+            el:'#app',
+            data:{
+                frontendScore:90,
+                backendScore:80,
+                totalWatch:0,
+            },
+            /* 设置函数 */
+            methods: {
+                sumScore(){
+                    /* return (this.backendScore-0) + (this.frontendScore-0)
+                    return +this.backendScore + +this.frontendScore */
+                    console.log('函数 sumScore 执行了---------')
+                    return this.frontendScore + this.backendScore
+                },
+            },
+            /* 设置计算属性 */
+            computed:{
+                /* 仅支持单向绑定,计算属性的语法糖写法 */
+                totalScore(){
+                    console.log('计算属性 totalScore 执行了--------')
+                    /* 注意单向绑定 必须书写 return */
+                    return this.frontendScore + this.backendScore
+                },
+                /* 支持单双向绑定,这是计算属性的完全版写法 */
+                totalScores:{
+                    /* 单向绑定 */
+                    get(){
+                        return this.frontendScore + this.backendScore
+                    },
+                    /* 双向绑定,这里主动输入的总成绩就是
+                    val */
+                    set(val){
+                        let avgScore = val/2
+                        this.backendScore = avgScore
+                        this.frontendScore = avgScore
+                    },
+                },
+            },
+            /* 设置侦听器 */
+            watch:{
+                /* 设置要被侦听的数据,这里侦听的是前端成绩 */
+                frontendScore:{
+                    /* 表示立即执行一次侦听器,注意不是必须 */
+                    immediate:true,
+                    /* 只要前端成绩变动,则执行
+                    newVal:形参 表示变动后的数据
+                    oldVal:形参 表示变动前的数据 */
+                    handler(newVal,oldVal){
+                        /* 总成绩 = 后端成绩 + 新的前端成绩 */
+                        this.totalWatch = 
+                        this.backendScore + newVal
+                    },
+                },
+            },
+        })
+
+        /* 侦听器 也可以书写在外部 这里是侦听 后端成绩的变化 */
+        vm.$watch('backendScore',{
+            immediate:true,
+            /* 开启深度侦听 */
+            deep:true,
+            handler(newVal,oldVal){
+                this.totalWatch = newVal + this.frontendScore
+            },
+        })
+
+    </script>
+</body>
+</html>
+```
+
+## 4-条件渲染.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4:条件渲染</title>
+    <style>
+        .box{
+            width:100px;
+            height:100px;
+            background-color: palevioletred;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 
+            条件渲染存在两种方式
+            v-if 和 v-show
+        -->
+        隐藏元素:
+        <input type="checkbox" v-model="flag1">
+        <!-- 
+            v-if:如果后面是真值,则元素显示,如果后面是假值,则
+            元素不显示,底层根本不渲染,由于切换消耗较大,因此,适用于
+            切换不频繁的场合
+        -->
+        <div :class="{box:val}" v-if="!flag1">测试域</div>
+        <hr>
+        隐藏元素:
+        <input type="checkbox" v-model="flag2">
+        <!-- 
+            v-show:如果后面是真值,则元素显示,如果后面是假值,则
+            元素不显示,底层依然渲染,只不过添加了一个 display:none
+            的行内式,初始载入消耗较大,但是之后切换消耗较小,因此
+            适用于切换频繁的场合
+        -->
+        <div :class="{box:val}" v-show="!flag2">测试域</div>
+        <hr>
+        <!-- 如果函数体业务逻辑较简单,可以直接在标签中书写业务逻辑 -->
+        <button @click="count++">点我试试!</button>
+        <!-- v-else-if v-else Vue2.4新特性
+        一般搭配 v-if 使用,不能搭配 v-show,必须紧邻,用来组成简单的
+        流程控制 此处推荐使用 template 标签,最终并不会在页面真正
+        渲染一个 tempalte 元素 -->
+        <template v-if="count===1">React 世界第一</template>
+        <template v-else-if="count===2">Vue世界第二</template>
+        <template v-else>jQuery濒临淘汰</template>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        new Vue({
+            el:'#app',
+            data:{
+                flag1:false,
+                flag2:0,
+                val:1,
+                count:0,
+            },
+        })
+    </script>
+</body>
+</html>
+```
+
+## 5-事件原型和事件修饰符
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5:事件原型与事件修饰符</title>
+</head>
+<body>
+    <div id="app">
+        <!-- 事件原型 
+            如果函数中没有任何参数,则默认传递一个事件原型
+        -->
+        <button @click="touch1">测试 1</button>
+        <!-- 如果函数中存在实参,则默认不再传递事件原型,如果想传递,则必须
+        手动书写 $event 就是实参的事件原型 -->
+        <button @click="touch2('hello',$event)">测试 2</button>
+        <!-- 
+            事件修饰符
+                对事件的一个补充,存在多种书写方式
+                @事件.事件修饰符="函数"
+
+                @事件.stop:屏蔽事件冒泡
+        -->
+        <div @click="todo">
+            <button @click.stop="dothis">屏蔽事件冒泡(事件传播)</button>
+        </div>
+        <!-- @事件.once:事件仅仅激发一次 -->
+        <button @click.once="count++">{{ count }}</button>
+
+        <!-- @事件.prevent:屏蔽某些事件固有的功能,例如
+        表单提交 链接提交 -->
+        <form action="./1-初识 Vue.html" 
+        @submit.prevent="test">
+            <input type="submit" value="表单提交">
+        </form>
+        <a href="./1-初识 Vue.html" 
+        @click.prevent="test">链接提交</a>
+        <!-- 
+            keyup:事件 键盘键位抬起
+            keydown:事件 键盘键位落下
+            @keyup.键位名:可以监听某个键位的操作
+        -->
+        <input type="text" placeholder="监听 w 激发"
+        @keyup.w="w">
+        <input type="text" placeholder="监听回车激发" 
+        @keyup.enter="enter">
+        <input type="text" placeholder="监听空格激发" 
+        @keyup.space="space">
+        <!-- 
+            @keydown.tab:注意 tab 键必须搭配 keydown 
+            @keyup.shift.键位
+            @keyup.ctrl.键位
+            @keyup.alt.键位
+        -->
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        new Vue({
+            el:'#app',
+            data:{
+                content:'你好!',
+                count:0,
+            },
+            methods: {
+                touch1(event){
+                    /* 
+                        event:事件原型
+                        event.target:这里就是事件的目标也就是
+                        button元素节点,之前这些节点都是用选择器获取的
+                    */
+                    event.target.innerText = this.content
+                },
+                touch2(val,event){
+                    event.target.innerText = val
+                },
+                dothis(){
+                    alert('dothis------')
+                },
+                todo(){
+                    alert('todo------')
+                },
+                test(){
+                    alert('同步请求被屏蔽,可以开始玩异步了!!!')
+                },
+                w(){
+                    alert('w激发了---------')
+                },
+                enter() {
+                    alert('回车激发了---------')
+                },
+                space() {
+                    alert('空格激发了---------')
+                },
+            },
+        })
+    </script>
+</body>
+</html>
+```
+
+## 6-列表渲染.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6:列表渲染</title>
+</head>
+
+<body>
+    <div id="app">
+        <table border="1px">
+            <tr>
+                <th>序号</th>
+                <th>姓名</th>
+                <th>性别</th>
+                <th>住址</th>
+            </tr>
+            <!-- 
+                v-for:迭代数组
+                v-for="(alias,index) in 数组"
+                alias:别名
+                index:索引 可以不写,如果不写,小括号省略
+                in:可以替换 of 
+                数组:必须是 Vue 实例初始化的数组
+                此指令书写在哪个元素中,则这个元素开始迭代
+
+                此处 v-for 存在一个底层就地复用算法导致的 bug
+                当使用 unshift() 从数组头部插入数据,并且用户可操作时
+                可能会出现问题,更改用户已经选取的内容,为了杜绝这个问题
+                一般使用 可选组件 key 来绑定 主键
+                如果使用 ElementUI 等组件时出现没有主键,但是要强制
+                使用 key,则可以绑定索引
+            -->
+            <tr v-for="(emp,index) in empList" :key="emp.id">
+                <td>{{ index+1 }}</td>
+                <td>{{ emp.name }}</td>
+                <td>{{ emp.gender===0?'女':'男' }}</td>
+                <td>{{ emp['location'] }}</td>
+            </tr>
+        </table>
+        <ul>
+            <!-- 
+                v-for:迭代对象
+                v-for="(value,name,index) in 对象"
+                value:属性值
+                name:属性名
+                index:索引
+                in:同上
+                对象:必须初始化在 Vue 实例中
+
+                v-for 中 in 后面如果不是数组或者对象 还可以是 一个数字
+                表示迭代几次
+            -->
+            <li v-for="(value,name,index) in student"
+            :key="index">
+                第{{ index+1 }}个属性名是{{ name }},属性值是{{ value }}
+            </li>
+        </ul>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        const empList = [
+            /* 
+                id:模拟主键,注意一定要唯一
+                gender:0表示女 1表示男
+            */
+            { id: 1, name: 'elena', gender: 0, location: '济南', },
+            { id: 2, name: 'damon', gender: 1, location: '青岛', },
+            { id: 3, name: 'stefan', gender: 1, location: '淄博', },
+            { id: 4, name: 'aleric', gender: 1, location: '济宁', },
+            { id: 5, name: 'penny', gender: 0, location: '济南', },
+            { id: 6, name: 'nancy', gender: 0, location: '青岛', },
+            { id: 7, name: 'jack', gender: 1, location: '青岛', },
+            { id: 8, name: 'sheldon', gender: 0, location: '济南', },
+            { id: 9, name: 'raj', gender: 0, location: '淄博', }
+        ]
+
+        const student = {
+            name:'胡桃',
+            age:17,
+            location:'璃月',
+        }
+
+        new Vue({
+            el: '#app',
+            data: {
+                /* 
+                    将数组初始化进 data 
+                    empList:empList,
+                */
+                empList,
+                student,
+            },
+        })
+    </script>
+</body>
+
+</html>
+```
+
+## 7-表单双向绑定.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7:表单双向绑定</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>表单双向绑定</legend>
+            <form @submit.prevent="demo">
+                <!-- for 对应 id -->
+                <label for="name">
+                    <!-- v-model.trim:双向绑定数据同时去掉字符串
+                    两侧空格 -->
+                    用户姓名: <input type="text" v-model.trim="myForm.vname" id="name"> <br>
+                </label>
+                <label for="pass">
+                    用户密码: <input type="password" v-model.trim="myForm.vpass" id="pass">
+                </label> <br>
+                <!-- 注意 v-model 与 value 值只要对应,则
+                勾选 -->
+                性别: <input type="radio" name="gender" value="00000" v-model="myForm.vgender">女
+
+                <input type="radio" name="gender" value="11111" v-model="myForm.vgender">男
+                <br>
+                <!-- 注意 复选框 是个数组,同样只要绑定的数据对应 value 值
+                则勾选 -->
+                爱好: <input type="checkbox" name="hobby" v-model="myForm.vhobby" value="soccer">足球
+
+                <input type="checkbox" name="hobby" v-model="myForm.vhobby" value="running">跑步
+
+                <input type="checkbox" name="hobby" v-model="myForm.vhobby" value="shopping">购物
+
+                <input type="checkbox" name="hobby" v-model="myForm.vhobby" value="game">游戏 <br>
+
+                <!-- v-model:这里双向绑定最终用户选择的住址 -->
+                住址:
+                <select name="location" v-model="myForm.vlocation">
+                    <option :value="city.id"
+                    v-for="city in cities" :key="city.id">
+                        {{ city.name }}
+                    </option>
+                </select>
+                <br>
+                <!-- cols:列数 rows:行数 -->
+                个人介绍:
+                <textarea name="weibo" cols="20" rows="3"
+                v-model.trim="myForm.vinfo"></textarea> <br>
+                <input type="submit" value="提交表单">
+            </form>
+        </fieldset>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                myForm: {
+                    vname: '',
+                    vpass: '',
+                    vgender: '',
+                    vhobby: [],
+                    vlocation:'',
+                    vinfo:'',
+                },
+                cities: [
+                    { id: 1, name: '济南' },
+                    { id: 2, name: '青岛' },
+                    { id: 3, name: '淄博' },
+                    { id: 4, name: '济宁' },
+                    { id: 5, name: '烟台' }
+                ]
+            },
+            methods: {
+                demo(){
+                    console.log(this.myForm)
+                }
+            },
+        })
+    </script>
+</body>
+
+</html>
+```
+
+## 8-过滤器.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8:过滤器</title>
+</head>
+
+<body>
+    <div id="app">
+        <table border="1px">
+            <tr>
+                <th>ID</th>
+                <th>姓名</th>
+                <th>支付方式</th> 
+            </tr>
+            <tr v-for="data in datas" :key="data.id">
+                <td>{{ data.id }}</td>
+                <td>{{ data.name }}</td>
+                <!-- {{ 要被过滤的值|过滤器名 }} -->
+                <td>{{ data.payType|payFilter }}</td>
+            </tr>
+        </table>
+        <!-- <input type="text" :value="content|payFilter"> -->
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        /* payType:支付方式 1|2|3|4 共有四种 */
+        const datas = [
+            { id: 1, name: 'elena', payType: 1, },
+            { id: 2, name: 'penny', payType: 2, },
+            { id: 3, name: 'damon', payType: 4, },
+            { id: 4, name: 'stean', payType: 3, },
+            { id: 5, name: 'raj', payType: 2, },
+            { id: 6, name: 'matt', payType: 3, }
+        ]
+
+        /* 使用过滤器必须存在数据字典 */
+        const payOptions = [
+            { id: 1, option: '现金支付', },
+            { id: 2, option: '支付宝支付', },
+            { id: 3, option: '微信支付', },
+            { id: 4, option: '银行卡支付', }
+        ]
+
+        new Vue({
+            el: '#app',
+            data: {
+                datas,
+            },
+            /* 
+                过滤器两个使用的注意点
+                1:过滤器中不能使用 this,因为 this 在过滤器中是 undefined
+                2:过滤器不能与 v-model 连用
+            */
+            filters:{
+                /* 
+                    过滤器名 
+                    val:形参 就是当前被过滤的值,这里就是 1|2|3|4
+
+                    const arr = [1,2,3,4]
+                    let value = arr.find(a => a >=3)    //3
+
+                */
+                payFilter(val){
+                    const payObj = 
+                    payOptions.find( payOption => payOption.id === val )  
+                    
+                    return payObj?payObj.option:''
+                },
+            },
+        })
+    </script>
+</body>
+
+</html>
+```
+
+
+
+---
+
+
 
   
 
