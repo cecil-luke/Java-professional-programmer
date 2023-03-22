@@ -4560,9 +4560,570 @@ let text = JSON.stringify(obj)
 
 ---
 
+# day09
+
+# Vue 前端八股文（完整版）
+
+1. 什么是单向绑定?什么是双向绑定?
+
++ 单向绑定
+  + 修改 Vue 实例中data初始化的数据,则页面模板中的数据随之发生更改,两者绑定在一起,则称之为单向绑定,也叫数据实现了可响应式,插值语法和指令语法都自带单向绑定功能
++ 双向绑定
+  + 修改页面模板中的数据,则管理模板的 Vue 实例中 data 中的数据随之发生更改,这称之为双向绑定,默认情况下只有 v-model 支持双向绑定,其它情况可以使用计算属性实现双向绑定
+
+2. Vue2如何进行样式渲染
+   + 绑定 class
+     + <tagName :class="初始化的值" /> 初始化的值对应 class 属性
+     + <tagName :class="{类名:初始化的值,类名:初始化的值}" /> 如果初始化的值为真,则类名存在,如果为假,则类名不存在
+     + <tagName :class="['类名','类名']" />这里就是一个元素多个类名,没有初始化的数据,注意不要漏加引号,因为这是数组
+   + 绑定 style
+     + <tagName :style="初始化的值" />初始化的值就对应行内式的样式值
+     + <tagName :style="{样式名:初始化的值,样式名:初始化的值,}">样式名必须使用小驼峰格式,没有引号,初始化的值对应样式值
+
+3. 说明 函数 计算属性 侦听器的不同以及使用场合
+
++ 函数
+  + 一般绑定事件,当事件激发被调用,也可以直接被调用,函数仅仅支持单向绑定功能,没有缓存机制,只要被调用立即执行,函数体内部可以书写异步代码,可以有选择的书写 return 语句
+  + 函数多绑定事件,支持异步功能,没有双向绑定功能
++ 计算属性
+  + 计算属性就是一个属性,由它依赖的初始化的值通过计算得来,只要它依赖的数据发生更改,则计算属性重新执行,计算属性没有括号,也不会传值,仅仅是个属性,自带缓存机制,不管被强制调用多少次,都仅仅执行一次,除非依赖的属性发生更改,计算属性在书写 get 和 set 之后支持单双向绑定,由于 get 中必须书写 return 语句,因此无法书写异步代码
++ 侦听器
+  + 一般不去考虑单双向绑定问题,就是设置一个值,侦听器去侦听这个数据,只要这个数据发生更改,则侦听器执行,如果设置 immediate 属性,则立即执行侦听器一次,侦听器默认只能侦听基本类型,无法侦听复杂类型,如果要侦听复杂类型,则必须设置 deep:true,开启深度侦听
+  + 计算属性能做的事,侦听器都能做到,但是侦听器能做的事,计算属性不一定能实现,例如异步功能
+
+4. Vue2条件渲染的方式
+
+  + v-if
+    + 如果后面是真值,则元素显示,如果后面是假值,则元素不显示,底层根本不渲染,由于切换消耗较大,因此,适用于切换不频繁的场合
+  + v-show
+    + 如果后面是真值,则元素显示,如果后面是假值,则元素不显示,底层依然渲染,只不过添加了一个 display:none 的行内式,初始载入消耗较大,但是之后切换消耗较小,因此适用于切换频繁的场合
+  + v-else-if v-else
+    + 一般搭配 v-if 使用,不能搭配 v-show,必须紧邻,用来组成简单的流程控制
+
+5. 如何使用事件原型获取元素节点
+   + event.target
+6. 简述你使用过的事件修饰符
+   + .stop:解决冒泡问题
+   + .once:激活一次性事件
+   + .prevent:屏蔽元素固有的动作,例如表单 连接提交
+   + .native:给组件添加原生事件
+   + @keyup.键位名:监听键位的激发
+   + @keydown.tab:监听 tab 键激发
+7. Vue如何进行列表渲染(迭代数组和迭代对象)
+   + v-for="(alias,index) in 数组"
+   + v-for="(value,name,index) in 对象"
+   + 注意存在主键则 :key="主键" 没有主键则 :key="index"
+8. 使用过滤器应该注意什么
+   + 不能与 v-model 连用
+   + 不能使用 this
+9. 简述你所使用过的指令元素
+   + v-once:一次性插值绑定,之后失去绑定功能
+   + v-html:向元素中插入超文本,注意!为了防止网络 XSS 攻击,禁止插入脚本
+   + v-text:向元素中插入文本
+   + v-model:使用在表单项中,支持双向绑定
+     + v-model.trim:双向绑定数据,去掉字符串两侧空格
+     + v-model.number:双线绑定数据,同时转换为 number,注意如果无法转换,则不转换
+     + v-model.lazy:点击回车才会激活双向绑定功能
+   + v-bind:语法糖:,绑定元素的属性
+   + v-on:语法糖@,绑定事件
+     + @事件.once
+     + @事件.stop
+     + @事件.prevent
+     + @事件.native
+     + @keyup.键位名
+     + @keydown.tab
+   + v-for:迭代数据
+   + v-if:后面如果为真,则元素显示,为假,元素不显示,底层不渲染
+   + v-else-if:搭配 v-if 使用必须紧邻
+   + v-else:搭配 v-if 使用必须紧邻
+   + v-show:后面如果为真,则元素显示,为假,元素不显示,底层依然渲染,只不过添加了.display:none;css行内式
+   + v-pre:提示 Vue 实例不解析
+   + v-cloak:解决闪现问题
+   + v-slot:父子组件传值时传递模板使用,是插槽的另外一种书写方式
+
+10. Vue2实例对用户书写的 data 对象做了哪些处理?
+
+​      **1:数据劫持**
+
+​        Vue实例获取到用户书写的 data 对象之后,不管封装了几层
+
+​        都会**对这个对象添加可响应式功能**,对象的每个属性都被添加了
+
+​        **reactiveGetter()**和 **reactiveSetter()** 两个函数
+
+​        如果 data 中的数据被读取,则执行 reactiveGetter()
+
+​        如果 data 中的数据被修改,则执行 reactiveSetter(newVal)
+
+​        这个函数中同时会修改页面模板中对应的数据,这就是**可响应式**
+
+​        或者说单向绑定是如何实现的,这些被施加了可响应式功能的数据以及
+
+​        get 和 set 函数**都被封装在 Vue 实例的 _data 对象**
+
+​        这个操作被称之为**<u>数据劫持</u>**
+
+​      **2:数据代理**
+
+​        一个对象可以对另外一个对象中的属性进行操作,则称之为<u>数据代理</u>
+
+​        Vue实例通过数据代理将 _data 中的数据代理到 Vue 实例的表层
+
+​        这样做的好处是,我们在模板中使用<u>指令或者插值语法</u>时,不需要每次都添加
+
+​        _data 前缀,因为 Vue 实例表层数据都可以直接在模板中使用
 
 
-  
+
+---
+
+## 9-自定义指令.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9:自定义指令</title>
+</head>
+
+<body>
+    <div id="app1">
+        <p v-etoak="content"></p>
+    </div>
+    <div id="app2">
+        <p v-etoak="content"></p>
+        <!-- 使用自定义指令实现自动获取焦点功能 -->
+        <input type="text" v-focus>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        /* 
+            自定义指令
+                官方提供的指令元素有时无法满足我们的要求,因此我们
+                可以自己创建自定义指令,这些指令可以随意起名,但是不能存在
+                v-,因为不管我们如何命名 开头都会自动添加 v- 前缀
+                自定义指令分为全局自定义和局部自定义
+                全局自定义:可以使用在任意一个 Vue 实例中,
+                全局自定义必须放置在 Vue 实例之前
+                局部自定义:只能使用在某一个 Vue 实例中
+        */
+
+        /* 1:全局自定义 */
+        Vue.directive('etoak',{
+            /* 渲染样式 
+                el:形参 就表示指令书写的元素节点
+                这里就是 p 段落元素节点
+            */
+            bind(el){
+                /* p 元素节点背景色变为珊瑚橘 */
+                el.style.backgroundColor = 'coral'
+            },
+            /* 渲染一次性动作 
+                el:同上
+                binding:就表示自定义指令
+                binding.value:就表示自定义指令绑定的值
+            */
+            inserted(el,binding){
+                el.innerText = binding.value.toUpperCase()
+            }
+        })
+
+        new Vue({
+            el: '#app1',
+            data: {
+                content: 'thisisetoak',
+            },
+        })
+
+        new Vue({
+            data: {
+                content: 'loveu3000',
+            },
+            /* 2:设置局部自定义指令 */
+            directives:{
+                /* 设置指令 */
+                focus:{
+                    bind(el){
+                        //此处未使用,可以不写
+                    },
+                    inserted(el,binding){
+                        /* 注意 事件其实都是函数,这里强制调用
+                        激发事件 */
+                        el.focus()
+                    },
+                }
+            },
+        }).$mount('#app2')
+        /* $mount():表示挂载的模板,指明 Vue 实例管理哪一块模板 */
+    </script>
+</body>
+</html>
+```
+
+## 10-指令补遗.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10:指令补遗</title>
+    <style>
+        /* 获取属性名为 v-cloak 的元素 */
+        [v-cloak]{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 
+            v-pre:提示 Vue 实例不解析此处模板,一般使用在
+            大段没有插值语法也没有指令语法的元素中
+        -->
+        <h1 v-pre>{{ title }}</h1>
+        <!-- v-cloak:解决闪现问题,所谓闪现问题是指
+        当真实 DOM 还未覆盖虚拟 DOM 时,存在极短的时间,用户会看到虚拟 DOM
+        显示在页面中,造成非常不好的体验 
+        当虚拟 DOM 生成时,元素上存在 v-cloak 指令,此时与样式联动
+        元素被隐藏,用户根本无法看到虚拟 DOM,之后真实 DOM 覆盖,v-cloak
+        被解析,元素上不再存在 v-cloak 指令,因此 css 失效,用户可以看到
+        真实 DOM
+        -->
+        <h2 v-cloak>{{ title }}</h2>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        new Vue({
+            data:{
+                title:'我是标题!',
+            }
+        }).$mount('#app')
+    </script>
+</body>
+</html>
+```
+
+## 11-数据劫持和数据代理.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11:数据劫持与数据代理</title>
+</head>
+<body>
+    <script>
+        /* 
+            Vue2实例对用户书写的 data 对象做了哪些处理? 
+            1:数据劫持
+                Vue实例获取到用户书写的 data 对象之后,不管封装了几层
+                都会对这个对象添加可响应式功能,对象的每个属性都被添加了
+                reactiveGetter()和 reactiveSetter() 两个函数
+                如果 data 中的数据被读取,则执行 reactiveGetter()
+                如果 data 中的数据被修改,则执行 reactiveSetter(newVal)
+                这个函数中同时会修改页面模板中对应的数据,这就是可响应式
+                或者说单向绑定是如何实现的,这些被施加了可响应式功能的数据以及
+                get 和 set 函数都被封装在 Vue 实例的 _data 对象
+                这个操作被称之为数据劫持
+            2:数据代理
+                一个对象可以对另外一个对象中的属性进行操作,则称之为数据代理
+                Vue实例通过数据代理将 _data 中的数据代理到 Vue 实例的表层
+                这样做的好处是,我们在模板中使用指令或者插值语法时,不需要每次都添加
+                _data 前缀,因为 Vue 实例表层数据都可以直接在模板中使用
+        */
+        const person = {
+            name:'胡桃',
+            age:17,
+        }
+
+        /* person.address = '璃月' */
+        
+        /* 给 person 添加一个属性 address 属性值为 璃月 */
+        Object.defineProperty(person,'address',{
+            value:'璃月',
+            /* 设置可枚举,默认不可枚举 */
+            enumerable:true,
+            /* 设置可写,默认不可写 */
+            writable:true,
+            /* 设置可删,默认不可删 */
+            configurable:true,
+        })
+
+        person.address = '济南'
+        console.log(delete person.address)
+        
+        console.log(person)
+        console.log(Object.keys(person))
+        console.log(Object.values(person))
+    </script>   
+</body>
+</html>
+```
+
+## 12-模拟数据代理.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12:模拟数据代理</title>
+</head>
+
+<body>
+    <script>
+        /* 
+            数据代理
+            一个对象可以对另外一个对象中的属性进行操作,则称之为数据代理
+        */
+
+        /* 此为源对象:此处模拟已经经过数据劫持实现了可响应式的
+        _data 对象 */
+        const _data = {
+            name: '胡桃',
+        }
+
+        /* 此为代理对象:此处模拟 Vue 实例 */
+        const vm = {
+            $demo1: '原生属性',
+            $demo2: '原生属性',
+            $demo3: '原生属性',
+        }
+
+        Object.defineProperty(vm,'name',{
+            /* 如果要读取 vm 的 name 属性则执行此函数 */
+            get(){
+                console.log('vm的name 属性被读取 getter 函数执行啦-----')
+                return _data.name
+            },
+            set(newVal){
+                console.log('vm的name 属性被修改 setter 函数执行啦-----')
+                _data.name = newVal
+            },
+        })
+    </script>
+</body>
+</html>
+```
+
+## 13-Vue2实现对象可响应式.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13:Vue2 实现对象可响应式</title>
+</head>
+<body>
+    <div id="app">
+        <ul>
+            <li>ID:{{ person.id }}</li>
+            <li>姓名:{{ person.name }}</li>
+            <li>年龄:{{ person.age }}岁</li>
+            <li v-if="person.address">住址:{{ person.address }}</li>
+        </ul>
+        <button @click="add">添加属性</button>
+        <button @click="remove">删除属性</button>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        const person = {
+            id:1,
+            name:'胡桃',
+            age:17,
+        }
+
+        const vm = new Vue({
+            data:{
+                person,
+            },
+            methods:{
+                add(){
+                    /* 这种书写方式无法实现可响应式,没有单向绑定功能,
+                    页面模板不会出现任何变化 */
+                    //this.person.address = '济南'
+                    /* 以下写法 才可以实现可响应式,实现单向绑定 */
+                    this.$set(person,'address','济南')
+                    // Vue.set(person,'address','济南')
+                },
+                remove(){
+                    /* 这种书写方式无法实现可响应式,没有单向绑定功能,
+                    页面模板不会出现任何变化 */
+                    //delete this.person.address
+                    this.$delete(person,'address')
+                    // Vue.delete(person,'address')
+                },
+            },
+        }).$mount('#app')
+    </script>
+</body>
+</html>
+```
+
+## 14-Vue2实现数组可响应式.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14:Vue2实现数组可响应式</title>
+</head>
+<body>
+    <div id="app">
+        <ul>
+            <li v-for="hobby in hobbies">
+                {{ hobby }}
+            </li>
+        </ul>
+        <button @click="add">添加数组元素</button>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        const vm = new Vue({
+            data:{
+                hobbies:['抽烟','喝酒','烫头'],
+            },
+            methods: {
+                add(){
+                    /* 以下写法没有实现可响应式,没有单向绑定功能
+                    模板不会出现任何变动 */
+                    //this.hobbies[3] = '敲代码'
+                    /* 
+                        在 Vue2 中必须使用以下七个函数对数组进行
+                        修改,这七个函数是 js 版加强版,实现了可响应式
+                        功能,注意不是 js 原始的七个,只不过重名,功能相同
+                        实现了可响应式功能
+                        push()
+                        unshift()
+                        shift()
+                        pop()
+                        sort()
+                        reverse()
+                        splice()
+                    */
+                    this.hobbies.push('敲代码')
+                }
+            },
+        }).$mount('#app')
+    </script>
+</body>
+</html>
+```
+
+
+
+---
+
+
+
+## Vue2中必须使用这七个函数对数组进行修改
+
+在 **Vue2 中**必须使用以下**七个函数**对数组进行修改,这七个函数是 js 版加强版,实现了可响应式功能,注意不是 js 原始的七个,只不过重名,功能相同实现了可响应式功能
+
+​            **push()**
+
+​            **unshift()**
+
+​            **shift()**
+
+​            **pop()**
+
+​            **sort()**
+
+​            **reverse()**
+
+​            **splice()**
+
+---
+
+## 15-模拟数据劫持.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue2数据劫持</title>
+</head>
+
+<body>
+    <script>
+        /*  
+            STEP1:数据劫持
+            用户书写的 data 对象仅仅是一个普通的对象,没有任何可响应式功能,Vue实例对我们写的这个data进行了
+            一个封装,在这个封装过程中添加了可响应式功能,其实就是数据更改,则页面模板随之发生更改(单向绑定)
+            之后我们被封装的添加了可响应式功能的 data变为 _data  
+        */
+        /* 这个data就是我们自己书写的初始化数据的data */
+        let data = {
+            name: '胡桃',
+            address: '璃月',
+        }
+        /* 
+            此处仅模拟数据劫持功能,与官方源码存在出入,仅做演示 
+            我们自己写的 data 是 怎么变成 实现了内部属性可响应式 的 _data呢
+            data = _data
+            下文创建了一个用来监视数据的实例对象,这个实例对象可以实时监视传入数据中
+            属性的更改
+        */
+        let obs = new Observer(data)
+
+        /* 模拟Vue实例 */
+        let vm = {}
+
+        vm._data = data = obs
+
+        /* Observer的构造函数 */
+        function Observer(obj) {
+            /* 拿到传入对象的所有属性名 ['name','address'] */
+            let keys = Object.keys(obj)
+
+            keys.forEach(k => {
+                /* this:就是这个对象 */
+                Object.defineProperty(this, k, {
+                    get() {
+                        return obj[k]
+                    },
+                    set(newVal) {
+                        console.log(`${k}被修改啦!!,可响应式启动,我要去重新渲染页面模板中的数据了之后
+                        生成虚拟DOM,最终被真实DOM覆盖`)
+                        obj[k] = newVal
+                    }
+                })
+            })
+        }
+    </script>
+</body>
+</html>
+```
+
+
+
+---
+
+
 
   
 
