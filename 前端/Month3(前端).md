@@ -5125,9 +5125,607 @@ let text = JSON.stringify(obj)
 
 
 
-  
+# day10
 
-  
+###   VueTodoMVC app.js
+
+```js
+/* 自调用函数,为了防止脚本污染,划定了块级作用域 */
+(function (window) {
+    /* 表示使用没有任何兼容性的 js 语句,不能使用陈旧的具有兼容性问题的语句 */
+    'use strict';
+
+    /* 
+        设置数据源 
+        id:模拟主键 有且唯一
+        content:任务内容
+        completed: true表示已完成 false 待办
+    */
+    const items = [
+        { id: 1, content: '学习 css', completed: true, },
+        { id: 2, content: '学习 vue', completed: true, },
+        { id: 3, content: '学习 typescript', completed: false, },
+        { id: 4, content: '学习 vue-cli', completed: false, },
+        { id: 5, content: '学习 vue-router', completed: false, },
+        { id: 6, content: '学习 webpack', completed: false, },
+        { id: 7, content: '学习 vue3', completed: false, },
+        { id: 8, content: '学习 javascript', completed: true, }
+    ]
+
+    /* 
+        STEP9)数据持久化
+        在 js 中的 window 中存在两个属性 localStorage 和 sessionStorage
+        可以将数据保存进当前的浏览器,数据类型只能是字符串,最大 5m,支持中文
+        后端 Cookie Session Token
+
+        localStorage:保存在用户浏览器本地,只要不主动删除,则一直有效
+        sessionStorage:保存在用户浏览器本地,只要关闭浏览器,立即失效
+
+        以上两个对象都具有以下功能
+            setItem(key,value):保存信息 key:秘钥 必须是字符串 value 保存的
+            信息,必须是字符串,一般为 json 格式
+            getItem(key):获取信息
+            removeItem(key):删除信息
+    */
+
+    const KEY = 'et2301todomvc'
+
+    const itemsStorage = {
+        /* 此方法用来从浏览器获取数据 */
+        fetch(){
+            return JSON.parse(localStorage.getItem(KEY)||'[]')
+        },
+        /* 此方法用来保存数据进浏览器 */
+        save(val){
+            localStorage.setItem(KEY,JSON.stringify(val))
+        },
+    }
+
+    const app = new Vue({
+        /* 初始化的数据 */
+        data:{
+            /* 初始化数据源 */
+            /* STEP9)数据持久化 */
+            items:itemsStorage.fetch(),
+            /* STEP7)编辑任务 
+                currentItem:表示正在被编辑的任务项,
+                类型是对象,由于一打开页面没有正在被编辑的任务项,因此
+                默认为 null
+            */
+            currentItem:null,
+            /*  STEP8)路由状态切换 
+                这里表示默认的状态
+            */
+            status:'all',
+        },
+        /* 函数 */
+        methods:{
+            /* STEP2)添加待办事项 */
+            addItem(event){
+                /* 1:获取用户输入的内容 */
+                let content = event.target.value.trim()
+                /* 2:简单验证 */
+                if(!content){
+                    alert('请输入有效信息...')
+                    return
+                }
+                /* 3:如果填写无误,则添加到数组中 */
+                this.items.push({
+                    /* 由于这里不是真正的主键,因此这里仅做模拟使用
+                    存在 bug,仅做演示 */
+                    id:this.items.length+1,
+                    content,
+                    completed:false,
+                })
+                /* 4:清空输入框 */
+                event.target.value = ''
+            },
+            /* STEP5)删除任务 */
+            removeItem(item){
+                /* 这里第一个参数都是删除前计算的索引值
+                如果直接传递索引,由于存在添加 和 编辑操作,因此
+                可能会出现问题 */
+                this.items.splice(this.items.indexOf(item),1)
+            },
+            /* STEP6)批量删除剩余待办事项 */
+            removeCompleted(){
+                /* 自己过滤自己,因此完成的都被过滤掉了 */
+                this.items = 
+                this.items.filter( item => item.completed === false )
+            },
+            /* STEP7)编辑任务 */
+            /* 双击开始编辑 item 就是被双击的任务项对象 */
+            toEdit(item){
+                /* 给正在被编辑的任务赋值因此 从 null 变为 某一个任务 */
+                this.currentItem = item
+            },
+            /* 失去焦点或者点击回车完成编辑 */
+            finishEdit(item, event){
+                /* 1:获取用户输入的新的信息 */
+                let newContent = event.target.value.trim()
+                /* 2:校检是否合法 */
+                if(!newContent){
+                    /* 3:输入都是空格删除任务项,复用 STEP5) */
+                    this.removeItem(item)
+                    return
+                }
+                /* 4:替换现有内容 */
+                item.content = newContent
+                /* 5:恢复当前正在被编辑的任务为 null
+                这就意味着 class="editing" 失效了,也就意味着
+                input 隐藏了 div 回来了 */
+                this.currentItem = null
+            },
+            /* 点击 esc 放弃编辑 */
+            cancelEdit(){
+                /*  
+                    恢复正在被编辑的任务为 null 
+                    这就意味着 class="editing" 失效了,也就意味着
+                    input 隐藏了 div 回来了
+                */
+                this.currentItem = null
+            },
+            /* 修改后的点击回车完成编辑 */
+            triggerBlur(event){
+                /* 激发失去焦点 */
+                event.target.blur()
+            },
+        },
+        /* 计算属性 */
+        computed:{
+            /* STEP3)统计剩余待办任务数 */
+            remaining(){
+                const unItems = 
+                /* this.items.filter( item => !item.completed ) */
+                this.items.filter(item => item.completed === false)
+                return unItems.length
+            },
+            /* STEP4)任务状态切换 */
+            toggleAll:{
+                /* 
+                    单向绑定 
+                    如果所有任务都已经完成(剩余待办任务为 0),
+                    计算属性应该返回真值则此处勾选
+                */
+                get(){
+                    /* 复用 STEP3  */
+                    return this.remaining === 0
+                },
+                /* 双向绑定 
+                    主动勾选此处复选框,则 toggleAll 为 true主动不勾
+                    选则为 false,那么这里 val 要么是 true 要么是 false
+                */
+                set(val){
+                    /* 所有的任务都是 true 或者 都是 false */
+                    this.items.forEach(item => item.completed = val)
+                },
+            },
+            /* STEP8)路由状态切换 */
+            filterItems(){
+                /* 这里根据当前状态进行过滤 */
+                switch(this.status){
+                    case 'active':
+                        /* 获取待办的 */
+                        return this.items.filter( item => !item.completed )
+                    case 'completed':
+                        /* 获取完成的 */
+                        return this.items.filter(item => item.completed)
+                    default:
+                        /* 全部获取 */
+                        return this.items
+                }
+            },
+        },
+        /* 侦听器 */
+        watch:{
+            /* 侦听 items 数据的变动 */
+            items:{
+                /* 由于是复杂类型,因此开启深度侦听 */
+                deep:true,
+                handler(newVal,oldVal){
+                    /* 将数据保存进浏览器 */
+                    itemsStorage.save(newVal)
+                },
+            },
+        },
+        /* 自定义指令 */
+        directives:{
+            focus:{
+                /* 设置一次性动作 
+                只要 DOM 发生变动,立即失效 */
+                inserted(el,binding){
+                    /* 强制激发获取焦点 */
+                    el.focus()
+                },
+                /* 设置持久性动作,无法 DOM 如何更改
+                一直生效 */
+                update(el,binding){
+                    /* binding.value:表示指令后面绑定的值
+                    这里是 绑定的值为真 */
+                    if(binding.value){
+                        /* 则获取焦点 */
+                        el.focus()
+                    }
+                },
+            },
+        },
+    })
+
+    app.$mount('.todoapp')
+
+    /* 
+        STEP8)路由状态切换 
+        onhashchange:当浏览器地址栏的哈希值发生更改时执行
+    */
+    window.onhashchange = ()=>{
+        /* 截取当前的哈希 
+            http://www.etoak.com/#/etoak
+            则 这里 #/etoak 被称之为哈希值,从#开始浏览器根本不会发送任何请求
+            location.hash:就是获取当前地址栏的哈希值例如上例 就是 #/etoak    
+            location.hash.substring(2): etoak
+            这里哈希可能是以下三种
+                '#/' '#/active' '#/completed'
+                则截取之后变为
+                'all' 'active' 'completed'
+
+        */
+        let hash = location.hash.substring(2)||'all'
+        /* 给 Vue 实例的状态赋值 all active completed 三种可能 */
+        app.status = hash
+    }
+    /* 强制激发一次哈希值更改的函数,给当前状态赋值 那么当前状态
+    为 all|active|completed 三选一 */
+    onhashchange()
+})(window);
+
+```
+
+### VueTodoMVC  index.html
+
+```html
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Template • TodoMVC</title>
+		<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
+		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
+		<!-- CSS overrides - remove if you don't need it -->
+		<link rel="stylesheet" href="css/app.css">
+	</head>
+	<body>
+		<section class="todoapp" v-cloak>
+			<header class="header">
+				<h1>ET2301 练习</h1>
+                <!-- STEP2)添加待办事项
+                        @keyup.enter="addItem"
+                        点击回车开始添加任务,后面是个函数
+                -->
+				<input class="new-todo" placeholder="您有什么待办事项?" 
+                v-focus @keyup.enter="addItem">
+			</header>
+			<!-- This section should be hidden by default and shown when there are todos -->
+			<!-- STEP1)列表渲染
+                    此处 v-show="items.length"
+                    如果数组没有数组,则 v-show 后面为假,元素隐藏
+                    由于切换频繁,因此这里使用 v-show
+            -->
+            <section class="main" v-show="items.length">
+                <!-- STEP4)任务状态切换 
+                        此处使用计算属性,单双向绑定都要书写
+                            v-model="toggleAll"
+                        单向:如果所有任务都已经完成(剩余待办任务为 0),计算属性应该返回真值
+                        则此处勾选
+                        双向:主动勾选此处复选框,则 toggleAll 为 true
+                        主动不勾选则为 false
+                -->
+				<input id="toggle-all" class="toggle-all" 
+                type="checkbox" v-model="toggleAll">
+				<label for="toggle-all">Mark all as complete</label>
+				<ul class="todo-list">
+					<!-- These are here just to show the structure of the list items -->
+					<!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
+					<!-- 
+                        STEP1)列表渲染
+                            这里 li 用来显示列表项,根据 class 的不同存在以下
+                            三种样式
+                            
+                            1:class="completed"表示任务已经完成,复选框勾选
+                            字体发浅,存在贯穿线
+                            2:没有 class 表示任务待办,复选框未勾选,字体发黑
+                            无贯穿线
+
+                        STEP7)编辑任务
+                            3:class="editing" 任务正处于编辑状态 li 中的 div
+                            被 input 取代,用户开始进行编辑
+                    -->
+                    <!-- STEP8)路由状态切换
+                            v-for="(item,index) in filterItems"
+                            此处迭代从直接数组中迭代变为从计算属性中也就是
+                            根据当前状态过滤后的数组进行迭代
+                    -->
+                    <li :class="{completed:item.completed,editing:item === currentItem}" 
+                    v-for="(item,index) in filterItems"
+                    :key="item.id">
+						<div class="view">
+							<input class="toggle" type="checkbox" 
+                            v-model="item.completed">
+                            <!-- STEP7)编辑任务
+                                    双击 label 时激活编辑,class 变为 editing
+                                    外侧的 div 元素隐藏,取而代之的是 input 元素
+                                    进入编辑状态
+                                    1:双击开始编辑  @dblclick="toEdit(item)"
+                            -->
+							<label @dblclick="toEdit(item)">{{ item.content }}</label>
+                            <!-- STEP5)删除任务
+                                    单击开始删除任务 @click="removeItem(item)"
+                            -->
+							<button class="destroy" @click="removeItem(item)"></button>
+						</div>
+                        <!-- 
+                            STEP7)编辑任务
+                                2:点击回车完成编辑 
+                                    @keyup.enter="finishEdit(item,$event)"
+                                    注意点击回车也会激发失去焦点,导致删除两条的 bug
+                                    因此点击回车修改为以下
+                                    @keyup.enter="triggerBlur"
+                                3:失去焦点完成编辑
+                                    @blur="finishEdit(item,$event)"
+                                4:点击 esc 放弃编辑
+                                    @keyup.esc="cancelEdit"
+                                5:输入都是空格删除任务项
+                                    if(!newContent){
+                                        /* 输入都是空格删除任务项,复用 STEP5) */
+                                        this.removeItem(item)
+                                        return
+                                    }
+                        -->
+						<input class="edit" :value="item.content"
+                        @keyup.enter="triggerBlur"
+                        @blur="finishEdit(item,$event)"
+                        @keyup.esc="cancelEdit"
+                        v-focus="item === currentItem">
+					</li>
+				</ul>
+			</section>
+			<!-- This footer should hidden by default and shown when there are todos -->
+			<!-- STEP1)列表渲染
+                    此处 v-show="items.length"
+                    如果数组没有数组,则 v-show 后面为假,元素隐藏
+                    由于切换频繁,因此这里使用 v-show
+            -->
+            <footer class="footer" v-show="items.length">
+				<!-- This should be `0 items left` by default -->
+                <!-- STEP3)统计剩余任务数
+                        此处没有事件,因此使用计算属性,仅仅单向绑定即可
+                -->
+				<span class="todo-count"><strong>{{ remaining }}</strong> item{{ remaining === 1?'':'s' }} left</span>
+				<!-- Remove this if you don't implement routing -->
+				<ul class="filters">
+					<li>
+                        <!-- STEP8)路由状态切换
+                            此处当前状态如果与哈希匹配则证明链接被激活,因此添加
+                            class="selected" 添加后链接存在一个橙色边框
+                        -->
+						<a :class="{selected:status === 'all'}" href="#/">All</a>
+					</li>
+					<li>
+						<a :class="{selected:status === 'active'}" href="#/active">Active</a>
+					</li>
+					<li>
+						<a :class="{selected:status === 'completed'}" href="#/completed">Completed</a>
+					</li>
+				</ul>
+				<!-- Hidden if no completed items are left ↓ -->
+                <!-- STEP6)批量删除已完成任务 
+                        
+                        总任务数 === 剩余待办任务 那就说明所有任务都待办
+                        等式不成立 因此按钮隐藏
+                        总任务数 > 剩余待办任务 那就说明存在完成的
+                        等式成立 因此按钮显示
+                -->
+				<button class="clear-completed"
+                v-show="items.length > remaining"
+                @click="removeCompleted">Clear completed</button>
+			</footer>
+		</section>
+		<footer class="info">
+			<p>双击开始编辑任务项</p>
+			<!-- Remove the below line ↓ -->
+			<p>模板制作<a href="http://sindresorhus.com">Sindre Sorhus</a></p>
+			<!-- Change this out with your name and url ↓ -->
+			<p>作者<a href="http://todomvc.com">Joshua</a></p>
+			<p>ET2301todoMVC练习</p>
+		</footer>
+		<!-- Scripts here. Don't remove ↓ -->
+		<script src="node_modules/todomvc-common/base.js"></script>
+        <!-- 引入 vue 依赖 -->
+        <script src="./node_modules/vue/dist/vue.js"></script>
+        <!-- 我们自己的脚本书写在此 -->
+		<script src="js/app.js"></script>
+	</body>
+</html>
+
+```
+
+
+
+---
+
+### 1-局部组件和全局组件.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1:局部组件和全局组件</title>
+</head>
+<body>
+    <div id="app1">
+        <!-- 引用 reference 全局组件 注意组件名必须使用连字符,禁止使用
+        大小驼峰,并且不能与html标签重名 -->
+        <component-a></component-a>
+    </div>
+    <div id="app2">
+        <!-- 引用全局组件 reference 全局组件 注意组件名必须使用连字符,禁止使用
+        大小驼峰,并且不能与html标签重名 -->
+        <component-a></component-a>
+        <!-- 引用局部组件 -->
+        <component-b></component-b>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        /* 
+            组件(Components) 
+                组件是 Vue 中除了绑定以外,最大的特色,也是进阶语法的入门,
+                组件就是一种特殊的 Vue 实例,它可以自己封装模板,其它配置项
+                与 Vue 实例完全一致,组件天生就是被复用,从而实现特定模板的复用
+                组件分为 局部组件和全局组件
+                全局组件可以使用在任意一个 Vue 实例中
+                局部组件只能使用在某个 Vue 实例中
+
+            1:全局组件
+                Vue.component('组件名',{
+                    template:`模板`,
+                    data(){
+                        return {
+
+                        }
+                    }
+                })
+                组件名:注意如果存在引号,则组件名必须使用连字符,如果没有引号
+                则必须使用大小驼峰
+        */
+        Vue.component('component-a',{
+            /* 设置模板 */
+            template:`<p :style="val">{{ content }}</p>`,
+            /* 初始化数据 */
+            data(){
+                return {
+                    val:'background-color:coral',
+                    content:'全局组件',
+                }
+            }
+        })
+
+
+        new Vue({
+            data:{
+
+            }
+        }).$mount('#app1')
+
+        new Vue({
+            /* 2:局部组件 */
+            components:{
+                /* 注意这里没有引号,使用大小驼峰均可 */
+                componentB:{
+                    template:`<p :style="val">{{ content }}</p>`,
+                    data(){
+                        return {
+                            val:'background-color:pink',
+                            content:'局部组件',
+                        }
+                    },
+                },
+            },
+        }).$mount('#app2')
+    </script>
+</body>
+</html>
+```
+
+### 2-组件极致化.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2:组件极致化</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    
+    <!-- 引入页眉组件 -->
+    <script src="./components/AppHeader.js"></script>
+    <!-- 引入主体组件 -->
+    <script src="./components/AppMain.js"></script>
+    <!-- 引入页脚组件的子组件,先引晚辈再引长辈 -->
+    <script src="./components/child/Info.js"></script>
+    <!-- 引入页脚组件 -->
+    <script src="./components/AppFooter.js"></script>
+    
+    <!-- 引入根组件,注意先后顺序,从上往下,先引晚辈再引长辈 -->
+    <!-- 这里引入根组件 -->
+    <script src="./App.js"></script>
+    <!-- 引入主函数 也叫作入口文件 -->
+    <script src="./main.js"></script>
+</body>
+</html>
+```
+
+#### main.js
+
+```js
+(function () {
+    new Vue({
+        /* 如果书写了 template 配置项,则后面的标签
+        会取代 el 或者 $mount 管理的模板 这里 <app />
+        覆盖了 div#app */
+        template: '<app />',
+        /* 注册子组件 */
+        components: {
+            /* 注册根组件 */
+            App,
+        },
+    }).$mount('#app')
+})()
+```
+
+#### App.js
+
+```js
+(function () {
+    /* Vue2中 模板必须存在根元素,否则报错
+    因此这里添加了 div 根标签 */
+    const template = 
+    `<div>
+        <!-- 引用页眉组件 -->
+        <app-header></app-header>
+        <!-- 引用主体组件 -->
+        <app-main></app-main>
+        <!-- 引用页脚 -->
+        <app-footer></app-footer>
+    </div>`
+
+    window.App = {
+        template,
+        /* 注册子组件 */
+        components:{
+            /* 注册页眉 */
+            AppHeader,
+            /* 注册主体 */
+            AppMain,
+            /* 注册页脚 */
+            AppFooter,
+        },
+    }
+})()
+```
+
+
+
+---
+
+
 
   
 
