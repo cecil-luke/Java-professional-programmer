@@ -5725,15 +5725,731 @@ let text = JSON.stringify(obj)
 
 ---
 
+# day11
 
+## 前端八股文（最终版）
+
+1. 什么是单向绑定？什么是双向绑定？
+
+   + 单向绑定
+     + 修改 Vue 实例中data初始化的数据，则页面模板中的数据随之发生更改，两者绑定在一起，则称之为单向绑定
+   + 双向绑定
+     + 修改页面模板中的数据，则管理模板的 Vue 实例中 data 中的数据随之发生更改，这称之为双向绑定
+
+2.  Vue2如何进行样式渲染
+
+   + 绑定 class
+     + <tagName :class="初始化的值" />初始化的值对应class属性
+     + <tagName : class="{类名:初始化的值,类名:初始化的是}">如果初始化的的值为真，则类名存在，如果为假，则类名不存在
+     + <tagName : class="['类名','类名']" />这里就是一个元素多个类名，没有初始化的数据，注意不要漏加引号，因为这是数组
+   + 绑定style
+     + <tagName :style="初始化的值" />初始化的值就对应行内式的样式值
+     + <tagName : style="{样式名:初始化的值,样式名:初始化的值，}">样式名必须使用小驼峰格式，没有引号，初始化的值对应样式值
+
+3. 说明 函数 计算属性 侦听器的不同以及使用场合
+
+   + 函数
+     + 一般绑定事件，当事件激发被调用，也可以直接被调用，函数仅仅支持单向绑定功能，没有缓存机制，只要被调用立即执行，函数体内部可以书写异步代码，可以有选择的书写return语句
+     + 函数多绑定事件，支持异步功能，没有双向绑定功能
+   + 计算属性
+     + 计算属性就是一个属性，由它依赖的初始化的值通过计算得来，只要它依赖的数据发生更改，则计算属性重新执行，计算属性没有括号，也不会传值，仅仅是个，自带缓存机制，不管被强制调用多少次，都仅仅执行一次，除非依赖的属性发生更改，计算属性在书写get和set之后支持单双向绑定
+     + 由于get中必须书写return语句，因此无法书写异步代码
+   + 侦听器
+     + 一般不去考虑单双向绑定问题，就是设置一个值，侦听器去侦听这个数据，只要这个数据发生更改，则侦听器执行，如果设置 immediate 属性，则立即执行侦听器一次，侦听器默认只能侦听基本数据类型，无法侦听复杂类型，如果要侦听复杂类型，则必须设置 deep:true ，开启深度侦听
+     + 计算属性能做的事，侦听器都能做到，但是侦听器能做的事，计算属性不一定能实现，例如异步功能
+
+4. Vue2条件渲染的方式
+
+   + v-if
+     + 如果后面是真值，则元素显示，如果后面是假值，则元素不显示，底层根本不渲染，由于切换消耗较大，因此，适用于**切换不频繁**的场合
+
+     + v-show
+       + 如果后面是真值,则元素显示,如果后面是假值,则元素不显示,底层依然渲染,只不过添加了一个 **display:none** 的行内式,
+       + 初始载入消耗较大,但是之后切换消耗较小,因此适用于**切换频繁**的场合
+     + v-else-if v-else
+       + 一般搭配 v-if 使用,不能搭配 v-show,必须紧邻,用来组成简单的流程控制
+
+   5. 如何使用**事件原型**获取**元素节点**
+
+      + event.target
+
+   6. 简述你使用过的事件修饰符
+
+      + .stop:解决冒泡问题
+      + .once:激活一次性事件
+      + .prevent:屏蔽元素固有的动作,例如表单 连接提交
+      + .native:给组件添加原生事件
+      + @keyup.键位名:监听键位的激发
+      + @keydown.tab:监听 tab 键激发
+
+   7. Vue如何进行列表渲染(迭代数组和迭代对象)
+
+      + v-for="(alias,index) in 数组"
+      + v-for="(value,name,index) in 对象"
+      + 注意存在主键则 **:key="主键"** 没有主键则 **:key="index"**
+
+   8. 使用过滤器应该注意什么
+
+      + 不能与 v-model 连用
+      + 不能使用 this
+
+   9. 简述你所使用过的指令元素
+
+      + v-once:一次性插值绑定,之后失去绑定功能
+      + v-html:向元素中插入超文本,注意!为了防止网络 XSS 攻击,禁止插入脚本
+      + v-text:向元素中插入文本
+      + v-model:使用在表单项中,支持双向绑定
+        + v-model.trim:双向绑定数据,去掉字符串两侧空格
+        + v-model.number:双线绑定数据,同时转换为 number,注意如果无法转换,则不转换
+        + v-model.lazy:点击**回车**才会激活双向绑定功能
+      + v-bind:语法糖:,绑定元素的属性
+      + v-on:语法糖@,绑定事件
+        + @事件.once
+        + @事件.stop
+        + @事件.prevent
+        + @事件.native
+        + @keyup.键位名
+        + @keydown.tab
+      + v-for:迭代数据
+      + v-if:后面如果为真,则元素显示,为假,元素不显示,底层不渲染
+      + v-else-if:搭配 v-if 使用必须紧邻
+      + v-else:搭配 v-if 使用必须紧邻
+      + v-show:后面如果为真,则元素显示,为假,元素不显示,底层依然渲染,只不过添加了.display:none;css行内式
+      + **v-pre**:提示 Vue 实例不解析
+      + **v-cloak**:解决闪现问题
+      + v-slot:父子组件传值时传递模板使用,是插槽的另外一种书写方式
+
+   10. Vue2实例对用户书写的 data 对象做了哪些处理?
+       **1:数据劫持**
+           Vue实例获取到用户书写的 data 对象之后,不管封装了几层
+           都会对这个对象**添加可响应式功能**,对象的每个属性都被添加了
+           reactiveGetter()和 reactiveSetter() 两个函数
+           如果 data 中的数据被读取,则执行 reactiveGetter()
+           如果 data 中的数据被修改,则执行 reactiveSetter(newVal)
+           这个函数中同时会修改页面模板中对应的数据,这就是可响应式
+           或者说单向绑定是如何实现的,这些被施加了可响应式功能的数据以及
+           get 和 set 函数都被封装在 Vue 实例的 _data 对象
+           这个操作被称之为数据劫持
+       **2:数据代理**
+           一个对象可以对另外一个对象中的属性进行操作,则称之为数据代理
+           Vue实例通过数据代理将 _data 中的数据代理到 Vue 实例的表层
+           这样做的好处是,我们在模板中使用指令或者插值语法时,不需要每次都添加
+           _data 前缀,因为 Vue 实例表层数据都可以直接在模板中使用
+
+   11. Vue2如何实现对象的可响应式,如何实现数组的可响应式
+
+       + 对象可响应式
+         + this.$set(对象,'属性名',属性值)
+         + this.$delete(对象,'属性名')
+         + Vue.set(对象,'属性名',属性值)
+         + Vue.delete(对象,'属性名',属性值)
+       + 数组可响应式
+         + 在 Vue2 中必须使用以下七个函数对数组进行修改,这七个函数是 js 版加强版,实现了可响应式功能,注意不是 js 原始的七个,只不过重名,功能相同实现了可响应式功能
+           + push()
+           + unshift()
+           + shift()
+           + pop()
+           + sort()
+           + reverse()
+           + splice()
+
+   12. 如何进行组件传值
+
+       + **props父子传值**
+
+         + 父组件 <子组件 :自定义属性="要传递的数据" />
+         + props:['自定义属性']
+         + props:{ 自定义属性:数据类型 }
+         + props:{ 自定义属性:{ type:数据类型,required:true,default:默认值 } }
+
+       + **$emit子父传值**
+
+         + 父组件 <子组件 @自定义动作="函数">
+         + this.$emit('父组件中的自定义事件',要传递的值)
+
+       + **slot父子插槽分发**
+
+         + 父组件
+
+         + ```html
+               <子组件>
+                   <要传递的模板 slot="插槽名" />
+                   <template v-slot:插槽名>
+                       <要传递的模板 />
+                   </template>
+               </子组件>
+           ```
+
+         + 子组件 <slot name="插槽名"> 
+
+   13. 如何给组件绑定原生事件
+       <组件 @原生事件.native="函数" />
 
   
 
-  
+---
+
+## Vue组件通讯规则
+
++ <u>不要在子组件中修改父组件传递的数据</u>
++ 数据初始化，要根据初始化的数据是否用于多个组件中，如果需要被应用在多个组件中，<u>则初始化在父组件中</u>，如果只在一个组件中使用，那就初始化在这个要使用的组件中
++ 数据初始化在哪个组件，<u>更新数据的函数</u>就应该定义在哪个组件
+
+### props父组件向子组件传递数据（父子数据）
+
++ **props**只用于父组件向子组件传递数据
+
++ <u>所有的标签属性</u>多会成为组件对象的属性，模板页面可以直接引用
+
++ 如果需要向非子后代传递数据，<u>必须逐层传递</u>
+
++ **兄弟**组件不能直接使用props通讯，必须借助父组件
+
+  >   父组件:
+
+  ```html
+      <子组件 :绑定的属性="初始化的值"></子组件>  
+  ```
+
+  >   格式1:    
+  >      子组件 
+  >      props:['绑定的属性']
+  >   格式2:
+  >      子组件
+  >      props:{
+  >          绑定的属性:数据类型,
+  >          绑定的属性2:数据类型
+  >      }
+  >      数据类型:Number Array Object Function Boolean String
+  >      注意不能传递标签
+  >   格式3:
+  >      props:{
+  >          绑定的属性:{
+  >              type:数据类型,
+  >              required:是否需要设置数据类型,
+  >   		   default:基本数据类型,
+  >              default:()=>复杂数据类型,
+  >
+  >   ​        }
+  >   ​    }
+
+### $emit自定义事件（子父数据）
+
++ 自定义事件只用于子组件向父组件发送数据
+
++ 不能在隔代组件通讯时使用
+
+  >子组件:
+  >this.$emit('父组件中的自定义事件',要传递的值)
+
+  >父组件:
+  ><给父组件传值的子组件 :hobbies="mydatas" @自定义事件="要调用的函数"></ 给父组件传值的子组件>
+
+### slot插槽分发内容（父子标签+数据）
+
++ 用于父组件向子组件传递 标签和数据 (上面那二位只能传递数据)一般用于某个位置需要**经常动态切换**显示效果
+
++ 数据必须初始化在父组件中
+
+  >父组件
+
+  ```html
+        <子组件>
+       	 <tagName slot="插槽名"></tagName>
+        </子组件>
+  ```
+
+  >子组件
+
+  ```html
+        <slot name="插槽名"></slot>
+  ```
+
+### PubSubJs（任意组件数据）
+
++ 用来实现非父子组件之间的通信，使用PubSubJs进行消息发布与订阅模式，来进行数据传递
+
++ 必须安装
+  npm install pubsub-js   
+
++ 由于是第三方插件，必须使用箭头函数
+
+  >订阅:
+
+  ```js
+    PubSub.subscribe('订阅的事件',(event,传递的数据)=>{
+         
+    })
+  ```
+
+    >发布:
+    >
+    >```js
+    >PubSub.publish('订阅的事件',传递的数据)
+    >```
 
 
 
+---
 
+## vue2-component-project8
+
+### index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Dashboard Template for Bootstrap</title>
+    <!-- Bootstrap core CSS -->
+    <link href="style/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="style/dashboard.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app"></div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <!-- 引入页眉 -->
+    <script src="./components/AppHeader.js"></script>
+    <!-- 引入侧边栏 -->
+    <script src="./components/AppAside.js"></script>
+    <!-- 引入主体子组件 面板组件 -->
+    <script src="./components/children/Dashboard.js"></script>
+    <!-- 引入列表组件的子组件 Item 组件 -->
+    <script src="./components/children/Item.js"></script>
+    <!-- 引入主体子组件 列表组件 -->
+    <script src="./components/children/HomeList.js"></script>
+    <!-- 引入主体 -->
+    <script src="./components/AppMain.js"></script>
+    <!-- 引入根组件 -->
+    <script src="./App.js"></script>
+    <!-- 引入主函数 入口文件 -->
+    <script src="./main.js"></script>
+</body>
+
+</html>
+```
+
+### main.js
+
+```js
+(function () {
+    new Vue({
+        /* 注册子组件 */
+        components: {
+            /* 注册根组件 */
+            App,
+        },
+        /* 覆盖 el 或者 mount 管理的模板,根组件替换 */
+        template: '<app />',
+    }).$mount('#app')
+})()
+```
+
+### App.js
+
+```js
+(function () {
+    const template = 
+    `<div>   
+        <!--1)头部导航区域-->
+        <!-- 引用页眉 -->
+        <app-header></app-header>
+
+        <!--2)核心区域:分左右两边-->
+        <div class="container-fluid">
+            <div class="row">
+
+                <!--2.1)左边菜单栏区域-->
+                <!-- 引用侧边栏 -->
+                <app-aside></app-aside>
+
+                <!--2.2)右边主页面区域: 分上下两个区域-->
+                <!--
+                    3:父子插槽分发
+                        <父组件>
+                            <要传递的模板 slot="插槽名"/>
+                        </父组件>
+                -->
+                <app-main>
+                    <!-- 以下模板也就是 h1 元素传递到子组件中,插入到
+                    插槽名为 etoak1 的 slot 中 -->
+                    <h1 class="page-header" slot="etoak1">{{ title1 }}</h1>
+                    <!-- 如果针对大量模板,则必须使用 template 对应 v-slot
+                    指令,注意此指令只能使用在 template 和 组件中,不能使用在
+                    html 标签中 -->
+                    <template v-slot:etoak2>
+                        <h2 class="sub-header">{{ title2 }}</h2>   
+                    </template>    
+                </app-main>
+            </div>
+        </div>
+    </div>`
+
+    window.App = {
+        data(){
+            return {
+                title1:'面板',
+                title2:'雇员信息',
+            }
+        },
+        template,
+        /* 注册子组件 */
+        components:{
+            /* 注册页眉 */
+            AppHeader,
+            /* 注册侧边栏 */
+            AppAside,
+            /* 注册主体 */
+            AppMain,
+        },
+    }
+})()
+```
+
+### AppHeader.js
+
+```js
+(function () {
+    const template = 
+    `<nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">山东易途</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">Dashboard</a></li>
+                    <li><a href="#">Settings</a></li>
+                    <li><a href="#">Profile</a></li>
+                    <li><a href="#">Help</a></li>
+                </ul>
+                <form class="navbar-form navbar-right">
+                    <input type="text" class="form-control" placeholder="请填入搜索内容...">
+                </form>
+            </div>
+        </div>
+    </nav>`
+
+    window.AppHeader = {
+        template,
+    }
+})()
+```
+
+### AppAside.js
+
+```js
+(function () {
+    const template = 
+    `<div class="col-sm-3 col-md-2 sidebar">
+        <ul class="nav nav-sidebar">
+            <li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
+            <li><a href="#">Reports</a></li>
+            <li><a href="#">Analytics</a></li>
+            <li><a href="#">Export</a></li>
+        </ul>
+        <ul class="nav nav-sidebar">
+            <li><a href="">Nav item</a></li>
+            <li><a href="">Nav item again</a></li>
+            <li><a href="">One more nav</a></li>
+            <li><a href="">Another nav item</a></li>
+            <li><a href="">More navigation</a></li>
+        </ul>
+        <ul class="nav nav-sidebar">
+            <li><a href="">Nav item again</a></li>
+            <li><a href="">One more nav</a></li>
+            <li><a href="">Another nav item</a></li>
+        </ul>
+    </div>`
+
+    window.AppAside = {
+        template,
+    }
+})()
+```
+
+### AppMain.js
+
+```js
+(function () {
+    const template =
+    `<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <!--2.2.1)右边上半区域-->
+        <!-- 
+            <h1 class="page-header">Dashboard</h1>
+            3:父子插槽分发
+                子组件
+                    <slot name="插槽名"></slot>
+        -->
+        <slot name="etoak1"></slot>
+
+        <!-- 引用面板子组件 -->
+        <!-- 
+            1.1:props传值 
+            父组件
+                <子组件 :自定义属性="初始化的数据"></子组件>
+            2:$emit子父传值
+                <子组件 @自定义事件="函数"></子组件>
+        -->
+        <dashboard :myHobby="hobbies" 
+        @etoak="removeHobby"
+        hello="请谨慎"></dashboard>
+
+        <!--2.2.2)右边下半区域-->
+        <!-- 
+        <h2 class="sub-header">Section title</h2>
+        -->
+        <slot name="etoak2"></slot>
+        <!-- 引用列表子组件 -->
+        <!-- 1.2:props传值 
+            父组件
+                <子组件 :自定义属性="初始化的数据"></子组件>
+            
+            注意 在组件中如果要绑定原生事件,则必须添加事件修饰符 native
+            <组件 @click.native="函数" />
+            否则在组件中无法分辨原生事件和自定义事件
+        -->
+        <home-list :empList="empList"
+        :removeEmp="removeEmp"></home-list>
+    </div>`
+
+    window.AppMain = {
+        data() {
+            return {
+                /* 初始化数据 给子组件 Dashboard */
+                hobbies: ['抽烟', '喝酒', '烫头', '敲代码'],
+                /* 初始化数据 给子组件 HomeList */
+                empList: [
+                    { id: 1, name: 'elena', gender: 0, salary: 25000, },
+                    { id: 2, name: 'penny', gender: 0, salary: 25000, },
+                    { id: 3, name: 'nancy', gender: 0, salary: 15000, },
+                    { id: 4, name: 'aleric', gender: 1, salary: 15000, },
+                    { id: 5, name: 'tommy', gender: 1, salary: 35000, },
+                    { id: 6, name: 'matt', gender: 1, salary: 45000, },
+                    { id: 7, name: 'jack', gender: 1, salary: 55000, },
+                    { id: 8, name: 'stefan', gender: 1, salary: 25000, }
+                ],
+            }
+        },
+        methods: {
+            /* 删除 雇员信息 */
+            removeEmp(index){
+                this.empList.splice(index,1)
+            },
+            /* 删除 爱好 */
+            removeHobby(index){
+                this.hobbies.splice(index,1)
+            },
+        },
+        template,
+        /* 注册子组件 */
+        components: {
+            /* 注册面板子组件 */
+            Dashboard,
+            /* 注册列表子组件 */
+            HomeList,
+        },
+    }
+})()
+```
+
+### Dashboard.js
+
+```js
+(function () {
+    const template = 
+    `<div class="row placeholders">
+        <div class="col-xs-6 col-sm-3 placeholder"
+        v-for="(hobby,index) in myHobby" >
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
+            <h4>{{ hobby }}</h4>
+            <span class="text-muted" @click="del(index)"
+            style="cursor:pointer">{{ hello }}删除</span>
+        </div>
+    </div>`
+
+    window.Dashboard = {
+        template,
+        /* 
+            1.1:props父子组件
+            props:['自定义属性']
+            只有父子里面的子才书写 props
+            凡是 props 里面书写的内容,都直接可以在模板中使用,甚至我们可以
+            将 props 视作 data
+        */
+        props: ['myHobby','hello'],
+        methods: {
+            del(index){
+                /* 2:$emit子父传值 
+                    this.$emit('激发父组件中的自定义事件',要传递的值)
+                    此处激发了父组件中的事件 etoak,之后传递了 index 索引值
+                */
+                this.$emit('etoak',index)
+            },
+        },
+    }
+})()
+```
+
+### HomeList.js
+
+```js
+(function () {
+    const template = 
+    `<div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>姓名</th>
+                    <th>性别</th>
+                    <th>薪资</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 
+                <tr v-for="(emp,index) in empList" :key="emp.id">
+                    <td>{{ index+1 }}</td>
+                    <td>{{ emp.name }}</td>
+                    <td>{{ emp.gender===0?'女':'男' }}</td>
+                    <td>{{ emp.salary }}</td>
+                </tr>
+                    引用子组件
+                        :index="index" 向子组件传递索引
+                        :emp="emp" 向子组件传递对象
+                        :removeEmp="removeEmp" 向子组件传递函数
+                -->
+                <item v-for="(emp,index) in empList" :key="emp.id"
+                :index="index" :emp="emp" :removeEmp="removeEmp"></item>
+            </tbody>
+        </table>
+    </div>`
+
+    window.HomeList = {
+        template,
+        /* 
+            1.2:props 传值
+            props:{
+                自定义属性:数据类型,
+            }
+            数据类型支持以下几种
+            String,Number,Boolean,Array,Function,Object
+        */
+        props:{
+            /* 接受父组件传递过来的数组 */
+            empList:Array,
+            /* 接受父组件传递过来的函数 */
+            removeEmp:Function,
+        },
+        /* 注册子组件 */
+        components:{
+            Item,
+        },
+    }
+})()
+```
+
+### Item.js
+
+```js
+(function () {
+    const template = 
+    `<tr>
+        <td>{{ index+1 }}</td>
+        <td>{{ emp.name }}</td>
+        <td>{{ emp.gender===0?'女':'男' }}</td>
+        <td>{{ emp.salary }}</td>
+        <td><span style="cursor:pointer"
+        @click="removeEmp(index)">删除</span></td>
+    </tr>`
+
+    window.Item = {
+        template,
+        /* 
+            1.3:props父子传值
+
+            props:{
+                自定义属性:{
+                    type:数据类型,
+                    required:true,  //表示必须传递这个类型的数据
+                    default:默认值,  //如果没有传递,则使用此默认值
+                }
+            }
+        */
+        props:{
+            /* 接受父组件传递过来的索引 */
+            index:{
+                type:Number,
+                required:true,
+            },
+            /* 接受父组件传递过来的对象 */
+            emp:{
+                type:Object,
+                required:true,
+            },
+            /* 接受父组件传递过来的函数 */
+            removeEmp:{
+                type:Function,
+                required:true,
+            },
+        },
+    }
+})()
+```
+
+
+
+---
+
+### 插槽slot
+
+```html
+<!--父组件-->
+<app-main>
+    /* 插槽slot */
+    <h1 class="page-header" slot="etoak1">{{title1}}</h1>
+    /* v-slot */
+    <template v-slot:etoak2>
+        <h2 class="sub-header">{{title2}}</h2>
+    </template>
+</app-main>
+
+data(){
+    return {
+        title1:'面板',
+        title2:'雇员信息',
+    }
+},
+```
+
+```html
+<!--子组件-->
+<slot name="etoak1"></slot>
+
+<slot name="etoak2"></slot>
+```
+
+
+
+---
 
 
 
