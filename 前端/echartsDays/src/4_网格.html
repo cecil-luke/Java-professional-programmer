@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4:网格</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        
+        const option = {
+            /* 1:标题 */
+            title:{
+                text:'主标题',
+                subtext:'副标题',
+                /* 距离左侧的距离，支持px像素，也支持对齐方式 left right center */
+                left:'center',
+            },
+            /* 
+                2:提示框
+            */
+            tooltip:{
+                /* 
+                    如何触发提示框 item:图形触发 axis:坐标轴触发 none:不触发
+                */
+                trigger:'item',
+                /* 
+                    坐标轴指示器
+                        type:属性
+                            line shadow cross none  
+                */
+                axisPointer:{
+                    type:'shadow',
+                }
+            },
+            /* 
+                3:工具栏
+            */
+            toolbox:{
+                feature:{
+                    /* 是否显示数据视图 */
+                    mark : {show: true},
+                    /* 显示原始数据 */
+					dataView : {show: true, readOnly: false},
+                    /* 在折线图与柱状图之间切换 */
+					magicType: {show: true, type: ['line', 'bar']},
+                    /* 是否可以恢复原状 */
+					restore : {show: true},
+                    /* 是否支持下载功能 */
+					saveAsImage : {show: true},
+                }
+            },
+            /* 设置网格 */
+            grid:[
+                {x: '7%', y: '7%', width: '50%', height: '50%'}
+            ],
+            legend:{
+                data:['各产品销量'],
+            },
+            xAxis:{
+                data:['IPhone12','XiaoMI Mix4','XiaoMI11','Oppo find','Samsung galaxy']
+            },
+            yAxis:{},
+            series:[{
+                name:'销量',
+                type:'bar',
+                data:[1200,900,550,400,150]
+            }]
+        }
+
+        /* 加载数据 */
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

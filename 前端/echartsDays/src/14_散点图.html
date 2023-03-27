@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14:散点图</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+
+        const option = {
+            title: {
+                text: '克里斯蒂亚诺罗纳尔多射门方向统计',
+                subtext: '球门内',
+                left:'center',
+            },
+            xAxis: {
+                name:'水平方向',
+                type: 'value',
+            },
+            yAxis: {
+                type: 'value',
+                name:'垂直方向',
+            },
+            series: [{
+                name:'罗纳尔多射门方向统计',
+                data: [
+                    [2.0, 8.04],
+                    [3.0, 6.95],
+                    [27.0, 7.58],
+                    [18.0, 8.81],
+                    [12.0, 8.33],
+                    [4.0, 9.96],
+                    [16.0, 7.24],
+                    [14.0, 4.26],
+                    [12.0, 10.84],
+                    [10.0, 4.82],
+                    [7.0, 5.68],
+                    [29.0,1.9]
+                ],
+                /* 此处type为scatter */
+                type: 'scatter'
+            }]
+        };
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

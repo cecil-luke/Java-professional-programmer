@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5:坐标轴和样式</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        
+        const option = {
+            /* 1:标题 */
+            title:{
+                text:'主标题',
+                subtext:'副标题',
+                /* 距离左侧的距离，支持px像素，也支持对齐方式 left right center */
+                left:'center',
+            },
+            /* 
+                2:提示框
+            */
+            tooltip:{
+                /* 
+                    如何触发提示框 item:图形触发 axis:坐标轴触发 none:不触发
+                */
+                trigger:'item',
+                /* 
+                    坐标轴指示器
+                        type:属性
+                            line shadow cross none  
+                */
+                axisPointer:{
+                    type:'shadow',
+                }
+            },
+            /* 
+                3:工具栏
+            */
+            toolbox:{},
+            legend:{
+                data:['各产品销量'],
+            },
+            /* 横向坐标轴 */
+            xAxis:{
+                /* 表示x轴文字位置 top|bottom */
+                position:'bottom',
+                /* 
+                    type:分为四种写法
+                        value:数值
+                        category:类别
+                        time:时间
+                        log:对数
+                */
+                type:'category',
+                /* 横向坐标轴上的名称 */
+                data:['IPhone12','XiaoMI Mix4','XiaoMI11','Oppo find','Samsung galaxy'],
+                /* 横向坐标轴标题 */
+                name:'手机名称',
+                /* 标题位置 start center end */
+                nameLocation:'center',
+                /* 标题与横向坐标轴间距 */
+                nameGap:35,
+            },
+            /* 纵向坐标轴 */
+            yAxis:{
+                /* 数值类型纵轴 */
+                type:'value',
+                /* 纵向坐标轴标题 */
+                name:'手机销量',
+                /* 纵向坐标轴位置 */
+                nameLocation:'center',
+                /* 标题与纵向坐标轴间距 */
+                nameGap:30,
+            },
+            /* 设置样式 */
+            textStyle:{
+                /* 设置字体颜色 */
+                color:'coral',
+                /* 字体是否加粗 */
+                fontWeight:'900',
+                /* 字体倾斜 */
+                fontStyle:'italic',
+                fontFamily:'XiQuezhaopaiti-Regular',
+                fontSize:25,
+			},
+            series:[{
+                name:'销量',
+                type:'bar',
+                data:[1200,900,550,400,150]
+            }]
+        }
+
+        /* 加载数据 */
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

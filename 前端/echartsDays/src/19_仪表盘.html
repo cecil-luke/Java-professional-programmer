@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>19:仪表盘</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        /* 气泡图其实就是三维的散点图，数组由二维改为三维了，第三个数字越大气泡越大 */
+        const option = {
+            tooltip: {
+                formatter: '{a} <br/>{b} : {c}%'
+            },
+            series: [
+                {
+                    name: '',
+                    /* 此处设置为gauge */
+                    type: 'gauge',
+                    detail: { 
+                        formatter: '{value}%' 
+                    },
+                    data: [{ value: 75, name: '完成率' }]
+                }
+            ]
+        }
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

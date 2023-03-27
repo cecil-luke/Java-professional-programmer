@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12:饼状图</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+
+        const option = {
+                title: {
+                    text: '2021游戏机销售占比',
+                    subtext: '业界情况分析',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    /* 
+                        显示信息的格式
+                        {a}:数据系列名称 对应 数据系列 name属性
+                        {b}:数据项名称 对应 数据系列中data属性中每个对象的name属性
+                        {c}:数值 对应 数据系列中data属性中每个对象的value属性
+                        {d}:根据数据值自动计算出的百分比
+                    */
+                    formatter: '{a} <br/>{b} : {c} ({d}%)'
+                },
+                legend: {
+                    /* 此处表示图例纵向排列 */
+                    orient: 'vertical',
+                    /* 图例显示的左侧 */
+                    left: 'left',
+                    /* 各个数据对应数据系列中data中的name属性值 */
+                    data: ['SONYPS5', 'SONYPS4', '任天堂NS', '微软XSX', '其它']
+                    /* 注意这里有个小功能，点击某个图例可以去除本图例的部分，并且重新计算百分比！！ */
+                },
+                series: [
+                    {
+                        name: '所售商品',
+                        type: 'pie',
+                        data: [
+                            { value: 800, name: 'SONYPS5' },
+                            { value: 400, name: 'SONYPS4' },
+                            { value: 799, name: '任天堂NS' },
+                            { value: 540, name: '微软XSX' },
+                            { value: 100, name: '其它' }
+                        ],
+                    }
+                ]
+        }
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

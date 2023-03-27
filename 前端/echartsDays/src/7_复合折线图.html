@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7:复合折线图</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+
+        const option = {
+            legend: {
+                /* 此处data中的值对应series里面的name属性 */
+                data: ['Apple销量', '微软销量', 'Google销量'],
+                left: 'right'
+            },
+            /* 横轴 */
+            xAxis: {
+                /* 横轴为类别 */
+                type: 'category',
+                data: ['2017年', '2018年', '2019年', '2020年', '2021年']
+            },
+            yAxis: {
+                /* 纵轴为数据 */
+                type: 'value'
+            },
+            series: [{
+                name: 'Apple销量',
+                data: [550, 232, 311, 764, 1090],
+                type: 'line',
+                smooth: true,
+            },
+            {
+                name: '微软销量',
+                data: [420, 162, 121, 474, 720],
+                type: 'line',
+                smooth: true,
+            },
+            {
+                name: 'Google销量',
+                data: [850, 432, 501, 934, 1190],
+                type: 'line',
+                smooth: true,
+            }]
+        }
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

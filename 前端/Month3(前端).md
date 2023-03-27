@@ -6451,9 +6451,521 @@ data(){
 
 ---
 
+# day12
+
+## 普通组件与路由组件
+
+> 注意!官方从来没有普通组件和路由组件一说,就是组件.本文仅为便于记忆
+
++ **普通组件**
+  + 永远放置在某个位置,不会根据哈希值的变动切换显示与否,或者切换位置
+  + 被注册父组件中,或者根组件中
+  + 一般被放置在 components 包中
+  + 永远被引用在页面中,直接书写组件名的连字符格式
++ **路由组件**
+  + <u>会随着哈希值的变动**选择显示在哪里**,**是否显示**</u>
+  + 被注册在路由表中
+  + 一般被放置在 views 包中
+  + 永远显示在 <router-view /> **路由出口**中
+
+---
+
+## vue2-router-project9
+
+### 1-路由入门.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1:路由入门</title>
+    <style>
+        .router-link-active{
+            border:solid 1px silver;
+            background-color: tomato;
+            color:whitesmoke;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <ul>
+            <li><a href="#/bar">显示 Bar 组件</a></li>
+            <li><a href="#/foo">显示 Foo 组件</a></li>
+            <li>
+                <!-- 设置激活哈希值的标签,默认取代 a 链接
+                    这是 vue-router 提供的标签,不是 html 标签
+                    to:属性,相当于 a 连接的 href,注意省略
+                    #,默认情况下浏览器会将其解析为 a 链接
+                -->
+                <router-link to="/bar">显示 Bar 组件</router-link>
+            </li>
+            <li>
+                <router-link to="/foo">显示 Foo 组件</router-link>
+            </li>
+            <!-- tag:如果设置此属性,则浏览器会根据属性值进行解析,
+            这里 router-link 被浏览器视作 li 标签,如果不写,则默认是 a -->
+            <router-link to="/bar" tag="li">显示 Bar 组件</router-link>
+            <router-link to="/foo" tag="li">显示 Foo 组件</router-link>
+        </ul>
+        <hr>
+        <!-- 设置路由出口,注意此标签为 vue-router 插件提供,
+        不是 html 标签 -->
+        <router-view></router-view>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <!-- 引入路由依赖 -->
+    <script src="../node_modules/vue-router/dist/vue-router.js"></script>
+    <!-- 引入组件 -->
+    <script src="./views/Bar.js"></script>
+    <script src="./views/Foo.js"></script>
+    <!-- 引入路由表 -->
+    <script src="./router/index.js"></script>
+    <script>
+        /* 
+            VueRouter
+                Vue的第一个官方插件,用来控制页面中的组件,何时显示,
+                是否显示,显示在哪里,从而实现页面上组件的切换
+                要使用路由,则必须下载依赖
+                npm i vue-router@3.5.1 -S
+        */
+        new Vue({
+            /* 加载路由表 router:router, */
+            router,
+        }).$mount('#app')
+    </script>
+</body>
+</html>
+```
+
+### index.js(路由表)
+
+```js
+(function () {
+    /* 新建一个路由表 */
+    window.router = new VueRouter({
+        /* 设置为哈希模式,会根据当前浏览器地址栏的哈希值
+        显示组件,注意默认就是哈希模式,可以不写,除此之外还有
+        history 历史模式,但是历史模式,需要后端框架支持,否则无法原地刷新 */
+        mode:'hash',
+        /* 设置路由 注意单词拼写 这里是 routes 不是 router */
+        routes: [
+            {
+                /* path:表示正在被监听的哈希值,注意#省略 */
+                path:'/bar',
+                /* 出现哈希值之后从路由出口显示的组件 */
+                component:Bar,
+            },
+            {
+                path:'/foo',
+                component:Foo,
+            },
+            {
+                path:'/',
+                /* 如果是#/则重定向哈希为#/bar */
+                redirect:'/bar',
+            }
+        ],
+    })
+})()
+```
+
+### Bar.js(子组件)
+
+```js
+(function () {
+    const template = 
+    `<p :style="val">Bar组件</p>`
+
+    window.Bar = {
+        template,
+        data(){
+            return {
+                val:'background-color:purple',
+            }
+        },
+    }
+})()
+```
+
+### Foo.js(子组件)
+
+```js
+(function () {
+    const template =
+    `<p :style="val">Foo组件</p>`
+
+    window.Foo = {
+        template,
+        data() {
+            return {
+                val: 'background-color:coral',
+            }
+        },
+    }
+})()
+```
 
 
 
+---
+
+## vue2-router-project10
+
+### index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Dashboard Template for Bootstrap</title>
+    <!-- Bootstrap core CSS -->
+    <link href="style/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="style/dashboard.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app"></div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+
+    <!-- 引入路由依赖 -->
+    <script src="../node_modules/vue-router/dist/vue-router.js"></script>
+
+    <!-- 引入页眉 -->
+    <script src="./components/AppHeader.js"></script>
+    <!-- 引入侧边栏 -->
+    <script src="./components/AppAside.js"></script>
+    <!-- 引入主体子组件 面板组件 -->
+    <script src="./components/children/Dashboard.js"></script>
+    <!-- 引入列表组件的子组件 Item 组件 -->
+    <script src="./components/children/Item.js"></script>
+    <!-- 引入主体子组件 列表组件 -->
+    <script src="./components/children/HomeList.js"></script>
+    <!-- 引入主体 -->
+    <script src="./components/AppMain.js"></script>
+
+    <!-- 引入 News 的子路由 Sport 和 Tech -->
+    <script src="./views/children/Sport.js"></script>
+    <script src="./views/children/Tech.js"></script>
+    <!-- 引入路由组件 新闻和关于我们 -->
+    <script src="./views/News.js"></script>
+    <script src="./views/About.js"></script>
+
+    <!-- 引入根组件 -->
+    <script src="./App.js"></script>
+
+    <!-- 引入路由表 -->
+    <script src="./router/index.js"></script>
+    
+    <!-- 引入主函数 入口文件 -->
+    <script src="./main.js"></script>
+</body>
+
+</html>
+```
+
+### index.js(路由表)
+
+```js
+(function () {
+    window.router = new VueRouter({
+        /* 此处表示判定本路由链接中只要被激活(链接对应的哈希与当前浏览器
+            哈希相同)则添加后面的属性值,这个值就是 class */
+        linkActiveClass:'active',
+        routes:[
+            {   /* 此处为默认哈希 #/ */
+                path:'/',
+                component:AppMain,
+            },
+            {
+                path:'/news',
+                component:News,
+                /* 设置默认值,否则必须点击体育和科技之后才能显示子路由
+                这里一点击新闻,立刻显示一个默认的子路由 */
+                redirect:'/news/sport',
+                /* 开启子路由 */
+                children:[
+                    {
+                        path:'/news/tech',
+                        component:Tech,
+                    },
+                    {
+                        path:'/news/sport',
+                        component:Sport,
+                    }
+                ]
+            },
+            {
+                path:'/about',
+                component:About,
+            }
+        ]
+    })
+})()
+```
+
+### New.js(子组件)
+
+```js
+(function () {
+    const template = 
+    `<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div class="header clearfix">
+            <nav>
+                <ul class="nav nav-pills">
+                    <!-- 
+                    <li class="active"><a href="#">体育</a></li>
+                    <li><a href="#">科技</a></li>
+                    -->
+                    <router-link to="/news/sport" tag="li">
+                        <a>体育</a>
+                    </router-link>
+                    <router-link to="/news/tech" tag="li">
+                        <a>科技</a>
+                    </router-link>
+                </ul>
+            </nav>
+            <hr>
+        </div>
+        <!-- 此处要么显示体育 要么显示科技 二选一,因此设置路由出口 -->
+        <router-view />
+        <!--体育栏目-->
+        
+        <!--科技栏目-->
+        
+    </div>`
+
+    window.News = {
+        template,
+    }
+})()
+```
+
+
+
+---
+
+## 1-vue生命周期.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue2生命周期</title>
+</head>
+<body>
+    <div id="app">
+        <button @click="touch">{{ count }}</button>
+        <!-- $destroy():强制 Vue 实例销毁 -->
+        <button @click="$destroy()">不活了!</button>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script>
+        const vm = new Vue({
+            data:{
+                count:0,
+            },
+            beforeCreate() {
+                console.log('beforeCreate----------------')
+                /* 
+                    this._data:获取实现数据劫持后添加了可响应式的数据
+                    this.$el:获取 Vue实例管理的模板
+                    this.touch():表示调用函数
+                    beforeCreate()
+                    + 执行此钩子之前 Vue实例还未挂载任何模板,
+                    也未初始化任何数据,数据劫持 数据代理都没有发生,
+                    函数也没有准备好
+                */
+                console.log(this._data,this.$el,)
+            },
+            created() {
+                /*  
+                    created()
+                    + 在此步之前,数据代理 和 数据劫持已经完成用户的
+                    数据已经被施加可响应式之后代理到Vue实例表层,函数也
+                    已经全部准备好,激发事件或者直接可以调用,此时created中
+                    是最早获取用户数据的时机,因此此处可以发送异步
+                */
+                console.log('created----------------')
+                console.log(this._data, this.$el,this.touch())
+            },
+            beforeMount() {
+                /* 
+                    beforeMount()
+                    + 在此钩子执行之前,首先查看是否存在el配置项如果没有则
+                    调用mount加载模板,之后再查看是否存在template配置项
+                    如果存在template则使用render函数进行渲染,模板就是
+                    template配置的的模板,如果没有template则使用el或者
+                    mount作为模板,此时Vue管理的模板已经准备好,但是Vue实例
+                    还未将数据挂载到模板中,页面直接显示插值语法和指令语法,
+                    所有的DOM操作都不奏效,此时呈现的是虚拟DOM
+                */
+                console.log('beforeMount----------------')
+                console.log(this._data, this.$el)
+                //debugger
+            },
+            mounted() {
+                /* 
+                    mounted()
+                    + 此时Vue实例已经将数据挂载到模板中,真实DOM将虚拟DOM覆盖
+                    ,页面就是最终的状态,此时可以发送异步,操作DOM等
+                */
+                console.log('mounted----------------')
+                console.log(this._data, this.$el)
+            },
+            beforeUpdate() {
+                /* 
+                    beforeUpdate()
+                    + 只要data更改,则此生命周期执行,
+                    此时初始化的数据已经更新为新的数据,新的虚拟DOM已经生成
+                    但是还未转换为新的真实DOM,页面模板中显示的还是老的数据
+                    这也是唯一一个 数据与模板不统一的时机
+                */
+                console.log('beforeUpdate----------------')
+                console.log(this._data, this.$el)
+                //debugger
+            },
+            /* 
+                beforeDestroy()
+                + 在销毁之前执行的最后的生命周期钩子,此时 data methods
+                等都可以正常工作,绑定依然有效一般在此进行收尾工作,例如清除缓存
+                ,关闭定时器取消订阅等
+            */
+            beforeDestroy() {
+                console.log('beforeDestroy----------------')
+                console.log(this._data, this.$el)
+            },
+            /* 
+                destroyed()
+                + 实例销毁后调用。该钩子被调用后，对应 Vue 实例的所有
+                指令都被解绑，所有的事件监听器被移除，所有的子实例也都被销毁。
+                注意这里的事件是指自定义事件,而原生事件会一直有效,
+                函数依然可以执行,但是没有绑定功能
+            */
+            destroyed() {
+                console.log('destroyed----------------')
+            },
+            methods: {
+                touch(){
+                    console.log('我是touch----------------')
+                    this.count++
+                }
+            },
+        })
+        vm.$mount('#app')
+        /* 
+            以下几个生命周期在 日常开发 和 面试中经常被使用 
+            1:created() 最早获取数据,发送异步
+            2:mounted() 页面已经被真实 DOM 覆盖完毕,处于稳定状态 此时可以操作 DOM,
+            也可以发送异步
+            3:beforeUpdate() 唯一模板与数据不统一的时机
+            4:beforeDestroy() 即将要销毁,一般用来清除缓存删除已经占用的资源等善后工作
+        */
+    </script>
+</body>
+</html>
+```
+
+## 2-axios实现异步功能.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2:axios 实现异步功能</title>
+</head>
+<body>
+    <div id="app">
+        <table border="1px">
+            <tr>
+                <th>序号</th>
+                <th>姓名</th>
+                <th>性别</th>
+                <th>薪资</th>
+            </tr>
+            <tr v-for="(emp,index) in empList" :key="emp.id">
+                <td>{{ index+1 }}</td>
+                <td>{{ emp.name }}</td>
+                <td>{{ emp.gender===0?'女':'男' }}</td>
+                <td>{{ emp.salary }}</td>
+            </tr>
+        </table>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <!-- 
+        在 Vue 中没有异步模块,因此无法实现使用 Vue 指令等发送异步,
+        如果想发送异步,则必须使用其他技术,在 Vue 中整合 axios 是目前
+        使用最多的一个搭配,这里 axios 对于 Vue 来说算是一个第三方插件
+        因此需要注意以下两个关键问题
+            1:下载第三方依赖
+                npm i axios -S
+            2:注意如果是第三方依赖,则必须使用箭头函数,否则 this 指向 undefined
+            而不是 Vue 实例了 
+        以下引入 axios 依赖
+    -->
+    <script src="../node_modules/axios/dist/axios.js"></script>
+    <script>
+        new Vue({
+            data:{
+                empList:[],
+            },
+            methods: {
+                fetchData(){
+                    /* 使用 axios 向服务器端发送异步请求,
+                    接受响应,axios是异步对象,通过此对象可以发送异步请求
+                    axios 是一个 Promise 承诺对象 */
+                    axios.get('http://127.0.0.1:5500/src/db/empList.json')
+                    /* 异步成功的回调 response:形参,表示服务器返回的数据 */
+                    .then(response=>{
+                        console.log('then执行了......')
+                        console.log(response)
+                        /* 这里 response.data 就是封装的服务器端返回的数据
+                        这就是 json中的数据已经被转换为js数组 */
+                        this.empList = response.data 
+                    })
+                    /* 异步失败的回调 */
+                    .catch(err=>{
+
+                    })
+                    /* 不管成功失败都执行 */
+                    .finally(()=>{
+                        console.log('finally执行了.......')
+                    })
+                },
+            },
+            created() {
+                /* 函数早于 created 早已经准备好,在 created 中可以
+                直接调用 */
+                this.fetchData()
+            },
+        }).$mount('#app')
+    </script>
+</body>
+</html>
+```
+
+
+
+---
+
+ 
 
 
 

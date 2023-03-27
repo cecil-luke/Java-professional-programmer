@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16:气泡图</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        /* 气泡图其实就是三维的散点图，数组由二维改为三维了，第三个数字越大气泡越大 */
+        const option = {
+            title: {
+                text: '罗纳尔多、梅西射门方向统计',
+                subtext: '球门内',
+                left: 'center',
+            },
+            xAxis: {
+                name: '水平方向',
+                type: 'value',
+            },
+            yAxis: {
+                name: '垂直方向',
+                type: 'value',
+            },
+            legend: {
+                data: ['罗纳尔多', '梅西'],
+                left:'right'
+            },
+            series: [{
+                name: '罗纳尔多',
+                data: [
+                    [2.0, 8.04,10],
+                    [3.0, 6.95,5],
+                    [33.0, 7.58,4],
+                    [18.0, 8.81,15],
+                    [12.0, 8.33,2],
+                    [4.0, 9.96,0],
+                    [16.0, 7.24,60],
+                    [14.0, 4.26,29],
+                    [12.0, 5.84,53],
+                    [10.0, 4.82,40],
+                    [7.0, 5.68,33]
+                ],
+                symbolSize(data){
+                    /* 这里返回的是三维数组的第三个数据 */
+                    return data[2]
+                },
+                type: 'scatter'
+            },
+            {
+                name: '梅西',
+                data: [
+                    [1.0, 2.04],
+                    [2.0, 15.95],
+                    [36.0, 11.58],
+                    [13.0, 7.81],
+                    [22.0, 5.33],
+                    [14.0, 9.96],
+                    [6.0, 4.24],
+                    [4.0, 4.26],
+                    [22.0, 13.84],
+                    [16.0, 14.82],
+                    [17.0, 15.68]
+                ],
+                type: 'scatter'
+            }]
+        }
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11:聚合柱状图（垂直）</title>
+    <style type="text/css">
+        body,html{
+            padding:0;
+            margin:0;
+            height: 100%;
+        }
+
+        .container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin:0 auto;
+            width:80%;
+            height:100%;
+        }
+
+        .show{
+            width: 800px;
+            height:600px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+
+        const option = {
+                /* 设置标题 */
+                title: {
+                    /* 主标题 */
+                    text: '济南超市销量',
+                },
+                /* 设置提示框 */
+                tooltip: {
+                    /* 显示提示信息 item:图形触发 axis:坐标轴触发 none:不触发 */
+                    trigger: 'axis',
+                    /* 坐标轴指示器 type:属性 line shadow cross none */
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                /* 设置图例 */
+                legend: {
+                    /* 注意此处必须与数据系列series中的name属性一一对应 */
+                    data: ['统一银座', '橙子便利店', '便利蜂', '711', 'Lowsen']
+                },
+                /* 设置y轴，注意如果是水平的柱状图，则交换x轴 y轴即可 */
+                yAxis: {
+                    /* value表示具体的值 */
+                    type: 'value'
+                },
+                /* 设置x轴 */
+                xAxis: {
+                    /* category表示类别 */
+                    type: 'category',
+                    /* x轴上显示的数据 */
+                    data: ['10-08', '10-09', '10-10', '10-11', '10-12']
+                },
+                /* 数据系列 */
+                series: [
+                    {
+                        /* 此处必须一一对应图例legend中的值 */
+                        name: '统一银座',
+                        /* bar表示柱状 如果是 line则表示折线 */
+                        type: 'bar',
+                        /* 设置此参数开启堆叠，如果无此参数，则无堆叠效果，凡是此参数一样的
+                        数据都会堆叠，叫什么无所谓，但是要保持一致 */
+                        stack: '总量',
+                        /* 设置柱状图上每段柱子是否显示具体数据 */
+                        label: {
+                            /* 显示数据 */
+                            show: true,
+                            /* 在柱子内部显示 还可以书写 top right left bottom */
+                            position: 'inside'
+                        },
+                        data: [320, 302, 301, 334, 390, 330, 320]
+                    },
+                    {
+                        name: '橙子便利店',
+                        type: 'bar',
+                        stack: '总量',
+                        label: {
+                            show: true,
+                            position: 'inside'
+                        },
+                        data: [320, 332, 301, 334, 490, 330, 310]
+                    },
+                    {
+                        name: '便利蜂',
+                        type: 'bar',
+                        stack: '总量',
+                        label: {
+                            show: true,
+                            position: 'inside'
+                        },
+                        data: [220, 182, 191, 234, 290, 330, 310]
+                    },
+                    {
+                        name: '711',
+                        type: 'bar',
+                        stack: '总量',
+                        label: {
+                            show: true,
+                            position: 'inside'
+                        },
+                        data: [150, 212, 201, 154, 190, 330, 410]
+                    },
+                    {
+                        name: 'Lowsen',
+                        type: 'bar',
+                        stack: '总量',
+                        label: {
+                            show: true,
+                            position: 'inside'
+                        },
+                        data: [420, 532, 501, 234, 290, 330, 320]
+                    }
+                ]
+            };
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

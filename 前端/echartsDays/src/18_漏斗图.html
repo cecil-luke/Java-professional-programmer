@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>18:漏斗图</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        /* 气泡图其实就是三维的散点图，数组由二维改为三维了，第三个数字越大气泡越大 */
+        const option = {
+            title: {
+                text: '漏斗图',
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b} : {c}%"
+            },
+            toolbox: {},
+            legend: {
+                data: ['注册', '登录', '添加购物车', '下单', '付款']
+            },
+            series: [
+                {
+                    name: '漏斗图',
+                    /* 设置为漏斗图 */
+                    type: 'funnel',
+                    left: '10%',//漏斗左边到图片左部百分比
+                    top: 60,//漏斗顶部与图片顶部距离
+                    bottom: 60,//漏斗底部与图片底部距离
+                    width: '80%',//漏斗显示宽度
+                    min: 0,
+                    max: 100,
+                    minSize: '0%',
+                    maxSize: '100%',
+                    sort: 'descending',//漏斗数据降序排列，可选ascending
+                    gap: 2,//漏斗每部分之间间距
+                    label: {
+                        show: true,//显示每漏斗部分名称
+                        position: 'inside'//每部分名称显示在图形内部
+                    },
+                    itemStyle: {
+                        borderColor: 'coral',//漏斗背景色
+                        borderWidth: 5 //漏斗边界宽度
+                    },
+                    emphasis: {
+                        label: {
+                            fontSize: 25 //当鼠标悬停在漏斗某部分上，重点突出文字大小
+                        }
+                    },
+                    data: [
+                        { value: 100, name: '注册' },
+                        { value: 86, name: '登录' },
+                        { value: 70, name: '添加购物车' },
+                        { value: 35, name: '下单' },
+                        { value: 25, name: '付款' }
+                    ]
+                }
+            ]
+        };
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

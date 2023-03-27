@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9:聚合柱状图（垂直）</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        
+        const option = {
+            title: {
+                text: '含糖无糖饮料销量对照'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: ['统一银座', '橙子便利店', '便利蜂', '711', 'Lowsen', '京东超市', '华联鲜超']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            legend: {
+                data: ['有糖饮料', '无糖饮料'],
+                left: 'right',
+            },
+            series: [{
+                name: '有糖饮料',
+                data: [100, 150, 120, 90, 50, 130, 110],
+                type: 'bar',
+                label: {
+                    show: true,
+                    position: 'top'
+                }
+            },
+            {
+                name: '无糖饮料',
+                data: [120, 140, 160, 90, 60, 150, 140],
+                type: 'bar',
+                label: {
+                    show: true,
+                    position: 'top'
+                }
+            }]
+        };
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

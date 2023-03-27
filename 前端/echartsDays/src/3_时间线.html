@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3:时间线</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        
+        const option = {
+            baseOption: {
+                timeline: {
+                    data: ['2019', '2020', '2021']
+                },
+                title: {
+                    subtext: ''
+                },
+                grid: {},
+                xAxis: [
+                    {
+                        'type':'category',
+                        'data':['Apple','Microsoft','Google']
+                    }
+                ],
+                yAxis: [
+                    {
+                        'type':'value'
+                    }
+                ],
+                series: [
+                    { // 系列一的一些其他配置
+                        type: 'bar'
+                    }
+                ]
+            },
+            options: [
+                { 
+                    title: {
+                        text: '2019年销量情况'
+                    },
+                    series: [
+                        {data: [6000, 5000, 4500]} // 系列一的数据
+                    ]
+                },
+                { 
+                    title: {
+                        text: '2020年销量情况'
+                    },
+                    series: [
+                        {data: [6500, 4000, 2000]}
+                    ]
+                },
+                { 
+                    title: {
+                        text: '2021年销量情况'
+                    },
+                    series: [
+                        {data: [2000, 800, 200]}
+                    ]
+                }
+            ]
+        }
+
+        /* 加载数据 */
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

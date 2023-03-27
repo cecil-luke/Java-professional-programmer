@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8:堆叠折线图</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        /* 
+            堆叠折线图是指 在排列时 产品A 产品B 产品C
+            那么在折线图中显示的的就是 
+                产品A 产品A+B 产品A+B+C 最后写的数据放置在最上方
+        */
+        const option = {
+            legend: {
+                /* 此处data中的值对应series里面的name属性 */
+                data: ['Apple销量', '微软销量', 'Google销量'],
+                left: 'right'
+            },
+            /* 横轴 */
+            xAxis: {
+                /* 横轴为类别 */
+                type: 'category',
+                data: ['2017年', '2018年', '2019年', '2020年', '2021年']
+            },
+            yAxis: {
+                /* 纵轴为数据 */
+                type: 'value'
+            },
+            tooltip: {
+                /* 
+                    如何触发提示框 item:图形触发 axis:坐标轴触发 none:不触发
+                */
+                trigger: 'axis',
+                /* 
+                    坐标轴指示器
+                        type:属性
+                            line shadow cross none  
+                */
+                axisPointer: {
+                    /* type:'shadow',这是阴影设置，以下cross为十字线 */
+                    type: 'cross',
+                    label:{
+                        /* 十字线专属，x轴y轴刻度数字背景颜色 */
+                        backgroundColor:'coral',
+                    }
+                }
+            },
+            series: [{
+                name: 'Apple销量',
+                data: [550, 232, 311, 764, 1090],
+                type: 'line',
+                smooth: true,
+                /* 此处书写总量则开始堆叠，这个参数可以随便写，但是要注意凡是要堆叠的数据都要书写一致，爱写什么
+                写什么 */
+                stack: '总量',
+                /* 如果不书写此参数则没有着色 */
+                areaStyle: {},
+                /* 设置折线上方的具体数据（非叠加） */
+                label: {
+                    /* 是否显示 */
+                    show: true,
+                    /* 显示在下方 */
+                    position: 'bottom',
+                }
+            },
+            {
+                name: '微软销量',
+                data: [420, 162, 121, 474, 720],
+                type: 'line',
+                smooth: true,
+                stack: '总量',
+                areaStyle: {},
+                label: {
+                    show: true,
+                    position: 'top',
+                }
+            },
+            {
+                name: 'Google销量',
+                data: [850, 432, 501, 934, 1190],
+                type: 'line',
+                smooth: true,
+                stack: '总量',
+                areaStyle: {},
+                label:{
+                    show:true,
+                    position:'top',
+                }
+                
+            }]
+        }
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

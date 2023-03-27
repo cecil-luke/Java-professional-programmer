@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6:折线图</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+
+        const option = {
+            /* 横轴 */
+            xAxis: {
+                /* 横轴为类别 */
+                type: 'category',
+                data: ['IPhone13', 'MI Mix4', 'MI11', 'Oppofind', 'Samsung','1+']
+            },
+            yAxis: {
+                /* 纵轴为数据 */
+                type: 'value'
+            },
+            /* 数据系列 */
+            series: [{
+                /* data值长度必须对应x轴长度 */
+                data: [500, 432, 401, 200, 90, 80],
+                /* 折线图 */
+                type: 'line',
+                /* 是否添加平滑效果，不书写则默认不平滑*/
+                smooth:true,
+            }]
+        }
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>17:雷达图</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="show"></div>
+    </div>
+    <script src="../node_modules/echarts/dist/echarts.js"></script>
+    <script>
+        const myChart = echarts.init(document.querySelector('.show'))
+        /* 气泡图其实就是三维的散点图，数组由二维改为三维了，第三个数字越大气泡越大 */
+        const option = {
+                title: {
+                    text: '罗纳尔多、梅西特点对照'
+                },
+                tooltip: {},
+                legend: {
+                    data: ['罗纳尔多', '梅西']
+                },
+                radar: {
+                    name: {
+                        textStyle: {
+                            /* 字体颜色 */
+                            color: '#ddd',
+                            /* 字体背景颜色 */
+                            backgroundColor: 'coral',
+                            /* 字体背景圆角半径 */
+                            borderRadius: 3,
+                            /* 字体背景x和y方向填充背景大小 */
+                            padding: [3, 5]
+                        }
+                    },
+                    /* 设置最大值和几个项目名称 */
+                    indicator: [
+                        { name: '速度', max: 100 },
+                        { name: '体能', max: 100 },
+                        { name: '技术', max: 100 },
+                        { name: '精神', max: 100 },
+                        { name: '射门', max: 100 },
+                        { name: '传球', max: 100 }
+                    ]
+                },
+                series: [{
+                    /* type设置为radar */
+                    type: 'radar',
+                    data: [
+                        {
+                            value: [90, 98, 91, 99, 98, 85],
+                            name: '罗纳尔多'
+                        },
+                        {
+                            value: [90, 70, 90, 75, 97, 75],
+                            name: '梅西'
+                        }
+                    ]
+                }]
+            };
+
+        myChart.setOption(option)
+    </script>
+</body>
+
+</html>
