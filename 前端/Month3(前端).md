@@ -6965,7 +6965,232 @@ data(){
 
 ---
 
- 
+#  day13模块化开发
+
+### index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>js模块化开发</title>
+</head>
+<body>
+    <!-- 
+        使用 js 原生模块化开发需要注意以下两个问题
+            1:必须书写 type="module"
+            2:必须假设到服务器端
+    -->
+    <script src="./js/main.js" type="module"></script>
+</body>
+</html>
+```
+
+### bar.js
+
+```js
+/* 
+    模块化开发
+    在 ES6 之前 js 就存在各种模块化开发的语法规范,但是由于一直未统一
+    所以语法较为混乱,在 ES6 之后,语法已经完全统一,本文全部使用 ES6
+    的模块化语法
+    每个独立的 js 或者其它资源例如 css 等,都被视作一个模块(Module)
+    每个模块都存在以下两个功能
+        1:导出功能:一个模块只有导出了数据,其它模块才可以使用导入
+            1.1:导出默认成员:一个模块只能导出一个默认成员,不需要
+            指定成员名
+                export default xxx
+            1.2:导出普通成员:一个模块可以导出任意个普通成员,必须
+            指定成员名
+                export xxx
+        2:导入功能
+            import 成员名|别名 from 路径
+*/
+/* A:导出默认成员,成员是一个对象 */
+/* export default {
+    name:'胡桃',
+    age:17,
+} */
+/* B:导出默认成员,成员是一个函数 */
+/* export default function(){
+    console.log('我是函数!!!!!!')
+} */
+/* C:导出默认成员,成员是普通类型 */
+export default '吃个桃桃'
+
+/* D:导出多个普通成员,什么类型都有,必须指定成员名 */
+export let str = '我是字符串'
+export const arr = [1,2,3,4]
+export const obj = {
+    oid:1,
+    oname:'penny',
+    oaddress:'济南',
+}
+
+export function sum(a,b,c,d){
+    return a+b+c+d
+}
+```
+
+main.js
+
+```js
+/* 
+    A:导入默认成员,成员是个对象 
+    B:导入默认成员,成员是个函数
+    C:导入默认成员,成员是普通类型
+*/
+import bar from './bar.js'
+
+//A:直接打印对象
+//C:直接打印字符串
+console.log(bar)
+
+//B:直接调用函数
+//bar()
+
+/* D:导入多个普通成员,成员名必须对应 */
+import {str,arr,obj,sum} from './bar.js'
+
+console.log(str,arr,obj,sum(...arr))
+
+/* 
+    E:导入模块的全部成员 
+    import * as 别名 from 路径
+*/
+import * as all from './bar.js'
+
+console.log(all,all.default)
+
+
+/* 
+    import Vue from '../node_module/vue/dist/vue.js'
+*/
+```
+
+
+
+---
+
+## webpack(不常用,参考模板)
+
+### index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>webpack</title>
+</head>
+<body>
+    <!-- <script src="./src/main.js"></script> -->
+    <!-- 引入打包好的文件 -->
+    <!-- <script src="./dist/bundle.js"></script> -->
+    <div id="app"></div>
+</body>
+</html>
+```
+
+### main.js
+
+```js
+/* 
+    导入 Vue 依赖 
+    注意此处自动导入的并不是我们之前常用的完全版的 vue.js,而是一个运行版
+    vue.common.js,这个版本缺失以下两个功能
+    1:无法编译 .vue 后缀的文件
+    2:无法将根组件渲染到页面中替换div#app
+    解决方案
+        A:使用完全版 不推荐
+        import Vue from '../node_modules/vue/dist/vue.js'
+        打包体积是运行版的接近五倍
+        B:弥补缺失的功能
+            1:无法编译 .vue 后缀的文件
+                安装 webpack 插件
+                "vue-loader": "^15.9.5",
+                "vue-template-compiler": "^2.6.12",
+            2:无法将根组件渲染到页面中替换div#app
+                Vue 实例中 template 配置项已然失效,我们手动配置 render 函数
+                之前书写 template 其实就是调用底层的 render 函数,这里我们
+                自己调用,将根组件渲染到模板中替换 div#app
+*/
+import Vue from 'vue'
+/* 导入根组件 */
+import App from './App.vue'
+
+new Vue({
+    /* 注册根组件 */
+    /* components:{
+        App,
+    }, */
+    /* 替换 el 或者 mount 管理的模板 */
+    //template:'<app/>',
+    /* 手动书写 render 将根组件渲染到模板中 */
+    //render:function(h){
+        /* h是一个函数可以将传递的实参,这里是根组件渲染到页面中替换
+        div#app */
+        //return h(App)
+    //},
+    render:h => h(App)
+}).$mount('#app')
+```
+
+### App.vue
+
+```vue
+<template>
+    <!-- 书写模板,注意在 Vue2 中必须存在根元素 -->
+    <div class="container">
+        <!-- 引用页眉 -->
+        <app-header></app-header>
+        <!-- 引用主体 -->
+        <app-main></app-main>
+    </div>
+</template>
+
+<script>
+    /* 导入页眉和主体组件 */
+    import AppHeader from './components/AppHeader.vue'
+    import AppMain from './components/AppMain.vue'
+    
+    export default {
+        /* 注册子组件 */
+        components:{
+            AppHeader,
+            AppMain,
+        }
+    }
+</script>
+
+<style>
+    /* 此处书写模板的样式,注意 scoped,如果存在此参数,则书写的样式
+    仅对本组件有效,如果没有此参数,则同时影响子组件 */
+    html,body{
+        margin:0;
+        padding:0;
+        font-family: 喜鹊招牌体;
+        height:100%;
+    }
+    .container{
+        margin:0 auto;
+        width:80vw;
+        height:100vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 10px 10px 10px silver;
+    }
+</style>
+```
+
+
+
+---
 
 
 
