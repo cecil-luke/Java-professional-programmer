@@ -7192,11 +7192,745 @@ new Vue({
 
 ---
 
+# day13( ElementUI 注册登录)
+
+## 什么是 RESTFul 开发风格
+
+> RESTFul **表述性状态转移** 接口名称
+> 根据需求不同(增删查改)选择使用何种方式提交请求
+
+
++ **post**:一般适用于**添加操作**,可以发送 **json**,也可以通过<u>地址栏</u>传递值,<u>没有大小限制,支持中文</u>
++ **get**:一般适用于**查询操作**,<u>不能发送 json</u>,只能通过地址栏传递值,最多 2000 个字符,不支持中文
++ **delete**:一般适用于**删除操作**,<u>不能发送 json</u>,只能通过地址栏传递值,最多 2000 个字符,不支持中文
++ **put**:一般适用于**修改操作**,可以发送 **json**,也可以通过<u>地址栏</u>传递值,<u>没有大小限制,支持中文</u>
 
 
 
+---
+
+![](.\img\QQ图片20230329185354.png)
 
 
+
+## api	dao.js
+
+```js
+/* 导入自定义 axios 实例 */
+import request from '@/util/request'
+
+/* API  application program interface 此处表示应用程序接口 */
+export default {
+    /* 1:登录 
+        username:形参 用户姓名
+        password:形参 用户密码
+    */
+    login(username,password){
+        /* 返回一个 */
+        return request({
+            /* url:此处表示设置进阶地址
+            注意最终发送的完整地址是 基本地址+进阶地址 */
+            url:`/testUser/login?username=${username}&password=${password}`,
+            method:'get',
+        })
+    },
+    /* 2:注册 
+        pojo:形参,对象,内部封装了要注册的八个字段
+    */
+    reg(pojo){
+        return request({
+            url:'/testUser/add',
+            method:'post',
+            /* 发送 json 注意这里直接发送 js 对象或者数组即可,不需要
+            自己转换 */
+            data: pojo,
+        })
+    },
+}
+```
+
+## .env.development
+
+```apl
+# 只有以 VUE_APP_ 开头的变量会被 webpack 静态嵌入到项目中进行使用 process.env.VUE_APP_xxxxxx
+# 在项目任意模块文件中，都可以使用 process.env.VUE_APP_BASE_API 获取值
+
+# 目标服务接口地址，这个地址是按照你自已环境来的, 添加 或者更改配置后，需要重启服务
+# VUE_APP_SERVICE_URL = 'https://www.easy-mock.com/mock/5f40867637dd743fd5db5cf2'
+# VUE_APP_SERVICE_URL = 'http://rap2.taobao.org:38080/app/mock/264680'
+
+# 开发环境的前缀
+# 以下为设置的基本地址
+VUE_APP_BASE_API = 'http://db.etoak.com:9527'
+
+
+# 本文为开发阶段使用的配置文件,所有重要的参数都放置在本文件中,注意更改此文件
+# 必须重启服务器 
+```
+
+## .env.production
+
+```apl
+## 本文件未使用,配置的都是生产阶段的参数
+```
+
+## vue.config.js
+
+```js
+module.exports = {
+	devServer: {
+		port: 8001, // 端口号，如果端口被占用，会自动提升 1
+		open: true, // 启动服务自动打开浏览器
+		https: false, // 协议
+		host: "localhost", // 主机名，也可以 127.0.0.1 或 做真机测试时候 0.0.0.0
+	},
+	lintOnSave: false, // 是否关闭eslint语法检查，默认 true, 警告仅仅会被输出到命令行，且不会使得编译失败。
+	outputDir: "dist", // 默认是 dist ,存放打包文件的目录,
+	assetsDir: "assets", // 存放生成的静态资源 (js、css、img、fonts) 的 (相对于 outputDir) 目录
+	indexPath: "out/index.html", // 默认 index.html, 指定生成的 index.html 的输出路径 (相对于 outputDir)。
+	productionSourceMap: false, // 打包时, 不生成 .map 文件, 加快打包构建
+};
+
+```
+
+## router index.js
+
+```js
+/* 引入 Vue 依赖 */
+import Vue from "vue";
+/* 引入 VueRouter 依赖 */
+import VueRouter from "vue-router";
+/* Vue加载插件 VueRouter */
+Vue.use(VueRouter);
+
+const routes = [
+    {
+        path:'/',
+        /* 
+            @:忽略当前路径,直接从工程 src 目录下寻找 
+            如果文件命名为 index.vue 则仅仅导包即可
+        */
+        component:()=>import('@/views/login'),
+    },
+    {
+        path:'/register',
+        component:()=>import('../views/register')
+    },
+    {
+        path:'/layout',
+        component:()=>import('@/views/layout')
+    }
+];
+
+const router = new VueRouter({
+    routes,
+});
+
+export default router;
+```
+
+## util request.js
+
+```js
+/* 导入 axios 依赖 */
+import axios from 'axios'
+
+/* 创建一个自定义 axios 实例,这个自定义 axios 实例可以根据我们自己的需求
+实现很多特定功能,注意这个自定义 axios 实例也是一个 Promise 对象,如果发送异步成功
+则底层自动调用 resolve(response),则外界可以调用 then(response=>{})
+如果内部异步失败,则自动调用 reject(err),则外界可以调用 catch(err=>{})
+不管失败与否,外界都可以调用 finally(()=>{}) */
+const request = axios.create({
+    /* 设置发送异步的基本地址,注意这里仅仅是基本地址,并不是完整地址 */
+    baseURL: process.env.VUE_APP_BASE_API,
+    /* 设置超时时间 */
+    timeout: 5000,
+})
+
+/* 导出自定义 axios 实例 */
+export default request
+```
+
+## main.js
+
+```js
+/* 导入 Vue 依赖注意这里是运行版,因此需要手写 render 渲染根组件到模板 */
+import Vue from "vue";
+/* 导入 ElementUI 的依赖 */
+import ElementUI from 'element-ui';
+/* 导入 ElementUI 全局 css */
+import 'element-ui/lib/theme-chalk/index.css';
+/* 导入根组件 */
+import App from "./App.vue";
+/* 导入路由表 */
+import router from "./router";
+/* 关闭控制台部署提示 */
+Vue.config.productionTip = false;
+/* Vue 实例加载 ElementUI 图形界面库 */
+Vue.use(ElementUI);
+
+new Vue({
+    /* 加载路由表 */
+    router,
+    /* 手写 render 将根组件覆盖到模板中 div#app 处 */
+    render: (h) => h(App),
+}).$mount("#app");
+
+```
+
+
+
+---
+
+## App.vue
+
+```vue
+<template>
+    <!-- 此处直接显示路由组件 login register layout 三选一
+    默认情况显示 loing -->
+    <router-view />
+</template>
+
+<script>
+    export default {
+        
+    }
+</script>
+
+<style>
+    html,body{
+        margin:0;
+        padding:0;
+        font-family: 喜鹊招牌体;
+        height:100%;
+    }
+</style>
+```
+
+## views	login	index.vue(登录)
+
+```vue
+<template>
+    <!-- 
+        此处使用了 ElementUI 的 Container 容器组件 
+        此组件天生自带弹性盒子
+    --> 
+    <el-container class="login-container">
+        <!-- 此处使用了 ElementUI 的 Form 表单 
+            el-form:表单组件
+                :model:双向绑定登录的表单对象
+                :rules:对应表单项的验证规则
+                ref:相当于 js 中的 id,多搭配 Vue 选择器,这是 Vue 自己的语法
+                size:表单尺寸 存在 medium small mini 三种尺寸
+                status-icon:如果验证成功显示绿色对勾,验证失败红色叉号
+                label-width:设置表单项左侧的文本长度,如果设置为 auto,则自动
+                调整
+        -->
+        <el-form :model="loginForm" :rules="loginRules" 
+        ref="myLoginForm" size="small" status-icon label-width="auto"
+        class="login-form">
+            <h1>用户登录</h1>
+            <!-- 
+                el-form-item:在表单项外侧嵌套 
+                label:表示表单项左侧(默认)的文本
+                prop:对应验证规则的属性名,除了对应验证规则,还对应重置功能,
+                如果此处不写,则重置功能失效
+            -->
+            <el-form-item label="用户姓名" prop="username" >
+                <!-- 此处使用了 ElementUI 的 Input 输入框组件 
+                        v-model:双向绑定封装的表单项,注意使用
+                        .trim 无效,自动去掉空格
+                -->
+                <el-input v-model="loginForm.username"
+                placeholder="请输入用户姓名"></el-input>
+            </el-form-item>
+
+            <el-form-item label="用户密码" prop="password" >
+                <!-- show-password:注意此处如果添加了此属性,则自动转换为
+                密码输入框 -->
+                <el-input v-model="loginForm.password"
+                show-password placeholder="请输入用户密码"></el-input>
+            </el-form-item>
+
+            <el-form-item>
+                <!-- 此处使用了 ElementUI 的 Button 组件 
+                    el-button:表示按钮
+                        type: primary warning success danger info  text
+                                蓝色    黄色     绿色    红色   灰色  无色
+                        round:圆角按钮
+                        plain:朴素按钮(空心)
+                        size: medium small mini 对应按钮尺寸
+                -->
+                <el-button type="primary" round size="mini"
+                class="btn" @click="submitForm('myLoginForm')">登录</el-button>
+                
+                <!-- @click="resetForm('myLoginForm')" 点击取消激发函数
+                注意这里传递的是 ref 值的实参 -->
+                <el-button round size="mini"
+                @click="resetForm('myLoginForm')">取消</el-button>
+                
+                <!-- 在引入 vue-router 路由插件之后,则可以使用路由中提供得
+                两个内置对象,$router 和 $route -->
+                <el-button type="primary" round plain size="mini"
+                @click="$router.push({path:'/register'})">注册</el-button>
+            </el-form-item>
+        </el-form>
+    </el-container>
+</template>
+
+<script>
+    /* 导入 dao */
+    import dao from '@/api/dao'
+
+    export default {
+        data(){
+            return {
+                /* 封装登录的初始化的表单项,此处对应 :model */
+                loginForm:{
+                    /* 此处对应 <el-input v-model="对应这里" > */
+                    username:'',
+                    password:'',
+                },
+                /* 封装每个表单项的验证规则,此处对应 :rules */
+                loginRules:{
+                    /* 验证规则属性名:此处对应 <el-form-item prop="对应这里"> */
+                    username:[
+                        /* 
+                            required:true 必填
+                            message:报错信息
+                            trigger:事件
+                            min:最小长度 max:最大长度
+                        */
+                        { required:true,message:'请输入用户姓名',trigger:'blur', },
+                        { min:6,max:10,message:'姓名在6到10位之间',trigger:'blur', }
+                    ],
+                    password:[
+                        { required:true,message:'请输入用户密码',trigger:'blur', },
+                        { min:6,max:32,message:'密码在6到32位之间',trigger:'blur', }
+                    ]
+                },
+            }
+        },
+        methods:{
+            /* 此函数用来重置表单,这里 formName 是形参,对应表单的 ref 值 */
+            resetForm(formName){
+                /* 
+                    this.$refs[formName] 
+                    相当于
+                    this.$refs.formName
+                    相当于
+                    document.getElementById('formName')
+                    这就 Vue 选择器
+                    resetFields():内置函数,表示重置特定的表单,注意
+                    每个表单项必须存在 prop 属性,否则此功能对表单项
+                    无效
+                */
+                this.$refs[formName].resetFields()
+            },
+            /* 此函数用来提交表单,这里 formName 是形参,对应 ref 值 */
+            submitForm(formName){
+                /* validate:在提交表单时,启动表单的验证功能,
+                如果全部验证成功,则 valid 为 true,只要存在一个失败的,则
+                valid 为 false */
+                this.$refs[formName].validate(valid=>{
+                    if(valid){
+                        dao.login(this.loginForm.username,this.loginForm.password)
+                        .then(response=>{
+                            console.log(response)
+
+                            /* 此处使用了 ElementUI 的 Message 信息提示组件 */
+                            this.$message({
+                                /* 
+                                    success/warning/info/error	
+                                    绿色     黄色     银色   红色
+                                */
+                                type: response.data.flag?'success':'error',
+                                /* 信息提示的信息 */
+                                message:response.data.msg,
+                                /* 显示关闭按钮 */
+                                showClose:true,
+                            })
+
+                            /* 如果业务逻辑一切正常 */
+                            if(response.data.flag){
+                                /* 获取权限信息 */
+                                const user = response.data.data
+                                /* 如果能获取权限 */
+                                if(user){
+                                    localStorage.setItem('et2301elementui',
+                                    JSON.stringify(user))
+
+                                    setTimeout(() => {
+                                        /* 激活哈希完成路由切换 */
+                                        this.$router.push({
+                                            path:'/layout',
+                                        })
+                                    }, 1200);
+                                }                                
+                            }
+                        })
+                        return
+                    }
+                })
+            },
+        },
+    }
+</script>
+
+<style scoped>
+    /* 设置外侧大容器 */
+    .login-container{
+        /* 设置容器绝对定位 */
+        position: absolute;
+        /* 设置容器宽度 */
+        width:100vw;
+        /* 设置容器高度 */
+        height:100vh;
+        /* 设置容器背景图片 no-repeat:表示如果图片大小不合适
+        则不会重叠摆放 */
+        background: url("../../assets/bg1.jpeg") no-repeat;
+        /* 设置背景图尺寸 宽度 高度 */
+        background-size: 100vw 100vh;
+        /* 设置背景图不会随着缩放变动 */
+        background-attachment: fixed;
+        /* 容器开启弹性盒子 */
+        display: flex;
+        /* 设置项目,也就是表单 主轴 交叉轴居中 此时默认 水平是主轴
+        纵向是交叉轴 */
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 设置表单 */
+    .login-form{
+        /* 设置表单宽度 */
+        width:350px;
+        /* 设置表单背景色 和 透明度 
+        rgba(红色,绿色,蓝色,透明度)
+        红绿蓝为 0-255 的整数 如果都是 255 则是白色
+        透明度 0 完全透明 1 完全不透明 */
+        background-color: rgba(255, 255, 255, 0.6);
+        /* 设置边框为圆角 数字越大越圆,如果设置为 50%则变为圆球 
+        表格不能设置 */
+        border-radius: 30px;
+        /* 给表单开启弹性盒子 */
+        display: flex;
+        /* 设置表单内的项目从上往下排列,默认是 row 从左往右 */
+        flex-direction:column;
+        /* 设置交叉轴水平居中摆放,注意这里从左往右是交叉轴了,从上往下
+        才是主轴 因为排列顺序是从上往下 */
+        align-items: center;
+    }
+
+    /* 设置所有输入框长度相同 
+        凡是组件标签,都自带 class 属性,属性值就是标签名
+    */
+    .el-input{
+        width:140px;
+    }
+
+    .btn{
+        margin-left: -80px;
+    }
+
+</style>
+```
+
+## views	register	index.vue(注册)
+
+```vue
+<template>
+    <el-container class="reg-container">
+        <el-form :model="regForm" :rules="regRules"
+        ref="myRegForm" class="reg-form" status-icon size="mini"
+        label-width="auto">
+            <h1>用户注册</h1>
+            <el-form-item label="用户姓名" prop="username">
+                <el-input v-model="regForm.username"
+                placeholder="请输入用户姓名"></el-input>
+            </el-form-item>
+            <el-form-item label="用户密码" prop="password">
+                <el-input v-model="regForm.password"
+                placeholder="请输入用户密码" show-password></el-input>
+            </el-form-item>
+            <el-form-item label="真实姓名" prop="realname">
+                <el-input v-model="regForm.realname"
+                placeholder="请输入真实姓名"></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱地址" prop="email">
+                <el-input v-model="regForm.email"
+                placeholder="请输入邮箱地址"></el-input>
+            </el-form-item>
+            <el-form-item label="电话号码" prop="phone">
+                <el-input v-model="regForm.phone"
+                placeholder="请输入电话号码"></el-input>
+            </el-form-item>
+            <el-form-item label="性别" prop="gender">
+                <!-- 此处使用了 ElementUI 的 Radio 单选框
+                这里其实使用的是单选框组 
+                    el-radio-group:表示单选框组
+                        v-model:就表示用户最终选的某一个的 label 值
+                -->
+                <el-radio-group v-model="regForm.gender">
+                    <!-- :label:相当于之前的 value 属性 -->
+                    <el-radio :label="0">男</el-radio>
+                    <el-radio :label="1">女</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="权限" prop="role">
+                <el-radio-group v-model="regForm.role">
+                    <el-radio :label="0">用户</el-radio>
+                    <el-radio :label="1">管理员</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="上传头像" prop="path" ref="myUp">
+                <!-- 此处使用了 ElementUI 的 Upload 上传组件 
+                    注意 此组件上传操作没有使用我们的 axios 自定义实例,一切是全自动的
+                    甚至没有使用 axios,所以在获取 response 时没有 data 属性
+                    action:上传的目的地,注意这里就是完整地址
+                    list-type:上传的 UI 类型 picture-card|picture|text
+                    存在以上三种,前两种可以显示上传成功的数据的缩略图,此处仅使用文字的 text
+                    :limit:最多上传的个数
+                    :on-exceed:如果超过上传个数运行的钩子函数
+                    :before-upload:表示上传之前最后一个执行的钩子
+                    :on-success:表示上传成功执行的钩子
+                    :on-remove:手动删除掉已经上传的文件
+                    :file-list:封装已经上传的文件列表,本例未使用
+                    :show-file-list="true":显示已经上传的文件列表
+                -->
+                <el-upload action="http://db.etoak.com:9527/sysFile/fileUpload"
+                    list-type="text" 
+                    :on-remove="handleRemove" 
+                    :limit="1"
+                    :on-success="handleAvatarSuccess"
+                    :on-exceed="handleExceed"
+                    :file-list="fileList"
+                    :show-file-list="true"
+                    :before-upload="beforeAvatarUpload"
+                    ref="up" class="up">
+                        <i class="el-icon-plus"></i>
+                </el-upload>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" round size="small"
+                class="btn" @click="submitForm('myRegForm')">注册</el-button>
+                <el-button round size="small"
+                @click="resetForm('myRegForm')">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-container>
+</template>
+
+<script>
+    import dao from '@/api/dao'
+    export default {
+        data(){
+            return {
+                /* 封装已经上传的批量文件,本例未使用 */
+                fileList:[],
+                /* 封装注册的表单 */
+                regForm:{
+                    username:'',
+                    password:'',
+                    realname:'',
+                    email:'',
+                    phone:'',
+                    /* 默认是男 */
+                    gender:0,
+                    /* 默认是用户 */
+                    role:0,
+                    /* 设置上传成功后的文件在服务器端的路径 */
+                    path:'',
+                },
+                /* 封装表单提交的验证规则 */
+                regRules:{
+                    username:[
+                        { required:true,message:'请输入用户姓名',trigger:'blur', },
+                        { min:6,max:10,message:'姓名在6到10位之间',trigger:'blur', },
+                        { pattern:/^[a-zA-Z0-9_]*$/,message:'只能英文数字下划线组成'
+                        ,trigger:'blur' }
+                    ],
+                    password:[
+                        { required:true,message:'请输入用户密码',trigger:'blur', },
+                        { min:6,max:32,message:'密码在6到32位之间',trigger:'blur', },
+                        { pattern:/^[a-zA-Z0-9_]*$/,message:'只能英文数字下划线组成'
+                        ,trigger:'blur' }
+                    ],
+                    realname:[
+                        { required:true,message:'请输入真实姓名',trigger:'blur' },
+                        { min:6,max:10,message:'真实姓名在6到10位之间',trigger:'blur'},
+                        { pattern:/^[a-zA-Z0-9_]*$/,message:'只能英文数字下划线组成',trigger:'blur' }
+                    ],
+                    email:[
+                        { required:true,message:'请输入邮箱地址',trigger:'blur' },
+                        { pattern:/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/
+                        ,message:'请输入合法邮箱地址',trigger:'blur' }
+                    ],
+                    phone:[
+                        { required:true,message:'请输入电话号码',trigger:'blur' },
+                        { pattern:/^(?:(?:\+|00)86)?1\d{10}$/
+                        ,message:'请输入合法电话号码',trigger:'blur' }
+                    ],
+                    path:[
+                        { required:true,message:'请上传头像'}
+                    ],
+                },
+            }
+        },
+        methods:{
+            /* 重置表单内容和验证提示 */
+            resetForm(formName){
+                /* 如果哪个表单项无效则与 prop 属性有关 */
+                this.$refs[formName].resetFields()
+            },
+            submitForm(formName){
+                /* 提交表单进行验证 */
+                this.$refs[formName].validate(valid=>{
+                    if(valid){
+                        dao.reg(this.regForm).then(response=>{
+                            this.$message({
+                                type:response.data.flag?'success':'error',
+                                message:response.data.msg,
+                                showClose:true,
+                            })
+                            
+                            if(response.data.flag){
+                                setTimeout(() => {
+                                    this.$router.push({
+                                        path:'/',
+                                    })
+                                }, 1200);
+                            }
+                        })
+                    }
+                })
+            },
+            /* 传递参数超过个数 */
+            handleExceed(file,fileList){
+                this.$message.error('最多传递一张图片！');
+            },
+            /* 
+                上传之前的钩子 
+                此处多用来进行上传时的格式查询等等
+            */
+            beforeAvatarUpload(file){
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 0.5;
+
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式!');
+                }
+                    
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 500k!');
+                }
+                return isJPG && isLt2M;
+            },
+            /* 
+                文件上传成功时的钩子 
+                response:上传成功返回的响应
+                file:每次上传的文件对象
+                fileList:目前所有已经上传的文件数组
+            */
+            handleAvatarSuccess(response, file, fileList){
+                /* 一般在上传成功后在此处进行业务逻辑，例如将返回的路径添加进表单双向绑定的data中的对象 */
+                /* 
+                    {
+                        "code":null,
+                        "flag":true,
+                        "msg":"上传成功~",
+                        "data":{
+                            "fileId":null,
+                            "fileName":"1",
+                            "fileSize":48558,
+                            "path":"http://etoak.vip:9528/4028823a74559fc80174559fc81e0000.jpg"
+                        }
+                    }
+                */
+                if(response.flag){
+                    /* 将返回的路径添加进封装路径的表单项属性 */
+                    //this.ruleForm.paths.push(response.data.path) 
+                    this.regForm.path = response.data.path  
+                    /* 清空上传组件显示的报错信息,因为已经上传成功了 */
+                    this.$refs['myUp'].clearValidate() 
+                }
+            },
+            /* 
+                文件移除的钩子 
+                file:点击的要删除的已经上传成功的文件对象
+                fileList:目前所有已经上传的文件数组
+            */
+            handleRemove(file, fileList) {
+                /* 必须首先打印此处观察file是什么，fileList是什么 */
+                /* 此处进行上传文件被删除之后的逻辑 */
+                //this.ruleForm.paths.splice(this.ruleForm.paths.indexOf(file.response.data.path),1)
+                this.regForm.path = ''
+            },
+        },
+    }
+</script>
+
+<style scoped>
+    /* 设置最外侧大容器 */
+    .reg-container {
+        /* 设置容器绝对定位 */
+        position: absolute;
+        /* 设置容器宽度 */
+        width: 100vw;
+        /* 设置容器高度 */
+        height: 100vh;
+        /* 设置容器背景图片 no-repeat:表示如果图片大小不合适
+        则不会重叠摆放 */
+        background: url("../../assets/bg5.jpeg") no-repeat;
+        /* 设置背景图尺寸 宽度 高度 */
+        background-size: 100vw 100vh;
+        /* 设置背景图不会随着缩放变动 */
+        background-attachment: fixed;
+        /* 容器开启弹性盒子 */
+        display: flex;
+        /* 设置项目,也就是表单 主轴 交叉轴居中 此时默认 水平是主轴
+        纵向是交叉轴 */
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 设置表单 */
+    .reg-form {
+        /* 设置表单宽度 */
+        width: 350px;
+        /* 设置表单背景色 和 透明度 
+        rgba(红色,绿色,蓝色,透明度)
+        红绿蓝为 0-255 的整数 如果都是 255 则是白色
+        透明度 0 完全透明 1 完全不透明 */
+        background-color: rgba(255, 255, 255, 0.6);
+        /* 设置边框为圆角 数字越大越圆,如果设置为 50%则变为圆球 
+        表格不能设置 */
+        border-radius: 30px;
+        /* 给表单开启弹性盒子 */
+        display: flex;
+        /* 设置表单内的项目从上往下排列,默认是 row 从左往右 */
+        flex-direction: column;
+        /* 设置交叉轴水平居中摆放,注意这里从左往右是交叉轴了,从上往下
+        才是主轴 因为排列顺序是从上往下 */
+        align-items: center;
+    }
+
+    /* 设置输入框和上传组件同宽,否则会被压缩 */
+    .el-input,.up{
+        width:140px;
+    }
+
+    .btn{
+        margin-left: -80px;
+    }
+
+    
+</style>
+```
+
+
+
+---
 
 
 
