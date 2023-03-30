@@ -6965,7 +6965,7 @@ data(){
 
 ---
 
-#  day13模块化开发
+# day13模块化开发
 
 ### index.html
 
@@ -7192,7 +7192,7 @@ new Vue({
 
 ---
 
-# day13( ElementUI 注册登录)
+# day14( ElementUI 注册登录)
 
 ## 什么是 RESTFul 开发风格
 
@@ -7932,11 +7932,550 @@ new Vue({
 
 ---
 
+# day15(表格查询 分页查询 条件查询)
+
+## api	dao.js
+
+```js
+/* 导入自定义 axios 实例 */
+import request from '@/util/request'
+
+/* API  application program interface 此处表示应用程序接口 */
+export default {
+    /* 1:登录 
+        username:形参 用户姓名
+        password:形参 用户密码
+    */
+    login(username,password){
+        /* 返回一个 */
+        return request({
+            /* url:此处表示设置进阶地址
+            注意最终发送的完整地址是 基本地址+进阶地址 */
+            url:`/testUser/login?username=${username}&password=${password}`,
+            method:'get',
+        })
+    },
+    /* 2:注册 
+        pojo:形参,对象,内部封装了要注册的八个字段
+    */
+    reg(pojo){
+        return request({
+            url:'/testUser/add',
+            method:'post',
+            /* 发送 json 注意这里直接发送 js 对象或者数组即可,不需要
+            自己转换 */
+            data: pojo,
+        })
+    },
+    /* 3:分页查询
+        page:形参,当前页
+        itemsPerPage:形参,每页记录数
+        searchMap:形参 对象 内部封装了条件的查询的字段
+    */
+    query(page,itemsPerPage,searchMap){
+        return request({
+            url:`/testUser/select?page=${page}&itemsPerPage=${itemsPerPage}`,
+            method:'get',
+            /* 由于 get 不能发送 json,这里提供了 params
+            来封装对象,根据这个对象中是否存在字段,进行有选择的拼接 */
+            params:searchMap,
+        })
+    },
+}
+```
+
+## views	table	table.vue
+
+```vue
+<template>
+    <el-container class="table" direction="vertical">
+        <!-- 此处使用了 ElementUI 的 Form 行内表单 
+        :inline="true" 开启行内表单 -->
+        <el-form :model="searchForm" :inline="true" ref="mySearchForm"
+        size="mini" class="top">
+            <el-form-item prop="username">
+                <el-input v-model="searchForm.username"
+                placeholder="请输入用户姓名"></el-input>
+            </el-form-item>
+            <el-form-item prop="realname">
+                <el-input v-model="searchForm.realname"
+                placeholder="请输入真实姓名"></el-input>
+            </el-form-item>
+            <el-form-item prop="gender" label="性别">
+                <!-- @input:绑定值变化时触发的事件 
+                此处只要点击单选框立刻开始查询 -->
+                <el-radio-group v-model="searchForm.gender"
+                @input="fetchData">
+                    <el-radio :label="0">男</el-radio>
+                    <el-radio :label="1">女</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item prop="email">
+                <el-input v-model="searchForm.email"
+                placeholder="请输入邮箱地址"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" round size="mini"
+                @click="fetchData">
+                    查询
+                </el-button>
+                <el-button round size="mini"
+                @click="goReset('mySearchForm')">
+                    重置
+                </el-button>
+            </el-form-item>
+        </el-form>
+        <!-- 此处使用了 ElementUI 的 Table 表格组件 
+            el-table:表示表格
+                :data:绑定要迭代的数据
+                size:medium small mini
+                border:显示边框
+                stripe:显示表格斑马纹
+                highlight-current-row:鼠标高亮当前行
+        -->
+        <el-table :data="list" size="small" border stripe
+        highlight-current-row class="middle">
+            <!-- 
+                el-table-column:表示列 
+                type="index" 表示本列显示索引,但是注意 从 1 开始
+                label:列名
+                width:列宽
+                align:内部数据对齐方式
+            -->
+            <el-table-column type="index" label="序号"
+            width="50px" align="center"></el-table-column>
+            <!-- prop:对应字段名 -->
+            <el-table-column label="用户姓名" prop="username"
+            align="center"></el-table-column>
+            <el-table-column label="真实姓名" prop="realname"
+            align="center"></el-table-column>
+            <el-table-column label="邮箱地址" prop="email"
+            align="center"></el-table-column>
+            <el-table-column label="电话号码" prop="phone"
+            align="center"></el-table-column>
+            <el-table-column label="用户性别" prop="gender"
+            align="center">
+                <!-- 如果数据就直接展示,则禁用 el-table-column 即可
+                如果要对数据进行下一步的加工则需要使用官方提供的插槽 -->
+                <template slot-scope="scope">
+                    <!-- 
+                        通过 scope.row 可以获取这一行的对象
+                        通过 scope.row.属性名 可以获取这一行对象的属性
+                    -->
+                    {{ scope.row.gender===0?'男':'女' }}
+                </template>
+            </el-table-column>
+            <el-table-column label="用户权限" prop="role"
+            align="center">
+                <template slot-scope="scope">
+                    {{ scope.row.role===0?'用户':'管理员' }}
+                </template>
+            </el-table-column>
+            <el-table-column label="操作"
+            align="center" width="220px">
+                <el-button type="primary" round
+                size="mini">编辑</el-button>
+
+                <el-button type="primary" round
+                size="mini" plain>查看</el-button>
+
+                <el-button type="danger" round
+                size="mini">删除</el-button>
+            </el-table-column>
+        </el-table>
+        <!-- 此处使用了 ElementUI 的 Pagination 分页组件 
+                :current-page:绑定当前页的值
+                :page-size:绑定每页记录数
+                :total:绑定总记录数
+                :page-sizes:每页记录数更改的几种选项
+                layout:是 Pagination 组件的六个子组件,哪个功能不需要
+                则可以不写,共有 6 个功能
+                background:设置背景色,默认蓝色
+                @size-change="handleSizeChange":当每页记录数
+                更改时执行
+                @current-change="handleCurrentChange":当当前页更改
+                时执行
+        -->
+        <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="page"
+            :page-sizes="[10, 15, 30]"
+            :page-size="itemsPerPage"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total" background class="bottom">
+        </el-pagination>
+    </el-container>
+</template>
+
+<script>
+    import dao from '@/api/dao'
+    export default {
+        data(){
+            return {
+                /* 当前页 */
+                page:1,
+                /* 每页记录数 */
+                itemsPerPage:10,
+                /* 总记录数 */
+                total:0,
+                /* 后端返回的分页的数据 */
+                list:[],
+                /* 封装条件查询的字段 */
+                searchForm:{
+                    username:'',
+                    realname:'',
+                    /* 注意性别没有默认值 因为条件查询可以忽略性别 */
+                    gender:'',
+                    email:'',
+                },
+            }
+        },
+        methods:{
+            /* 分页查询 */
+            fetchData(){
+                /* 
+                    this.page:获取当前页
+                    this.itemsPerPage:获取每页记录数
+                    this.searchForm:获取封装的条件查询的字段
+                    以上为三个实参
+                */
+                dao.query(this.page,this.itemsPerPage
+                ,this.searchForm)
+                .then(response=>{
+                    console.log(response)
+                    if(response.data.flag){
+                        /* 获取分页数据 */
+                        this.list = response.data.data
+                        /* 获取总记录数 */
+                        this.total = response.data.total
+                    }
+                })
+            },
+            /* 当每页记录数更改时执行 val:形参,就表示
+            传入的新的每页记录数 */
+            handleSizeChange(val) {
+                /* 更新每页记录数 */
+                this.itemsPerPage = val
+                /* 回显重新查询 */
+                this.fetchData()
+            },
+            /* 当当前页更改时执行 val:形参,就表示
+            传入的新的当前页的值 */
+            handleCurrentChange(val) {
+                /* 更新当前页的值 */
+                this.page = val
+                /* 回显重新查询 */
+                this.fetchData()
+            },
+            /* 条件查询重置功能 */
+            goReset(formName){
+                /* 重置表单样式和填写的内容 */
+                this.$refs[formName].resetFields()
+                /* 回显 */
+                this.fetchData()
+            },
+        },
+        created(){
+            this.fetchData()
+        },
+    }
+</script>
+
+<style scoped>
+    .table{
+        width:100%;
+        height:100%;
+        background-color: whitesmoke;
+        /* 如果尺寸溢出,则隐藏不显示滚动条 */
+        overflow: hidden;
+    }
+
+    /* 设置表格的样式 */
+    .middle{
+        margin:5px;
+        flex:1;
+    }
+    /* 设置分页的样式 */
+    .bottom{
+        text-align: center;
+        height:5vh;
+    }
+
+    /* 设置条件查询表单的样式 */
+    .top{
+        height:3vh;
+        margin:5px;
+    }
+</style>
+```
 
 
 
+---
+
+## (圣杯布局)layout	index.vue
+
+```vue
+<template>
+    <!-- direction:使用在 el-container 中,默认 horizontal 水平排列
+    改为 vertical 则为纵向排列,其实就是 flex-direction:row|column -->
+    <el-container class="layout-container" direction="vertical">
+        <!-- <el-header>页眉</el-header>
+        <el-container>
+            <el-aside>侧边栏</el-aside>
+            <el-main>主页</el-main>
+        </el-container>
+        <el-footer>页脚</el-footer> -->
+        <!-- 引入页眉组件 -->
+        <app-header></app-header>
+        <!-- 引入主体组件 -->
+        <app-section></app-section>
+        <!-- 引入页脚组件 -->
+        <app-footer></app-footer>
+    </el-container>
+</template>
+
+<script>
+    /* 引入页眉组件 */
+    import AppHeader from './components/appheader'
+    /* 引入主体组件 */
+    import AppSection from './components/appsection'
+    /* 引入页脚组件 */
+    import AppFooter from './components/appfooter'
+    export default {
+        components:{
+            AppHeader,
+            AppSection,
+            AppFooter,
+        },
+    }
+</script>
+
+<style scoped>
+    .layout-container{
+        height:100vh;
+    }
+</style>
+```
+
+## components	appsection	index.vue
+
+```vue
+<template>
+    <el-container class="section">
+        <!-- 引入侧边栏 -->
+        <app-aside></app-aside>
+        <!-- 引入主体 -->
+        <app-main></app-main>
+    </el-container>
+</template>
+
+<script>
+    /* 导入侧边栏 */
+    import AppAside from '../appaside'
+    /* 导入主页 */
+    import AppMain from '../appmain'
+    export default {
+        components:{
+            AppAside,
+            AppMain,
+        }
+    }
+</script>
+
+<style scoped>
+    .section{
+        flex: 1;
+    }
+</style>
+```
+
+## components	appaside	index.vue
+
+```vue
+<template>
+    <!-- width:设置侧边栏宽度 -->
+    <el-aside class="aside" width="200px">
+        <!-- 
+            此处使用了 ElementUI 的 NavMenu 导航菜单 
+                :router:如果设置为 true,则表示开启路由功能,取代 router-link
+                ,可以激活哈希默认 false 无法激活哈希
+                default-active:当前哪个链接处于激活状态,根据浏览器地址栏
+                当前的哈希来判断 $route.path:就是当前地址栏哈希
+                background-color:菜单栏背景色
+                text-color:菜单栏文字颜色
+                active-text-color:激活的链接的文字颜色
+                unique-opened:可折叠菜单栏只能同时展开一个,不能同时展开多个
+        -->
+        <el-menu :router="true" :default-active="$route.path?$route.path:''"
+            background-color="#454c63"
+            text-color="whitesmoke"
+            active-text-color="coral" unique-opened>
+            <!-- 可折叠菜单栏 -->
+            <el-submenu index="1">
+                <!-- 菜单栏标题 -->
+                <template slot="title">
+                    <i class="el-icon-location"></i>
+                    <span>增删查改</span>
+                </template>
+                <!-- 菜单列表项 index:类似 router-link 的 to 属性用来激活哈希 -->
+                <el-menu-item index="/layout/table"><i class="el-icon-notebook-1"></i>表格测试</el-menu-item>
+                <el-menu-item index="/layout/grid"><i class="el-icon-s-grid"></i>栅格测试</el-menu-item>
+                <el-menu-item index="/layout/cascade"><i class="el-icon-grape"></i>级联测试</el-menu-item>
+            </el-submenu>
+            <el-submenu index="2">
+                <template slot="title">
+                    <i class="el-icon-s-marketing"></i>
+                    <span>数据可视化</span>
+                </template>
+                <el-menu-item index="/layout/echarts"><i class="el-icon-s-data"></i>Echarts测试</el-menu-item>
+                <el-menu-item index="/layout/dashboard"><i class="el-icon-s-operation"></i>面板测试</el-menu-item>
+            </el-submenu>
+            <el-menu-item index="3">
+                <i class="el-icon-menu"></i>
+                <span slot="title">导航二</span>
+            </el-menu-item>
+            <el-menu-item index="4">
+                <i class="el-icon-document"></i>
+                <span slot="title">导航三</span>
+            </el-menu-item>
+        </el-menu>
+    </el-aside>
+</template>
+
+<script>
+    export default {
+        
+    }
+</script>
+
+<style scoped>
+    /* 设置侧边栏 */
+    .aside{
+        /* 设置背景色 */
+        background-color: #454c63;
+        /* 开启弹性盒子 */
+        display: flex;
+        /* 主轴交叉轴居中 */
+        justify-content: center;
+        align-items: center;  
+    }
+    .el-menu {
+        text-align: center;
+        font-weight:900;
+        /* 去掉侧边栏右侧的白边 */
+        border-right:none ;
+        width:100%;
+    }
+</style>
+```
 
 
+
+---
+
+## $router 与 $route的不同
+
+### $router
+
+`$router`是一个**全局路由对象**，是`new Router`的实例,`$router`对象正是`new VueRouter`所创建`router`对象,`this.$router`就等同于`new Router`的实例
+
+```js
+//常用函数
+this.$router.push('/user') //跳转路由
+this.$router.replace('/user') //跳转路由,但是不会有记录,不入栈
+```
+
+### $route
+
+`$route`是一个**局部对象**，表示当前正在跳转的**路由对象**，换句话说，当前哪个路由处于活跃状态，`$route`就对应那个路由。`this.$route`代表当前活跃的路由对象
+
+```js
+$route.path
+//字符串，等于当前路由对象的路径，如“/home/news”
+$route.params
+//对象，包含路由中的动态片段和全匹配片段的键值对
+$route.query
+//对象，包含路由中query参数的键值对。如“......?name=胡桃&age=16”会得到{“name”："胡桃"，“age”：16}
+$route.name
+//当前路径的名字，如果没有使用具名路径，则名字为空
+$route.router
+//路由规则所述的路由器（以及所属的组件）
+$route.matched
+//数组，包含当前匹配的路径中所包含的所有片段所对应的配置参数对象
+```
+
+### 总结
+
+`$router`是`new Router`的实例，是全局路由对象，用于进行路由跳转等操作
+
+`$route`是路由信息对象，表示当前活跃的路由对象，用于读取路由参数；
+
+简单来说也就是，操作找`$router`，读参找`$route`
+
+### 备注
+
+```js
+vue路由报错：
+Uncaught (in promise) Error: Avoided redundant navigation to current location
+/*原因：
+多次点击跳转同一个路由是不被允许的
+解决办法：
+在引入vue-router的js文件里加上如下代码即可：*/
+//push 
+const VueRouterPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push(to) {
+return VueRouterPush.call(this, to).catch(err => err)}
+//replace
+const VueRouterReplace = VueRouter.prototype.replace
+VueRouter.prototype.replace = function replace(to) {
+return VueRouterReplace.call(this, to).catch(err => err)}
+```
+
+
+
+---
+
+## 什么是分页
+
+> 后端将数据一部分一部分的给前端的操作称之为分页,分页是查询功能中最重要的一种方式
+
++ 假分页
+  + 一次将所有数据取出,用户需要几条,则显示几条,不宜针对大量的数据
++ 真分页
+  + 用户需要几条数据就从后端获取多少数据,基本上目前都是真分页
+
+### 分页四要素
+
+> 不管使用何种技术,只要获取了以下四个参数,则分页可解
+
++ 总记录数
+  + 后端获取         select count(id) from 表
++ 每页记录数:
+  + 前端获取        自己决定每页显示多少条记录
++ 总页数
+  + 后端获取        Java:(总记录数+每页记录数-1)/每页记录数      
+  + 前端获取        Js:Math.ceil(总记录数/每页记录数)
++ 当前页
+  + 前端获取:此值不是一个定值,会随着用户的操作的变化而变化,每次变化之后,都要重新获取,默认值是 1
+
+### 分页四要素与分页公式
+
+```sql
+    select 字段 from 表 limit x,y;
+    x:起始索引(包含)
+    y:显示记录数
+    select 字段 from 表 limit (当前页-1)*每页记录数,每页记录数;
+```
+
+### 前端分页思想
+
+> 将最新的当前页与每页记录数发送给后端,后端计算出分页数据以及总记录数 返回给前端
+
+
+
+---
 
 
 
