@@ -8477,11 +8477,931 @@ return VueRouterReplace.call(this, to).catch(err => err)}
 
 ---
 
+# day16
+
+## 复习
+
+#### 1 请简述 Vue2 中函数如何激发(2种)?计算属性如何激发(1种)?侦听器如何激发(2种)?
+
+```
+函数
+	直接调用
+	事件激发
+计算属性
+	依赖的属性值发生更改
+侦听器
+	immediate:true 打开页面,就会激发一次 
+	侦听的属性发生改变
+```
+
+#### 2 请简述 Vue2 中函数,计算属性,侦听器的不同
+
+```
+函数
+	函数一般绑定事件,也可以直接调用,支持异步,选择性书写return语句,没有双向绑定功能
+	函数没有缓存,调用几次,就执行几次
+	
+计算属性
+	计算属性,就是一个属性,它依赖的初始化的值发生更改,就会重新执行,就算属性没有小括号,就是个属性,不会传值
+	计算属性自带缓存功能,无论强制调用多少次,都只执行一次,除非依赖的初始化的值发生更改
+	可以实现双向绑定,通过书写 get和set
+	get()中一定有return 所以计算属性不可以发送异步
+	
+侦听器
+	一般不考虑双向绑定问题,就是设置一个值,侦听器去侦听这个数据,如果设置 immediate 代表立即执行侦听器一次
+	侦听器默认只可以侦听基本数据类型,侦听复杂数据类型需要开启深度侦听 deep:true;
+	
+综上,计算属性能做到的,侦听器都能做到,但是侦听器能做到的,计算属性不一定能做到,例如 异步
+	
+```
+
+#### 3 在vue中 如何获取 DOM ,从而操作DOM
+
+```
+this.$refs[formName]
+this.$refs.formName
+```
+
+#### 4 请写出VueComponents 传值方式,写出关键脚本,描述作用
+
+```
+String,Number,Boolean,Array,Object,Function
+props 父子传值
+	父组件
+		<子组件 :自定义属性="属性值"></子组件>
+	子组件
+		props:['自定义属性1','自定义属性2']
+		props:{
+			自定义属性1:数据类型,
+			自定义属性2:数据类型,
+		}
+		props:{
+			自定义属性:{
+				type:数据类型,
+				required:true,
+				default:默认值
+			}
+		}
+		
+$emit 子父传值(不饿能隔代)
+	父组件
+		<子组件 @自定义事件1="操作1"></子组件>
+	子组件
+		<tagName @原生事件="操作2(值)"></tagName>
+		操作2(值){
+			this.$emit('自定义事件1',值)
+		}
+		
+slot 父子传模板/数据
+	子组件
+		<slot name="插槽名"></slot>
+	父组件
+		<tagName slot="插槽名"></tagName>
+		
+		<template v-slot:插槽名>
+			<tagName></tagName>
+		</template>
+```
+
+#### 5 Vue2挑几件渲染几种方式,不同使用场合
+
+```
+v-if
+	如果为真,元素显示,如果为假,元素不显示,底层不渲染
+	切换小号打,适用于切换不频繁的场合
+v-show
+	如果为真,元素显示,如果为假,元素不显示,添加了display:none;的行内式,底层依然渲染
+	初识载入消耗较大,但是之后切换消耗小,适用于切换频繁的场合
+	
+v-else-if
+v-else
+	与v-if配合使用,必须紧邻,用来进行简单流程控制
+	不可以与v-show连用
+```
+
+#### 6 ES6 中promise对象解决了什么问题,简述它对于某种操作做了什么
+
+```
+解决了回调地狱问题
+
+如果发送异步成功,回调函数调用resolve(response),执行 then(response=>{})
+如果失败,回调函数调用reject(error),执行catch(error=>{})
+如果有finally ,无论成功还是失败,都会执行
+```
+
+#### 7 过滤器使用需要注意什么?
+
+```
+不可以使用 this,this在过滤器中是undefined
+不可以与v-model连用
+使用过滤器一定有数据字典
+const payOptions = [
+    { id: 1, option: '现金支付', },
+    { id: 2, option: '支付宝支付', },
+    { id: 3, option: '微信支付', },
+    { id: 4, option: '银行卡支付', }
+]
+```
+
+#### 8 Vue2 样式渲染几种方式
+
+```
+绑定class
+	:class="myClass",myClass初始化的值的内容是类名
+	:class="{类名1:val,类名2:val}"
+	如果类名后面的初始化的值为true,类名有效,否则无效
+	:class="['类名1','类名2']"
+	一个元素有多个类名,没有初始化的数据
+
+绑定style
+	:style="myStyle"
+	初始化的值myStyle就是行内式样式
+	:style="{样式名:val}"
+	样式名必须小驼峰,val就是样式值,样式名没有引号
+```
+
+#### 9 Vue2 如何实现数组/对象可响应式功能
+
+```
+
+对象
+	this.$set(对象,'属性名','属性值')
+	this.$delete(对象,'属性名')
+	Vue.set(对象,'属性名','属性值')
+	VUe.delet(对象,'属性名','属性值')
+数组
+	利用下面7个进阶方法,
+	push() pop()
+	unshift() shift()
+	reverse() sort()
+	splice()
+	Vue2中必须使用一下七个函数对数组进行修改,是js的加强版,实现了可响应式的功能,与js原始7个只是重名
+```
+
+#### 10 Vue2指令元素
+
+```
+v-html
+v-text
+v-once
+v-if
+v-show
+v-model
+v-slot
+v-else-if
+v-else
+v-on
+v-bind
+v-cloak
+v-pre
+v-for
+```
+
+##### 1 什么是单向绑定?什么是双向绑定
+
+```
+单向绑定
+	修改Vue实例中的数据,页面模板中的数据也会发生更改,两者绑定在一起,称之单向绑定,也称数据实现了可响应式,插值语法和指令语法都自带单向绑定功能
+
+双向绑定
+	修改页面模板中的数据,Vue实例data中的数据也会发生更改,惩治双向绑定,默认情况下只有v-model支持双向绑定,
+其他情况,可以通过使用计算属性,添加双向绑定
+```
+
+##### 2 如何使用事件原型获取元素节点
+
+```
+event.target
+```
+
+##### 3 使用过的事件修饰符
+
+```
+.stop 解决冒泡
+.once 一次绑定
+.prevent 屏蔽元素固有动作
+@keyup.键位 监听键位
+@keydown.tab 监听tab
+.native 给组件添加原生事件
+```
+
+##### 4 如何进行列表渲染
+
+```
+v-for="(data,index) in datas" 数组
+v-for="(value,name,index) in obj" 对象
+:key="主键",没有主键,可以绑定 index
+```
+
+##### 5 Vue2实例对用户书写的数据做了哪些操作
+
+```
+1. 数据劫持
+	Vue获取用户书写的data之后,无论封装基层都会对这个对象添加可响应式的功能嫩,对象的每个属性都被添加了
+	reactiveGetter() 和 reactiveSetter(val)函数
+	如果数据被读取,执行 reactiveGetter()
+	如果数据被修改,执行 reactiveSetter(),同时会修改页面模板中的数据,这就是可响应式/单向绑定的实现
+	这些被施加了可响应式功能的数据和函数get()和set() 被封装在 Vue实例的_data对象,这个操作,被称作,数据劫持
+2. 数据监听
+	一个对象可以对另一个对象的属性进行操作,称之为数据代理,Vue实例通过数据代理将_dat中的数据带力道 Vue实例的表层,在模板中使用插值语法或指令语法,不用再添加_data前缀,Vue实例表层中的数据可以直接在模板中使用
+```
+
+##### 6 如何给组件添加原生事件
+
+```
+<组件 @原生事件.native="函数"/>
+```
+
+##### 7 组件通讯原则
+
+```
+1 不要再子组件中修改父组件传递的数据
+2 数据初始化,要根据初始化的数据是否用于多个组件之中,如果需要用在多个是组件之中,就初始化再付组件之中,如果在一个组件中使用,就初始化在这个组件之中
+3 初始化在那个组件之中,更新数据的函数就写在那个组件
+```
+
+##### 8 生命周期
+
+```
+created()
+	最早获取数据,发送异步
+mounted()
+	页面已经被真实 DOM 覆盖完毕,处于稳定状态,此时可以操作DOM,也可以发送异步
+	
+beforeUpdate()
+	唯一模板与数据不统一的时机
+```
 
 
 
+---
+
+## day16（编辑 查看 删除）
+
+### api	dao.js
+
+```js
+/* 导入自定义 axios 实例 */
+import request from '@/util/request'
+
+/* API  application program interface 此处表示应用程序接口 */
+export default {
+    /* 1:登录 
+        username:形参 用户姓名
+        password:形参 用户密码
+    */
+    login(username,password){
+        /* 返回一个 */
+        return request({
+            /* url:此处表示设置进阶地址
+            注意最终发送的完整地址是 基本地址+进阶地址 */
+            url:`/testUser/login?username=${username}&password=${password}`,
+            method:'get',
+        })
+    },
+    /* 2:注册 
+        pojo:形参,对象,内部封装了要注册的八个字段
+    */
+    reg(pojo){
+        return request({
+            url:'/testUser/add',
+            method:'post',
+            /* 发送 json 注意这里直接发送 js 对象或者数组即可,不需要
+            自己转换 */
+            data: pojo,
+        })
+    },
+    /* 3:分页查询
+        page:形参,当前页
+        itemsPerPage:形参,每页记录数
+        searchMap:形参 对象 内部封装了条件的查询的字段
+    */
+    query(page,itemsPerPage,searchMap){
+        return request({
+            url:`/testUser/select?page=${page}&itemsPerPage=${itemsPerPage}`,
+            method:'get',
+            /* 由于 get 不能发送 json,这里提供了 params
+            来封装对象,根据这个对象中是否存在字段,进行有选择的拼接 */
+            params:searchMap,
+        })
+    },
+    /* 4:根据 id 查询 
+        id:形参表示要查询的数据 id
+    */
+    queryById(id){
+        return request({
+            /* 如果只有一个参数传递,则可以使用这种简略写法 */
+            url:`/testUser/selectById/${id}`,
+            method:'get',
+        })
+    },
+    /* 5:修改 
+        newPojo:对象 形参,封装了要被修改的字段以及被修改的数据的 id
+    */
+    update(newPojo){
+        return request({
+            url:'/testUser/update',
+            method:'put',
+            data:newPojo,
+        })
+    },
+    /* 6:删除 */
+    delById(id){
+        return request({
+            url:`/testUser/delete/${id}`,
+            method:'delete',
+        })
+    }
+}
+```
+
+### table	index.vue
+
+```vue
+<template>
+    <el-container class="table" direction="vertical">
+        <!-- 此处使用了 ElementUI 的 Form 行内表单 
+        :inline="true" 开启行内表单 -->
+        <el-form :model="searchForm" :inline="true" ref="mySearchForm"
+        size="mini" class="top">
+            <el-form-item prop="username">
+                <el-input v-model="searchForm.username"
+                placeholder="请输入用户姓名"></el-input>
+            </el-form-item>
+            <el-form-item prop="realname">
+                <el-input v-model="searchForm.realname"
+                placeholder="请输入真实姓名"></el-input>
+            </el-form-item>
+            <el-form-item prop="gender" label="性别">
+                <!-- @input:绑定值变化时触发的事件 
+                此处只要点击单选框立刻开始查询 -->
+                <el-radio-group v-model="searchForm.gender"
+                @input="fetchData">
+                    <el-radio :label="0">男</el-radio>
+                    <el-radio :label="1">女</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item prop="email">
+                <el-input v-model="searchForm.email"
+                placeholder="请输入邮箱地址"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" round size="mini"
+                @click="fetchData">
+                    查询
+                </el-button>
+                <el-button round size="mini"
+                @click="goReset('mySearchForm')">
+                    重置
+                </el-button>
+            </el-form-item>
+        </el-form>
+        <!-- 此处使用了 ElementUI 的 Table 表格组件 
+            el-table:表示表格
+                :data:绑定要迭代的数据
+                size:medium small mini
+                border:显示边框
+                stripe:显示表格斑马纹
+                highlight-current-row:鼠标高亮当前行
+                :row-class-name="tableRowClassName"
+                可以根据字段的值来为表格添加不同的 class,从而显示不同的样式
+                注意此属性与 stripe 斑马纹冲突
+        -->
+        <el-table :data="list" size="small" border
+        highlight-current-row class="middle"
+        :row-class-name="tableRowClassName">
+            <!-- 
+                el-table-column:表示列 
+                type="index" 表示本列显示索引,但是注意 从 1 开始
+                label:列名
+                width:列宽
+                align:内部数据对齐方式
+            -->
+            <el-table-column type="index" label="序号"
+            width="50px" align="center"></el-table-column>
+            <!-- prop:对应字段名 -->
+            <el-table-column label="用户姓名" prop="username"
+            align="center"></el-table-column>
+            <el-table-column label="真实姓名" prop="realname"
+            align="center"></el-table-column>
+            <el-table-column label="邮箱地址" prop="email"
+            align="center"></el-table-column>
+            <el-table-column label="电话号码" prop="phone"
+            align="center"></el-table-column>
+            <el-table-column label="用户性别" prop="gender"
+            align="center">
+                <!-- 如果数据就直接展示,则禁用 el-table-column 即可
+                如果要对数据进行下一步的加工则需要使用官方提供的插槽 -->
+                <template slot-scope="scope">
+                    <!-- 
+                        通过 scope.row 可以获取这一行的对象
+                        通过 scope.row.属性名 可以获取这一行对象的属性
+                    -->
+                    {{ scope.row.gender===0?'男':'女' }}
+                </template>
+            </el-table-column>
+            <el-table-column label="用户权限" prop="role"
+            align="center" width="220px">
+                <template slot-scope="scope">
+                    <!-- 此处使用了 ElementUI 的 Switch 开关 
+                        v-model:双向绑定权限的值
+                        active-color:激活之后的开关颜色
+                        inactive-color:关闭的颜色
+                        active-text:开关拨开之后的文本
+                        inactive-text:开关关闭之后的文本
+                        :active-value:双向绑定开关拨开的值
+                        :inactive-value:双向绑定开关关闭的值
+                        @change="toggleRole(scope.row.id,scope.row.role)"
+                        切换开关时执行函数,第一个实参表示修改哪个,第二个参数表示
+                        权限修改成什么值
+                    -->
+                    <el-switch                         
+                        v-model="scope.row.role"
+                        active-color="coral"
+                        inactive-color="silver"
+                        active-text="管理员"
+                        inactive-text="用户"
+                        :active-value="1"
+                        :inactive-value="0"
+                        @change="toggleRole(scope.row.id,scope.row.role)">
+                    </el-switch>
+                </template>
+            </el-table-column>
+            <el-table-column label="操作"
+            align="center" width="220px">
+                <template slot-scope="scope">
+                    <!-- 编辑分为两个步骤
+                            1:预备编辑 @click="handleUpadte(scope.row.id)"
+                            2:编辑
+                    -->
+                    <el-button type="primary" round
+                    size="mini" 
+                    @click="handleUpdate(scope.row.id)">编辑</el-button>
+
+                    <el-button type="primary" round
+                    size="mini" plain
+                    @click="$router.push({path:`/layout/info?id=${scope.row.id}`})">查看</el-button>
+
+                    <el-button type="danger" round
+                    size="mini" @click="remove(scope.row.id)">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <!-- 此处使用了 ElementUI 的 Pagination 分页组件 
+                :current-page:绑定当前页的值
+                :page-size:绑定每页记录数
+                :total:绑定总记录数
+                :page-sizes:每页记录数更改的几种选项
+                layout:是 Pagination 组件的六个子组件,哪个功能不需要
+                则可以不写,共有 6 个功能
+                background:设置背景色,默认蓝色
+                @size-change="handleSizeChange":当每页记录数
+                更改时执行
+                @current-change="handleCurrentChange":当当前页更改
+                时执行
+        -->
+        <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="page"
+            :page-sizes="[10, 15, 30]"
+            :page-size="itemsPerPage"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total" background class="bottom">
+        </el-pagination>
+        <!-- 此处使用了 ElementUI 的 Dialog 对话框组件 
+            el-dialog:表示对话框
+                title:对话框标题
+                :visible.sync:后面对应的值如果是 true,则对话框显示
+                false 不显示
+                width:设置对话框宽度
+        -->
+        <el-dialog title="修改信息" :visible.sync="dialogFormVisible"
+        width="300px">
+            <el-form :model="updateForm" ref="myUpdateForm"
+            status-icon :rules="updateRules" size="mini"
+            label-width="auto" class="update-form">
+                <el-form-item label="真实姓名" prop="realname">
+                    <el-input v-model="updateForm.realname"></el-input>
+                </el-form-item>
+                <el-form-item label="电话号码" prop="phone">
+                    <el-input v-model="updateForm.phone"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱地址" prop="email">
+                    <el-input v-model="updateForm.email"></el-input>
+                </el-form-item>
+                <el-form-item label="用户性别" prop="gender">
+                    <el-radio-group v-model="updateForm.gender">
+                        <el-radio :label="0">男</el-radio>
+                        <el-radio :label="1">女</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+            </el-form>
+
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false"
+                round size="mini">取 消</el-button>
+                <el-button type="primary" @click="finishUpdate"
+                round size="mini" >确 定</el-button>
+            </div>
+        </el-dialog>
+    </el-container>
+</template>
+
+<script>
+    import dao from '@/api/dao'
+    export default {
+        data(){
+            return {
+                /* 控制编辑对话框显示与否 */
+                dialogFormVisible:false,
+                /* 当前页 */
+                page:1,
+                /* 每页记录数 */
+                itemsPerPage:10,
+                /* 总记录数 */
+                total:0,
+                /* 后端返回的分页的数据 */
+                list:[],
+                /* 封装条件查询的字段 */
+                searchForm:{
+                    username:'',
+                    realname:'',
+                    /* 注意性别没有默认值 因为条件查询可以忽略性别 */
+                    gender:'',
+                    email:'',
+                },
+                /* 封装被修改的字段 */
+                updateForm:{
+                    realname:'',
+                    phone:'',
+                    email:'',
+                    gender:'',
+                },
+                /* 封装修改的验证规则 */
+                updateRules:{
+                    realname:[
+                        { required:true,message:'请输入真实姓名',trigger:'blur' },
+                        { min:6,max:10,message:'真实姓名在6到10位之间',trigger:'blur'},
+                        { pattern:/^[a-zA-Z0-9_]*$/,message:'只能英文数字下划线组成',trigger:'blur' }
+                    ],
+                    email:[
+                        { required:true,message:'请输入邮箱地址',trigger:'blur' },
+                        { pattern:/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/
+                        ,message:'请输入合法邮箱地址',trigger:'blur' }
+                    ],
+                    phone:[
+                        { required:true,message:'请输入电话号码',trigger:'blur' },
+                        { pattern:/^(?:(?:\+|00)86)?1\d{10}$/
+                        ,message:'请输入合法电话号码',trigger:'blur' }
+                    ],
+                },
+                /* 封装修改权限的字段 */
+                updateRole:{
+                    id:'',
+                    role:'',
+                },
+            }
+        },
+        methods:{
+            /* 分页查询 */
+            fetchData(){
+                /* 
+                    this.page:获取当前页
+                    this.itemsPerPage:获取每页记录数
+                    this.searchForm:获取封装的条件查询的字段
+                    以上为三个实参
+                */
+                dao.query(this.page,this.itemsPerPage
+                ,this.searchForm)
+                .then(response=>{
+                    console.log(response)
+                    if(response.data.flag){
+                        /* 获取分页数据 */
+                        this.list = response.data.data
+                        /* 获取总记录数 */
+                        this.total = response.data.total
+                    }
+                })
+            },
+            /* 当每页记录数更改时执行 val:形参,就表示
+            传入的新的每页记录数 */
+            handleSizeChange(val) {
+                /* 更新每页记录数 */
+                this.itemsPerPage = val
+                /* 回显重新查询 */
+                this.fetchData()
+            },
+            /* 当当前页更改时执行 val:形参,就表示
+            传入的新的当前页的值 */
+            handleCurrentChange(val) {
+                /* 更新当前页的值 */
+                this.page = val
+                /* 回显重新查询 */
+                this.fetchData()
+            },
+            /* 条件查询重置功能 */
+            goReset(formName){
+                /* 重置表单样式和填写的内容 */
+                this.$refs[formName].resetFields()
+                /* 回显 */
+                this.fetchData()
+            },
+            /* 编辑 步骤 1 预备编辑 */
+            handleUpdate(id){
+                /* 1:显示对话框 */
+                this.dialogFormVisible = true
+                /* 2:对表单内的内容和样式进行重置 
+                    在 Vue 中如果涉及到操作 DOM 的语句,则执行顺序
+                    与我们理解的是有偏差的,因为其实底层是使用的异步
+
+                    1:xxxx
+                    2:xxxx
+                    3:操作 DOM
+                    4:xxxx
+
+                    实际执行顺序 1 2 4 3
+                    如果涉及到操作 DOM,则最后执行
+                    如果想要顺序执行,则必须添加 
+                    this.$nextTick(()=>{
+                        操作 DOM 的语句
+                    })
+
+                    1:xxxx
+                    2:xxxx
+                    this.$nextTick(()=>{
+                        3:操作 DOM
+                    })
+                    4:xxxx
+                    执行顺序 1 2 3 4
+                */
+                this.$nextTick(()=>{
+                    this.$refs['myUpdateForm'].resetFields()
+                })
+                /* 3:向后台发送信息,获取要被修改的数据,这个数据填充表单 */
+                dao.queryById(id).then(response=>{
+                    console.log(response)
+                    if(response.data.flag){
+                        /* 此处使用深浅拷贝均可 */
+                        this.updateForm = {...response.data.data}
+                    }
+                })
+            },
+            /* 编辑 步骤 2 完成编辑 */
+            finishUpdate(){
+                /* 表单提交进行验证 */
+                this.$refs['myUpdateForm'].validate(valid=>{
+                    /* 如果验证成功 */
+                    if(valid){
+                        dao.update(this.updateForm).then(response=>{
+                            this.$message({
+                                type:response.data.flag?'success':'error',
+                                message:response.data.msg,
+                                showClose:true,
+                            })
+                            if(response.data.flag){
+                                /* 回显 */
+                                this.fetchData()
+                                /* 关闭对话框 */
+                                this.dialogFormVisible = false
+                            }
+                        })
+                    }
+                })
+            },
+            /* 删除 */
+            remove(id){
+                /* 此处使用了 ElementUI 的 MessageBox弹框  */
+                this.$confirm('您确定删除本条记录吗?', '提示', {
+                    /* 确定按钮文本 */
+                    confirmButtonText: '确定',
+                    /* 取消按钮文本 */
+                    cancelButtonText: '取消',
+                    /* 标题提示 */
+                    type: 'warning'
+                }).then(() => {
+                    /* 点击确定后执行的代码 */
+                    dao.delById(id).then(response=>{
+                        this.$message({
+                            type:response.data.flag?'success':'error',
+                            message:response.data.msg,
+                            showClose:true,
+                        })
+
+                        if(response.data.flag){
+                            /* 回显 */
+                            this.fetchData()
+                        }
+                    })
+                }).catch(() => {
+                    /* 点击取消后执行的代码 */
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });          
+                });
+            },
+            /* 修改权限 */
+            toggleRole(id,role){
+                /* 更新id */
+                this.updateRole.id = id
+                /* 更新权限修改后的值 */
+                this.updateRole.role = role
+                dao.update(this.updateRole).then(response=>{
+                    this.$message({
+                        type:response.data.flag?'success':'error',
+                        message:response.data.msg,
+                    })
+
+                    if(response.data.flag){
+                        /* 回显 */
+                        this.fetchData()
+                    }
+                })
+            },
+            /* 根据字段值为表格添加 class 
+                row:就表示这一行的对象
+                rowIndex:就表示索引
+            */
+            tableRowClassName({row, rowIndex}) {
+                /* 如果是男士 */
+                if(row.gender===0){
+                    /* 则给这一行添加 class="male" 
+                    返回的就是类名 */
+                    return 'male'
+                }else if(row.gender===1){
+                    /* 则给这一行添加 class="female" */
+                    return 'female'
+                }
+            }
+        },
+        created(){
+            this.fetchData()
+        },
+    }
+</script>
+
+<style scoped>
+    .table{
+        width:100%;
+        height:100%;
+        background-color: whitesmoke;
+        /* 如果尺寸溢出,则隐藏不显示滚动条 */
+        overflow: hidden;
+    }
+
+    /* 设置表格的样式 */
+    .middle{
+        margin:5px;
+        flex:1;
+    }
+    /* 设置分页的样式 */
+    .bottom{
+        text-align: center;
+        height:5vh;
+    }
+
+    /* 设置条件查询表单的样式 */
+    .top{
+        height:3vh;
+        margin:5px;
+    }
+
+    /* 此处添加的类全部添加到了 el-table 的子组件上
+    这里的样式存在 scoped限制,因此我们无法影响子组件,使用
+    >>> 穿透选择器可以直接添加到子组件上,忽略 scoped 属性 */
+    .el-table >>> .male{
+        background-color: lightblue;
+    }
+
+    .el-table >>> .female{
+        background-color: pink;
+    }
+</style>
+```
+
+### info	index.vue
+
+```vue
+<template>
+    <el-container class="info" direction="vertical">
+        <!-- 此处使用了 ElementUI Descriptions 描述列表 
+            title:设置描述列表标题
+            :column:表示列数
+            border:显示边框
+        -->
+        <el-descriptions title="用户详细信息" :column="1" border
+        v-if="user">
+            <!-- 此处用来嵌套按钮,添加描述列表的功能 -->
+            <template slot="extra">
+                <el-button type="primary" size="mini"
+                round>操作</el-button>
+            </template>
+            <!-- v-if="user.path" 如果没有图片路径在不显示本列 -->
+            <el-descriptions-item v-if="user.path">
+                <template slot="label">
+                    <i class="el-icon-user"></i>
+                    用户头像
+                </template>
+                <!-- 此处使用了 ElementUI的 Image 图片 
+                    :src:表示图片的路径,注意此处路径必须是一个完整的
+                    网络地址,不能使用本地路径
+                -->
+                <el-image :src="user.path" 
+                style="width:200px;height:80px"></el-image>
+            </el-descriptions-item>
+            <!-- el-descriptions-item 此处表示列表项 -->
+            <el-descriptions-item>
+                <template slot="label">
+                    <i class="el-icon-user"></i>
+                    用户姓名
+                </template>
+                {{ user.username }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                    <i class="el-icon-user-solid"></i>
+                    真实姓名
+                </template>
+                {{ user.realname }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                    <i class="el-icon-platform-eleme"></i>
+                    邮箱地址
+                </template>
+                {{ user.email }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                    <i class="el-icon-mobile-phone"></i>
+                    手机号码
+                </template>
+                {{ user.phone }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                    <i class="el-icon-s-custom"></i>
+                    用户性别
+                </template>
+                {{ user.gender ===0?'男':'女' }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                    <i class="el-icon-s-opportunity"></i>
+                    用户权限
+                </template>
+                <!-- 此处使用了 ElementUI 的 Tag 标签 
+                    type:如果是 success 绿色标签 info 灰色标签
+                -->
+                <el-tag :type="user.role===1?'success':'info'">
+                    {{ user.role===1?'管理员':'用户' }}
+                </el-tag>
+            </el-descriptions-item>
+        </el-descriptions>
+    </el-container>
+</template>
+
+<script>
+    import dao from '@/api/dao'
+    export default {
+        data(){
+            return {
+                user:null,
+            }
+        },
+        created(){
+            /* 接受传递过来的值 
+                this.$route.query.键
+            */
+            let id = this.$route.query.id
+            if(id){
+                dao.queryById(id).then(response=>{
+                    if(response.data.flag){
+                        this.user = response.data.data
+                    }
+                })
+            }
+            
+        },
+    }
+</script>
+
+<style scoped>
+    .info{
+        width:100%;
+        height:100%;
+        background-color: whitesmoke;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+</style>
+```
 
 
+
+---
 
 
 
