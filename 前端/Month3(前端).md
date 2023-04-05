@@ -5744,7 +5744,7 @@ let text = JSON.stringify(obj)
      + <tagName : class="['类名','类名']" />这里就是一个元素多个类名，没有初始化的数据，注意不要漏加引号，因为这是数组
    + 绑定style
      + <tagName :style="初始化的值" />初始化的值就对应行内式的样式值
-     + <tagName : style="{样式名:初始化的值,样式名:初始化的值，}">样式名必须使用小驼峰格式，没有引号，初始化的值对应样式值
+     + <tagName :style="{样式名:初始化的值,样式名:初始化的值，}">样式名必须使用小驼峰格式，没有引号，初始化的值对应样式值
 
 3. 说明 函数 计算属性 侦听器的不同以及使用场合
 
@@ -9344,7 +9344,9 @@ export default {
                     <i class="el-icon-s-custom"></i>
                     用户性别
                 </template>
-                {{ user.gender ===0?'男':'女' }}
+                <!--{{ user.gender ===0?'男':'女' }}-->
+				<!--过滤器-->
+                {{ user.gender | genderFilter }}
             </el-descriptions-item>
             <el-descriptions-item>
                 <template slot="label">
@@ -9363,6 +9365,10 @@ export default {
 </template>
 
 <script>
+    const genderOptions = [
+        { id:0,type:'男' },
+        { id:1,type:'女' }
+    ]
     import dao from '@/api/dao'
     export default {
         data(){
@@ -9384,6 +9390,14 @@ export default {
             }
             
         },
+        filters:{
+            /* 过滤器不能使用 this,同时不能与 v-model 连用 */
+            genderFilter(val){
+                const genderObj = genderOptions.find(genderOption => 
+                genderOption.id === val)
+                return genderObj?genderObj.type:''
+            },
+        }
     }
 </script>
 
@@ -9403,17 +9417,648 @@ export default {
 
 ---
 
+# day17(第三周考试题)
+
+```tex
+																姓名:________________        分数:_______________
+1.请简单说出路由(激活)跳转的两种方式(仅仅写出脚本语句即可,拼写错误不得分,一个5个共10分)?
+    this.$router.push({path:’哈希值’})
+    <router-link to=”哈希值”>
+
+2.请说出Vue2生命周期几个钩子在开发中的作用(至少3个仅写出开发中作用即可10分)
+    created():最早获取数据的时机,一般用来发送异步开启定时器等操作
+    mounted():真实DOM覆盖完整页面呈现稳定状态,一般用来发送异步,操作DOM等
+    beforeDestroy():Vue实例或者组件销毁之前执行,用来释放资源,关闭定时器,取消订阅等收尾工作
+
+3.Promise承诺对象解决了开发中什么问题?请简单说出其做了什么(单词拼写错误不得分)?
+    解决回调地狱问题
+    如果发送异步成功则底层调用 resolve(response) 则外界可以知道内部异步成功
+    调用then(response=>{})
+    如果发送异步失败,则底层调用 reject(err) 则外界可以知道内部异步失败
+    调用catch(err=>{})
+    不管成功失败,外界都可以调用 finally
+
+4:请说出Vue2流程控制的区别及其使用场合?
+    v-if:如果后面是真值,则元素显示,如果后面是假值,则元素不显示,底层根本不渲染,由于切换消耗较大,因此,适用于切换不频繁的场合
+    v-show: 如果后面是真值,则元素显示,如果后面是假值,则元素不显示,底层依然渲染,只不过添加了一个 display:none 的行内式,		初始载入消耗较大,但是之后切换消耗较小,因此适用于切换频繁的场合
+
+5.请简述Vue2组件传值的方式? (注意单词拼写错误不得分,写出三种即可10分)
+    props:父子传值
+    $emit:子父传值
+    slot:插槽分发
+
+6.Vue2组件中 scoped属性的作用是? 
+    仅仅影响本组件模板样式,不影响子组件模板样式
+
+7.组件中data为什么是一个函数?
+    组件经常被复用,函数存在块级作用域,保护内部数据不受外界污染,Vue 实例不会被复用,内部数据无需保护
+
+8. Vue2中函数 计算属性 侦听器如何激发? (仅仅写出如何激发即可,拼写错误不得分,总分10分)v-for=”province in provinces”
+    函数:激发事件 直接被调用
+    计算属性:依赖的数据发生更改
+    侦听器:侦听的数据发生变动
+
+9.请写出你使用过的Vue2指令(写出指令名,简述其作用即可,单词拼写错误不得分10分)
+    + v-once:一次性插值绑定,之后失去绑定功能
+    + v-html:向元素中插入超文本,注意!为了防止网络 XSS 攻击,禁止插入脚本
+    + v-text:向元素中插入文本
+    + v-model:使用在表单项中,支持双向绑定
+    + v-bind:语法糖:,绑定元素的属性
+    + v-on:语法糖@,绑定事件
+    + v-for:迭代数据
+    + v-if:后面如果为真,则元素显示,为假,元素不显示,底层不渲染
+    + v-else-if:搭配 v-if 使用必须紧邻
+    + v-else:搭配 v-if 使用必须紧邻
+    + v-show:后面如果为真,则元素显示,为假,元素不显示,底层依然渲染,只不过添加了.display:none;css行内式
+    + v-pre:提示 Vue 实例不解析
+    + v-cloak:解决闪现问题
+    + v-slot:父子组件传值时传递模板使用,是插槽的另外一种书写方式
+
+10.Vue2如何实现对象和数组的可响应式(仅简单写出脚本语句即可10分)
+    + 对象
+        + this.$set(对象,'属性名',属性值)
+        + this.$delete(对象,'属性名')
+    + 数组
+        + push() unshift() reverse() sort() pop() splice() shift()
+
+```
 
 
 
+# day18（导航守卫）
+
+### permission.js
+
+```js
+/* 导入路由表 */
+import router from './router'
+
+/* 
+    导航守卫
+    是路由提供的一种功能,用来进行轻量级的权限控制,更加复杂了权限控制功能推荐使用
+    Vuex,只要哈希值发生更改,则立刻执行 beforeEach() 函数,执行函数发生在跳转之前
+    类似一个守卫要查验
+    to from next:三个形参 都是函数
+    to:负责控制哈希值更改后抵达的目的地
+    from:负责控制哈希值更改前的七点
+    next:负责跳转过程
+*/
+router.beforeEach((to,from,next)=>{
+    /* 获取权限信息 */
+    const user = JSON.parse(localStorage.getItem('et2301elementui'))
+    
+    if(!user){
+        /* 如果没有权限信息 */
+        if(to.path !== '/'){
+            /* 且不是去登录页面 */
+            if(to.path === '/register'){
+                /* 无权限,也不是去登录页,但是去注册页,则依然放行 */
+                next()
+                return
+            }
+            /* 无权限信息,也不是去登录页,也不是去注册页
+            强制将哈希变为 #/ 从而终端当前的哈希切换,立刻切换到 #/
+            从而跳转到登录组件 */
+            next({path:'/'})
+        }else{
+            /* 没有权限信息,且是去登录页面,则放行 */
+            next()
+        }
+    }else{
+        /* 如果存在权限信息,此处放行,继续后面的操作 */
+        next()
+    }
+
+})
+```
+
+### 配置main.js
+
+```js
+/* 导入 Vue 依赖注意这里是运行版,因此需要手写 render 渲染根组件到模板 */
+import Vue from "vue";
+/* 导入 ElementUI 的依赖 */
+import ElementUI from 'element-ui';
+/* 导入 ElementUI 全局 css */
+import 'element-ui/lib/theme-chalk/index.css';
+/* 导入根组件 */
+import App from "./App.vue";
+/* 导入路由表 */
+import router from "./router";
+/* 关闭控制台部署提示 */
+Vue.config.productionTip = false;
+/* Vue 实例加载 ElementUI 图形界面库 */
+Vue.use(ElementUI);
+/* 导入导航守卫 */
+import './permission'
+
+new Vue({
+    /* 加载路由表 */
+    router,
+    /* 手写 render 将根组件覆盖到模板中 div#app 处 */
+    render: (h) => h(App),
+}).$mount("#app");
+```
 
 
 
+# day19(Echarts配置)
+
+### dao.js
+
+```js
+/* 导入自定义 axios 实例 */
+import request from '@/util/request'
+
+/* API  application program interface 此处表示应用程序接口 */
+export default {
+    /* 1:登录 
+        username:形参 用户姓名
+        password:形参 用户密码
+    */
+    login(username, password) {
+        /* 返回一个 */
+        return request({
+            /* url:此处表示设置进阶地址
+            注意最终发送的完整地址是 基本地址+进阶地址 */
+            url: `/testUser/login?username=${username}&password=${password}`,
+            method: 'get',
+        })
+    },
+    /* 2:注册 
+        pojo:形参,对象,内部封装了要注册的八个字段
+    */
+    reg(pojo) {
+        return request({
+            url: '/testUser/add',
+            method: 'post',
+            /* 发送 json 注意这里直接发送 js 对象或者数组即可,不需要
+            自己转换 */
+            data: pojo,
+        })
+    },
+    /* 3:分页查询
+        page:形参,当前页
+        itemsPerPage:形参,每页记录数
+        searchMap:形参 对象 内部封装了条件的查询的字段
+    */
+    query(page, itemsPerPage, searchMap) {
+        return request({
+            url: `/testUser/select?page=${page}&itemsPerPage=${itemsPerPage}`,
+            method: 'get',
+            /* 由于 get 不能发送 json,这里提供了 params
+            来封装对象,根据这个对象中是否存在字段,进行有选择的拼接 */
+            params: searchMap,
+        })
+    },
+    /* 4:根据 id 查询 
+        id:形参表示要查询的数据 id
+    */
+    queryById(id) {
+        return request({
+            /* 如果只有一个参数传递,则可以使用这种简略写法 */
+            url: `/testUser/selectById/${id}`,
+            method: 'get',
+        })
+    },
+    /* 5:修改 
+        newPojo:对象 形参,封装了要被修改的字段以及被修改的数据的 id
+    */
+    update(newPojo) {
+        return request({
+            url: '/testUser/update',
+            method: 'put',
+            data: newPojo,
+        })
+    },
+    /* 6:删除 */
+    delById(id) {
+        return request({
+            url: `/testUser/delete/${id}`,
+            method: 'delete',
+        })
+    },
+    /* 7:省市区级联查询 
+        此处发送 0 则返回所有省份
+        此处发送具体某个省份 pid 则返回这个省份下面的城市
+        此处发送具体某个城市 pid 则返回这个城市下面的区域
+    */
+    search(pid) {
+        return request({
+            url: `/district/select?pid=${pid}`,
+            method: 'get',
+        })
+    },
+    /* -------------以下为虚拟接口,没有实际发送异步请求----------------- */
+    /* 8:获取面板数据 */
+    getDatas() {
+        return new Promise((resolve, reject) => {
+            resolve({
+                code: 200,
+                flag: true,
+                msg: '查询成功!',
+                data: [123, 456, 789],
+            })
+        })
+    },
+    /* 9:获取堆叠柱状图数据 */
+    getBarChartDatas() {
+        return new Promise((resolve, reject) => {
+            resolve({
+                code: 200,
+                flag: true,
+                msg: '查询成功!',
+                data: {
+                    title: '2023济南超市销量',
+                    legend: ['统一银座', '橙子便利店', '便利蜂', '711', 'Lowsen'],
+                    xAxis: ['10-08', '10-09', '10-10', '10-11', '10-12'],
+                    datas: [
+                        [320, 302, 301, 334, 390, 330, 320],
+                        [320, 332, 301, 334, 490, 330, 310],
+                        [220, 182, 191, 234, 290, 330, 310],
+                        [150, 212, 201, 154, 190, 330, 410],
+                        [420, 532, 501, 234, 290, 330, 320]
+                    ],
+                },
+            })
+        })
+    },
+    /* 10:拿取饼状图数据 */
+    getPieDatas() {
+        return new Promise((resolve, reject) => {
+            resolve({
+                code: 200,
+                msg: '查询成功',
+                data: {
+                    datas: [
+                        { value: 800, name: 'SonyPs5' },
+                        { value: 400, name: 'SonyPs4' },
+                        { value: 799, name: '任天堂NS' },
+                        { value: 540, name: '微软XSX' },
+                        { value: 100, name: '其它' }
+                    ],
+                    nameList: ['SonyPs5', 'SonyPs4', '任天堂NS', '微软XSX',
+                        '其它'],
+                }
+            })
+        })
+    },
+    /* 11:拿取柱状图数据 */
+    getBarDatas() {
+        return new Promise((resolve, reject) => {
+            resolve({
+                code: 200,
+                msg: '查询成功',
+                data: {
+                    xDatas: ['IPhone13', 'MI11', 'MIMIX4', 'Oppo', 'Samsung'],
+                    values: [1200, 900, 550, 400, 150],
+                }
+            })
+        })
+    }
+}
+```
+
+### dashboard组件
+
+```vue
+<template>
+    <el-container class="dashboard" direction="vertical">
+        <!-- 引用面板 v-if="panelDatas.flag" 用来控制子组件的有无,
+        如果为 false,则根本没有子组件 -->
+        <panel-group v-if="panelDatas.flag"
+        :myNumber1="panelDatas.myNumber1"
+        :myNumber2="panelDatas.myNumber2"
+        :myNumber3="panelDatas.myNumber3"></panel-group>
+        <!-- 引用堆叠柱状图 -->
+        <mix-bar-chart v-if="chartDatas.flag"
+        :myTitle="chartDatas.title"
+        :myLegend="chartDatas.legend"
+        :myXaxis="chartDatas.xAxis"
+        :myDatas="chartDatas.datas" ></mix-bar-chart>
+    </el-container>
+</template>
+
+<script>
+    import dao from '@/api/dao'
+    import PanelGroup from './components/panelgroup'
+    import MixBarChart from './components/mixbarchart'
+    export default {
+        components:{
+            PanelGroup,
+            MixBarChart,
+        },
+        data(){
+            return {
+                /* 封装面板数据 */
+                panelDatas:{
+                    myNumber1:0,
+                    myNumber2:0,
+                    myNumber3:0,
+                    /* 用来控制子组件的显示与否,默认 false 没有子组件 */
+                    flag:false,
+                },
+                /* 封装图表数据 */
+                chartDatas:{
+                    title:'',
+                    legend:[],
+                    xAxis:[],
+                    datas:[],
+                    /* 用来控制子组件的显示与否,默认 false 没有子组件 */
+                    flag:false,
+                },
+            }
+        },
+        methods:{
+            /* 获取面板数据 */
+            async queryPanelDatas(){
+                const response = await dao.getDatas()
+                if(response.flag){
+                    this.panelDatas.myNumber1 = response.data[0]
+                    this.panelDatas.myNumber2 = response.data[1]
+                    this.panelDatas.myNumber3 = response.data[2]
+                    this.panelDatas.flag = true
+                }
+            },
+            /* 获取图表数据 */
+            async queryChartDatas(){
+                const response = await dao.getBarChartDatas()
+                if(response.flag){
+                    this.chartDatas.title = response.data.title
+                    this.chartDatas.legend = response.data.legend
+                    this.chartDatas.xAxis = response.data.xAxis
+                    this.chartDatas.datas = response.data.datas
+                    this.chartDatas.flag = true
+                }
+            },
+        },
+        created(){
+            this.queryPanelDatas()
+            this.queryChartDatas()
+        },
+    }
+</script>
+
+<style scoped>
+    .dashboard{
+        width:100%;
+        height:100%;
+        background-color: whitesmoke;
+        overflow: hidden;
+    }
+</style>
+```
+
+### panelgroup子组件
+
+```vue
+<template>
+    <el-header height="15vh" class="header">
+        <el-row :gutter="12">
+            <el-col :xs="8" :sm="8" :md="8" :lg="8" :xl="8">
+                <el-card :body-style="{height:'10vh'}"
+                shadow="hover">
+                    <!-- 
+                        :start-val:起始数字
+                        :end-val:结束数字
+                        :duration:滚动时间 单位 ms
+                    -->
+                    今日新增:
+                    <count-to :start-val="0" :end-val="myNumber1"
+                    :duration="3000" class="panel-num"></count-to>
+                </el-card>
+            </el-col>
+            <el-col :xs="8" :sm="8" :md="8" :lg="8" :xl="8">
+                <el-card :body-style="{height:'10vh'}"
+                shadow="hover">
+                    今日治愈:
+                    <count-to :start-val="0" :end-val="myNumber2"
+                    :duration="3000" class="panel-num"></count-to>
+                </el-card>
+            </el-col>
+            <el-col :xs="8" :sm="8" :md="8" :lg="8" :xl="8">
+                <el-card :body-style="{height:'10vh'}"
+                shadow="hover">
+                    无症状感染:
+                    <count-to :start-val="0" :end-val="myNumber3"
+                    :duration="3000" class="panel-num"></count-to>
+                </el-card>
+            </el-col>
+        </el-row>
+    </el-header>
+</template>
+
+<script>
+    /* 导入 vue 小插件 */
+    import CountTo from 'vue-count-to'
+    export default {
+        props:['myNumber1','myNumber2','myNumber3'],
+        /* 将插件注册为子组件 */
+        components:{
+            CountTo,
+        }
+    }
+</script>
+
+<style scoped>
+    .el-card{
+        margin-top: 10px;
+    }
+
+    .panel-num{
+        font-size:xx-large;
+        color:coral;
+    }
+</style>
+```
+
+### maxbarchart子组件
+
+```vue
+<template>
+    <el-main class="main">
+        <el-row>
+            <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                <el-card :body-style="{padding:'0px'}">
+                    <!-- echart必须被渲染在 html 元素中 -->
+                    <div ref="myChart" 
+                    style="width:100%;height:68vh"></div>
+                </el-card>
+            </el-col>
+        </el-row>
+    </el-main>
+</template>
+
+<script>
+    /* 导入 echarts 依赖 */
+    import echarts from 'echarts'
+    /* 导入主题文件 不是必须 */
+    require('echarts/theme/vintage')
+    export default {
+        props:{
+            myTitle:{
+                type:String,
+                default:'标题错误',
+            },
+            myLegend:{
+                type:Array,
+                /* 注意默认值如果是复杂类型,必须使用函数返回数据的写法
+                这里是箭头函数 function(){return ....} */
+                default:()=>['图例错误'],
+            },
+            myXaxis:{
+                type:Array,
+                default:()=>['x轴数据错误'],
+            },
+            myDatas:{
+                type:Array,
+                default:()=>['数据系列错误'],
+            }
+        },
+        data(){
+            return {
+                /* 此对象用来进行图表的渲染 */
+                chart:null,
+            }
+        },
+        methods:{
+            /* 此函数用来在指定的 DOM 中渲染堆叠聚合柱状图 */
+            initChart(){
+                /* 此句表示将图表渲染到哪里,这里表示渲染到 ref 为 myChart 的
+                html 元素 */
+                this.chart = echarts.init(this.$refs['myChart'],'vintage')
+                /* 加载配置项 */
+                this.chart.setOption({
+                    /* 设置标题 */
+                    title: {
+                        /* 主标题 */
+                        text: this.myTitle,
+                    },
+                    /* 设置提示框 */
+                    tooltip: {
+                        /* 显示提示信息 item:图形触发 axis:坐标轴触发 none:不触发 */
+                        trigger: 'axis',
+                        /* 坐标轴指示器 type:属性 line shadow cross none */
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    /* 设置图例 */
+                    legend: {
+                        /* 注意此处必须与数据系列series中的name属性一一对应 */
+                        data: this.myLegend,
+                    },
+                    /* 设置y轴，注意如果是水平的柱状图，则交换x轴 y轴即可 */
+                    yAxis: {
+                        /* value表示具体的值 */
+                        type: 'value'
+                    },
+                    /* 设置x轴 */
+                    xAxis: {
+                        /* category表示类别 */
+                        type: 'category',
+                        /* x轴上显示的数据 */
+                        data: this.myXaxis,
+                    },
+                    /* 数据系列 */
+                    series: [
+                        {
+                            /* 此处必须一一对应图例legend中的值 */
+                            name: '统一银座',
+                            /* bar表示柱状 如果是 line则表示折线 */
+                            type: 'bar',
+                            /* 设置此参数开启堆叠，如果无此参数，则无堆叠效果，凡是此参数一样的
+                            数据都会堆叠，叫什么无所谓，但是要保持一致 */
+                            stack: '总量',
+                            /* 设置柱状图上每段柱子是否显示具体数据 */
+                            label: {
+                                /* 显示数据 */
+                                show: true,
+                                /* 在柱子内部显示 还可以书写 top right left bottom */
+                                position: 'inside'
+                            },
+                            data: this.myDatas[0]
+                        },
+                        {
+                            name: '橙子便利店',
+                            type: 'bar',
+                            stack: '总量',
+                            label: {
+                                show: true,
+                                position: 'inside'
+                            },
+                            data: this.myDatas[1]
+                        },
+                        {
+                            name: '便利蜂',
+                            type: 'bar',
+                            stack: '总量',
+                            label: {
+                                show: true,
+                                position: 'inside'
+                            },
+                            data: this.myDatas[2]
+                        },
+                        {
+                            name: '711',
+                            type: 'bar',
+                            stack: '总量',
+                            label: {
+                                show: true,
+                                position: 'inside'
+                            },
+                            data: this.myDatas[3]
+                        },
+                        {
+                            name: 'Lowsen',
+                            type: 'bar',
+                            stack: '总量',
+                            label: {
+                                show: true,
+                                position: 'inside'
+                            },
+                            data: this.myDatas[4]
+                        }
+                    ]
+                })
+
+            },
+        },
+        /* 这里要操作 DOM,因此将画图的操作放置在 mounted 中
+        因为此时真实 DOM 已经准备完毕,已经覆盖了虚拟 DOM */
+        mounted(){
+            /* 为了保险起见推荐操作 DOM 的语句放置在 nextTick 中
+            保证立即执行 */
+            this.$nextTick(()=>{
+                this.initChart()
+            })
+        },
+        /* 当组件销毁前执行 */
+        beforeDestroy(){
+            /* 如果已经为 null 则返回 */
+            if(!this.chart){
+                return
+            }
+            /* 强制销毁 chart dispose() 此函数是 echarts 提供的函数*/
+            this.chart.dispose()
+            this.chart = null
+        },
+    }
+</script>
+
+<style scoped>
+    .main{
+        flex:1;
+        
+    }
+</style>
+```
 
 
 
+---
 
-
+# day20
 
 
 
