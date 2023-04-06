@@ -10058,19 +10058,476 @@ export default {
 
 ---
 
-# day20
+# day20（Vue3.2.47）
+
+### 使用 Vite 构建 Vue3 前端工程
+
++ 使用 NPM 步骤
+  + **npm create vite@latest <u>my-vue-app</u> -- --template vue**
+  + 注意这里仅仅使用了 Vue 模板,Vite 还支持各种技术的模板
+    + vanilla，vanilla-ts, vue, vue-ts，react，react-ts，react-swc，react-swc-ts，preact，preact-ts，lit，lit-ts，svelte，svelte-ts。
+  + 安装成功后 使用 **npm i** 下载依赖,与 VueCli 不同 Vite 事先没有下载任何依赖需要我们自己下载
+  + **npm run dev** 开启服务器
+
+---
+
+### 1-初始Vue3.0.vue
+
+```html
+<template>
+    <h1>初识Vue3.0 setup 的舞台</h1>
+    {{ count }}
+    {{ person }}{{ person.name }}{{ person.age }}
+    <button @click="touch1">点我试试!</button>
+</template>
+
+<script>
+    export default {
+        /* 此处为 Vue3.0 的老写法,在脚本中只存在一个配置项就是此函数
+        这个函数返回一个对象 */
+        setup(){
+            let count = 0
+
+            const person = {
+                name:'胡桃',
+                age:17,
+            }
+            
+            const touch1 = () => count++
+
+            return {
+                /* 如果要在模板中直接使用,则需要返回数据 */
+                count,
+                person,
+                /* 必须返回函数,否则无法在模板中使用 */
+                touch1,
+            }
+        }
+    }
+    /* 注意以上书写方式,没有实现可响应式,没有单向绑定功能 */
+</script>
+
+<style scoped>
+
+</style>
+```
+
+### 2-ref和reactive.vue
+
+```vue
+<template>
+    <h1>Vue3.2最新书写方式</h1>
+    <button @click="touch1">{{ count }}</button>
+    <button @click="touch2">修改对象</button>
+    <!-- 注意如果使用 ref 封装也不需要从模板中书写.value -->
+    {{ person.name }}{{ person.hobby }}
+</template>
+
+<script setup>
+    /* 在 Vue3.2中开发者不需要再书写那个唯一的配置项 setup
+    只需要再 script 标签中书写即可
+    不需要导出默认成员,会自动导出 */
+    /* 如果要实现数据的可响应式则必须导入 ref 和 reactive 函数 */
+    import {ref,reactive} from 'vue'
+    /* 
+        ref:函数,可以实现基本类型和复杂类型的可响应式
+        如果要对基本类型添加可响应式,则必须 ref(基本类型)
+        注意在脚本中必须通过 基本类型.value 才能获取数据,被封装的基本类型
+        是一个 引用对象 RefImpl 内部通过 value 属性才可以获取到基本类型的
+        值
+        reactive:函数,可以实现复杂类型的可响应式
+    */
+    let count = ref(0)
+    console.log(count)
+
+    const touch1 = () => count.value++
+
+    /* 
+        const person = ref({
+            name:'胡桃',
+            age:17,
+        })
+    
+        const touch2 = () => person.value.name = '甘雨' 
+        不推荐使用 ref 封装复杂类型,而推荐使用 reactive 封装复杂类型
+        封装之后是一个 proxy 代理对象,底层由反射 reflect 实现
+        不需要像 ref 一样通过.value 获取值
+    */
+    
+    const person = reactive({
+        name:'胡桃',
+        age:17,
+        hobby:['吃饭','逛街'],
+    })
+
+    console.log(person)
+    const touch2 = () => {
+        person.name = '甘雨' 
+        person.hobby[2] = '恶作剧'
+    }
+
+    /* 在正常开发中,推荐即使基本类型也使用 reactive,可以将多个基本类型
+    封装到 对象中,这样就可以合法的使用 reactive 封装了 */
+</script>
+
+<style scoped>
+
+</style>
+```
+
+### 3-计算属性.vue
+
+```vue
+<template>
+    <h1>计算属性</h1>
+    姓: <input type="text" v-model.trim="person.firstName">
+    <br>
+    名: <input type="text" v-model.trim="person.lastName">
+    <br>
+    全名(单向):{{ person.fullName1 }}
+    <br>
+    全名(单双向):<input type="text" 
+    v-model.trim.lazy="person.fullName2">
+    <hr>
+
+</template>
+
+<script setup>
+    import {reactive,computed} from 'vue'
+
+    const person = reactive({
+        firstName:'张',
+        lastName:'三',
+    })
+
+    /* 使用计算属性,单向绑定
+        computed(function(){
+            return xxxx
+        })
+    */
+    person.fullName1 = 
+    computed(()=>`${person.firstName}-${person.lastName}`)
+
+    person.fullName2 = 
+    computed({
+        /* 单向 */
+        get(){
+            return `${person.firstName}-${person.lastName}`
+        },
+        /* 双向 */
+        set(newVal){
+            const arr = newVal.split('-')
+            if(arr.length===1){
+                alert('请输入-作为连字符')
+                return
+            }
+            person.firstName = arr[0]
+            person.lastName = arr[1]
+        },
+    })
+</script>
+
+<style scoped>
+
+</style>
+```
+
+### 4-侦听器.vue
+
+```vue
+<template>
+    <h1>侦听器</h1>
+    <button @click="count++">更改count</button>
+    <button @click="str+='!'">更改str</button>
+    <hr>
+    {{ count }}<br>{{ str }}
+    <hr>
+    <button @click="update">修改对象</button>
+    {{ person }}
+</template>
+
+<script setup>
+    import {ref,reactive,watch} from 'vue'
+
+    let count = ref(0)
+    let str = ref('thisisetoak')
+
+    /* 侦听 ref 封装的基本类型 count */
+    /* watch(count,(newVal,oldVal)=>{
+        console.log(newVal,oldVal)
+    },{immediate:true}) */
+
+    /* 同时侦听 count 和 str */
+    watch([count,str],(newVal,oldVal)=>{
+        console.log(newVal,oldVal)
+    },{immediate:true})
+
+    const person = reactive({
+        name:'胡桃',
+        age:17,
+    })
+
+    const update = () =>{
+        person.name += '!'
+        person.age++
+    }
+
+    /* 侦听被 reactive 封装的复杂类型 
+    此处存在一个小 bug newVal 和 oldVal 一直是一样 */
+    watch(person,(newVal,oldVal)=>{
+        //console.log(newVal,oldVal)
+    })
+
+    /* 侦听被 reactive 封装的复杂类型中的某个属性 */
+    watch(()=>person.name,(newVal,oldVal)=>{
+        //console.log(newVal,oldVal)
+    })
+
+    /* 侦听被 reactive 封装的复杂类型中的某多个属性 */
+    watch([()=>person.name,()=>person.age]
+    ,(newVal,oldVal)=>{
+        console.log(newVal,oldVal)
+    })
+
+
+</script>
+
+<style scoped>
+
+</style>
+```
+
+### 5-watchEffect侦听器.vue
+
+```vue
+<template>
+    <h1>watchEffect侦听器</h1>
+    <button @click="update">点击测试</button>
+</template>
+
+<script setup>
+    import {ref,reactive,watchEffect} from 'vue'
+
+    let count = ref(100)
+
+    const person = reactive({
+        name:'甘雨',
+        age:27,
+    })
+
+    const update = () =>{
+        person.name += '!'
+        count.value++
+    }
+    /* 内部涉及到的参数,只要发生改动,则立即执行侦听器
+    有点类似计算属性,依赖的数据发生改动,则重新执行 */
+    watchEffect(()=>{
+        console.log('我是 watchEffect-------------')
+
+        let value1 = count.value
+        let value2 = person.name
+        console.log(value1,value2)
+    })
+</script>
+
+<style scoped>
+
+</style>
+```
+
+### 6-Vue3.2生命周期.vue
+
+```vue
+<template>
+    <button @click="add">{{ count }}</button>
+</template>
+
+<script setup>
+    /* 
+        Vue3与Vue2的生命周期类似,仅仅部分发生了变化,有以下两个命名发生了变化
+        beforeDestroy更名为beforeUnmount
+        destroyed更名为unmounted
+        在书写时必须添加 on 前缀
+    */
+    import {ref,onBeforeMount,onMounted,onBeforeUpdate,onUpdated
+    ,onBeforeUnmount,onUnmounted} from 'vue'
+
+    let count = ref(0)
+
+    const add = () =>{
+        count.value++
+    }
+
+    onBeforeMount(()=>{ console.log('onBeforeMount---') }) 
+    
+    onMounted(()=>{ console.log('onMounted---') }) 
+    
+    /* 数据更改时才执行 */
+    onBeforeUpdate(()=>{ console.log('onBeforeUpdate---') })
+    onUpdated(() => {console.log('onUpdated---')})
+    
+    /* 组件销毁时执行 */
+    onBeforeUnmount(()=>{console.log('onBeforeUnmount---') }) 
+    onUnmounted(()=>{console.log('onUnmounted---') })
+
+
+</script>
+
+<style scoped>
+
+</style>
+```
+
+![](.\img\QQ图片20230406162527.png)
+
+**beforeDestroy  更名为  beforeUnmount**
+
+**destroyed  更名为  unmounted**
+
+### 7-defineProps父子传值
+
+#### 父组件
+
+```vue
+<template>
+    <div class="father">
+        <h3>父组件</h3>
+        <!-- 引用子组件 -->
+        <child :key1="key1" :key2="key2" 
+        key3="helloworld!!"></child>
+    </div>
+</template>
+
+<script setup>
+    /* 导入子组件 */
+    import Child from './components/Child.vue'
+    import {ref,reactive} from 'vue'
+    let key1 = ref('你好世界!')
+    const key2 = reactive(['抽烟','喝酒','烫头']) 
+</script>
+
+<style scoped>
+    .father{
+        width:500px;
+        height:500px;
+        background-color: lightblue;
+        border-radius: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+```
+
+#### 子组件
+
+```vue
+<template>
+    <div class="child">
+        <h3>我是孩子</h3>
+        <ul>
+            <li>{{ key1 }}</li>
+            <li>{{ key2 }}</li>
+            <li>{{ key3 }}</li>
+        </ul>
+    </div>
+</template>
+
+<script setup>
+    /* 使用 defineProps 接受父组件传递过来的值 */
+    const props = defineProps({
+        /* 书写方式 1 */
+        key1:String,
+        /* 书写方式 2 */
+        key2:{
+            type:Array,
+            required:true,
+        },
+        key3:{
+            type:String,
+            required:true,
+            default:'传递失败!',
+        },
+    })
+</script>
+
+<style scoped>
+    .child{
+        width:300px;
+        height:300px;
+        background-color: coral;
+        border-radius: 30px;
+        text-align: center;
+    }
+</style>
+```
+
+### 8-defineEmits父子传递函数
+
+#### 父组件
+
+```vue
+<template>
+    <div class="father">
+        <h3>我是爸爸</h3>
+        <!-- 使用自定义事件绑定了一个函数 -->
+        <child2 @hello="show"></child2>
+    </div>
+</template>
+
+<script setup>
+    /* 导入子组件 */
+    import Child2 from './components/Child2.vue'
+    
+    const show = (val1,val2) => alert(val1+val2)
+</script>
+
+<style scoped>
+    .father{
+        width:500px;
+        height:500px;
+        background-color: lightblue;
+        border-radius: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+```
+
+#### 子组件
+
+```vue
+<template>
+    <div class="child">
+        <h3>我是孩子</h3>
+        <button @click="touch">激发父组件的函数</button>
+    </div>
+</template>
+
+<script setup>
+    /* 使用 Vue3.2提供的 defineEmits 绑定父组件的自定义事件 */
+    const emit = defineEmits(['hello'])
+    /* 激发自定义事件 emit('激发的父组件自定义事件','传递的值') */
+    const touch = ()=>emit('hello','完结','撒花!!!')
+</script>
+
+<style scoped>
+    .child{
+        width:300px;
+        height:300px;
+        background-color: coral;
+        border-radius: 30px;
+        text-align: center;
+    }
+</style>
+```
 
 
 
 
 
-
-
-
-
-
-
-
+---
 
 
 
