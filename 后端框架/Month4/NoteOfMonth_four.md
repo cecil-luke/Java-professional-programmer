@@ -1,4 +1,4 @@
-# day01
+# day01（JDBC）
 
 ## 1. 时间分布？
 
@@ -451,9 +451,109 @@ day16~day19:综合项目 WEB版+模拟
 
 4. MyBatis中如何处理事务、Spring中如何使用事务？【全部是JDBC】
 
-## 10. 元数据？
+## 10. 元数据？元信息[metadata]
 
-## 11. 数据源？
+1. 元数据：关于数据的数据。
+
+2. JDBC中主要由两个元数据接口：`DatabaseMetaData`和·`ResultSetMetaData` 
+
+3. `DatabaseMetaData`：主要用来获得数据信息,如：数据的版本、名字、驱动版本、是否支持..特性。
+
+4. `ResultSetMetaData`:结果集的元数据，获取结果集中列的信息。
+
+   1. getColumnCount:获得列数
+   2. getColumnLabel:获得列别名【有则返回别名，没有则返回原名】
+   3. getColumnName:获得列名字
+
+5. 案例:
+
+   ~~~java
+   import java.sql.*;
+   import java.util.*;
+   import java.io.*;
+   //数据库的元数据。
+   public class TestMetaData{
+   	public static void main(String args[])throws Exception{
+   		Connection con = getConnection();
+   		//获取数据库元数据
+   		DatabaseMetaData dbmd = con.getMetaData();
+   		//								8                         0
+   		System.out.println(dbmd.getDatabaseMajorVersion()+"."+dbmd.getDatabaseMinorVersion() );
+   		System.out.println(dbmd.getDatabaseProductName());
+   		System.out.println(dbmd.getDatabaseProductVersion());
+   		System.out.println(dbmd.getDriverName());
+   		System.out.println(dbmd.getDriverVersion());
+   		String sql="select id as sid,name as stuname,age,birth,email from et2212.student";
+   		PreparedStatement pst = con.prepareStatement(sql);
+   		ResultSet rs = pst.executeQuery();
+   		//获取元数据
+   		ResultSetMetaData rsmd = rs.getMetaData();
+   		//列数
+   		int count = rsmd.getColumnCount();
+   		while(rs.next()){
+   			for(int i=1;i<=count;i++){//获取列名字
+   				String cName = rsmd.getColumnName(i);
+   				//列别名 起别名返回别名 没有别名使用列名字
+   				String cLabel = rsmd.getColumnLabel(i);
+   				String value = rs.getString(cLabel);
+   				System.out.println(cName+"\t"+cLabel+"\t"+value);
+   
+   			}
+   		}
+   
+   
+   	}
+   	//提供连接的方法
+   		private static Connection getConnection()throws Exception{
+   			//1.读取配置文件
+   			Properties pro = new Properties();
+   			//getClassLoader()使用类加载器去加载资源从类的所在包的外部开始寻找。
+   			InputStream is  = TestKeys.class.getClassLoader().getResourceAsStream("db.properties");
+   			pro.load(is);
+   			is.close();
+   
+   			Class.forName(pro.getProperty("m.driver"));
+   
+   			Connection con = DriverManager.getConnection(
+   							pro.getProperty("m.url"),
+   							pro);
+   			return con;
+   
+   	}
+   }
+   ~~~
+
+## 11. 数据源（Datasource）---获取连接的首选？
+
+1. ##### 数据源标准？
+
+   1. `javax.sql.DataSource`接口是JAVA官方在1.4中提出一个新的获取连接的标准。在此之前获取连接一般使用DriverManager，在此之后，推荐使用DataSource的方式获取连接。
+
+   2. 提供的最主要的方法：`getConnection`
+
+      
+
+2. ##### 数据源实现方案？
+
+   1. 基础实现：使用DriverManager提供一个连接
+
+   2. 连接池实现：采用数据库连接池的方式实现数据源
+
+      
+
+3. ##### 数据库连接池？[必考必问]
+
+   1. 数据库连接池是在服务器启动时初始化一些连接放到连接池（容器、集合）中，当需要获取连接时，首先查看连接池中是否有空闲的连接，如果有则返回，如果没有则判断当前连接数是否超过了最大可用的连接数，如果没超过，则创建新的连接，返回，如果超过了最大可用连接数，等待或者抛出无可用连接的异常。
+
+      
+
+   2. 当连接使用完毕之后，再把连接放回到连接池中，从而实现连接的`复用`
+
+4. ##### 数据源产品？
+
+   1. ASF:commons-DBCP
+   2. 阿里：druid
+   3. c3p0 ..mybatis实现数据源。。
 
 ## 12. 获取数据库中新添加的记录的主键？
 
@@ -582,8 +682,6 @@ day16~day19:综合项目 WEB版+模拟
 
   - 在数据库中有专门存放图片、音频、视频、大文本文档 字段类型，这种类型叫：**lob**（Large Object）类型,mysql中 文本大对象 text、二进制大对象（图片、音频视频）blob
 
-    
-
   - 一般的客户端都不支持直接操作lob类型的数据，lob类型的数据一般通过程序（JDBC）采用IO流的方式添加和查询的。
 
     
@@ -593,6 +691,136 @@ day16~day19:综合项目 WEB版+模拟
     
 
   - ![image-20230410212248159](./note.assets/image-20230410212248159.png)
+
+
+
+## 15. 实现数据源?
+
+## 16.DAO:Data Access Object 数据访问对象
+
+- DAO层一般是由 接口+实现+实体类构成的，一般存放所有的系统中和数据库交互的方法。
+- IStudentDao:接口 
+  - getAllSchs():查询所有学校
+  - querySomeStu():分页查询学生
+  - addStu(Student stu):添加学生
+  - addPic(Pic)：添加图片
+- StudentDaoImpl:实现类
+
+## 17. 作业：把et2301这个database中的所有的表和数据：
+
+​	1. 打印出来
+
+ 2. 写出到 txt文件中
+
+    表名字：xxx
+
+    id   name  age
+
+    1   xx      xxx
+
+     2   xx      xxx
+
+### TestWork1.java
+
+```java
+import java.sql.*;
+import java.util.*;
+import java.io.*;
+
+public class TestWork1{
+	public static void main(String[] args)throws Exception{
+
+        String[] q = new String[100];
+        String[] w = new String[100];
+        int t=0;
+
+        Connection aa = getConnection();
+
+        Statement ff = aa.createStatement();//三个分别用来查询表名，列名，数据
+        Statement qq = aa.createStatement();
+        Statement www = aa.createStatement();
+
+        ResultSet g = ff.executeQuery("Show tables");// 查询此数据库有多少个表格
+		PrintWriter pw = new PrintWriter("./data.txt");
+        while(g.next()){
+            System.out.println(g.getString(1));
+            pw.println(g.getString(1));
+            q[t]=g.getString(1);//把表名给赋值给数组
+            ResultSet u=qq.executeQuery("DESC "+q[t]+"");//以数组来查一下此表格的列
+            int l=0;
+            while(u.next()){
+                w[l++]=u.getString(1);//获取此表的列数
+
+            }
+            ResultSet y=www.executeQuery("select * from "+q[t++]+"");//查询此表的数据
+            while(y.next()){//获取此表数据
+                for (int i = 1; i < l+1; i++) {//以列的数值为终止行，来打印！
+					String str = y.getString(i)+"\t";
+                    System.out.print(y.getString(i)+"\t");
+                    pw.print(y.getString(i)+"\t");
+                    /*if(i==1){
+						str = "";
+						str = g.getString(1)+"\n"+y.getString(i)+"\t";
+					}
+					try {
+							File file = new File("./data.txt");
+							if(!file.exists()) {
+								file.createNewFile(); // 创建新文件,有同名的文件的话直接覆盖
+							}
+							FileOutputStream fos = new FileOutputStream(file,true);
+							OutputStreamWriter osw = new OutputStreamWriter(fos);
+							BufferedWriter bw = new BufferedWriter(osw);
+							bw.write(str);
+							bw.newLine();
+							bw.flush();
+							bw.close();
+							osw.close();
+							fos.close();
+					}catch (FileNotFoundException e1) {
+						e1.printStackTrace();
+					} catch (IOException e2) {
+						e2.printStackTrace();
+					}*/
+                }
+                System.out.println();
+                pw.println();
+            }
+        }
+        pw.close();
+        g.close();
+        ff.close();
+        aa.close();
+
+        //读文件
+        System.out.println("================================================================================");
+        FileReader fr = new FileReader("./data.txt");
+        BufferedReader br = new BufferedReader(fr);
+        String str;
+        while((str = br.readLine())!=null){
+			System.out.println(str);
+		}
+	}
+	//提供连接的方法
+	private static Connection getConnection()throws Exception{
+			//1.读取配置文件
+			Properties pro = new Properties();
+			//getClassLoader()使用类加载器去加载资源从类的所在包的外部开始寻找。
+			InputStream is  = TestWork1.class.getClassLoader().getResourceAsStream("db.properties");
+			pro.load(is);
+			is.close();
+
+			Class.forName(pro.getProperty("m.driver"));
+
+			Connection con = DriverManager.getConnection(
+							pro.getProperty("m.url"),
+							pro);
+			return con;
+
+	}
+}
+```
+
+
 
 ---
 
@@ -847,7 +1075,330 @@ public class TestPst{
 
 
 
+# day02(线程池、Javaweb基础)
 
+## 1.错误1：端口占用
+
+![image-20230411192650177](./note.assets/image-20230411192650177.png)
+
+错误原因：`端口被占用`，常见场景：
+
+1. ​	开服务器的同时，再开服务器。
+2. 先开前端项目（前端项目默认8080），再开后端项目（后端项目默认端口8080）
+
+## 2. 我们模拟实现一个web 服务器？
+
+1. 我们想后台发送请求时，后台接收到请求，但是没有返回内容时，前端`转圈`，就是没有任何响应，正在等待后台给的响应。
+
+2. 当我们从服务器向客户端输出内容如下时:
+
+   ![image-20230411193210977](./note.assets/image-20230411193210977.png)
+
+3. 客户端浏览器显示，`无效的响应`
+
+   ![image-20230411193237063](./note.assets/image-20230411193237063.png)
+
+4. 通过我写的Tomcat.java的模拟实现WEB服务器过程，我们发送Tomcat（WEB服务器）可以接收到请求报文，可以返回响应报文，但是需要开发人员自己去 `处理请求,生成响应`
+
+   1. web服务器: 接收请求
+
+   2. 我们: 处理请求 生成响应
+
+   3. web服务器: 返回响应
+
+      
+
+5. JAVA官方制定的JAVAEE的标准：其中定义了servlet的技术规范（接口），在这套规范中定义了核心的几个接口:
+
+   1. javax.servlet.**Servlet**：处理请求 生成响应
+
+   2. javax.servlet.**ServletConfig**: 为Servlet服务，存放一些Servlet的启动信息的
+
+   3. javax.servlet.**ServletContext**:为Servlet服务，提供Servlet的上下文环境的。
+
+   4. javax.servlet.**ServletRequest**: 打包请求
+
+   5. javax.servlet.**ServletResponse**：打包响应。
+
+      
+
+6. 以上标准中，Servlet接口由`开发人员实现`,其他接口由WEB服务器（Tomcat）实现。我们在Servlet类中处理请求，生成响应，如果需要其他资源（如：请求、响应、配置、Context）等 Tomcat全部送给我们了。等我们实现完毕Servlet之后，我们再把Servlet类注册到**web服务器（Tomcat）**上，在服务器接收到请求之后，就可以使用我们写的Servlet类处理请求了。
+
+   
+
+7. Tomcat只会寻找（<u>Servlet接口</u>：init\service\destroy）方法，我们只需要在init\service\destroy中处理请求。
+
+   
+
+8. **静态资源**：.html/.css/.js/.png/.jpg 千人一面 动态效果
+
+   
+
+9. **动态资源**：servlet/jsp 根据不同的请求、参数，作出不同的响应。 千人千面
+
+## 3. Tomcat的安装和使用？
+
+1. Tomcat是ASF提供的一款免费、开源、纯JAVA实现的WEB服务器。
+
+2. Tomcat是一款绿色软件。解压即安装。【解压到没有中文的目录下】
+
+3. 配置环境变量：
+
+   1. 因为Tomcat是JAVA实现的，所以需要`JAVA_HOME`环境变量
+
+4. 修改Tomcat的控制台编码：
+
+   1. tomcat/conf/logging.properties==>51行===》 GBK
+
+5. tomcat目录结构：
+
+   ![image-20230411202030871](./note.assets/image-20230411202030871.png)
+
+## 	4.  第一个web应用
+
+- 开发源代码的地方:随便
+
+  
+
+- 运行的地方：Tomcat
+
+  
+
+- 从开发的目录赋值代码到运行期tomcat中的过程：`部署`。
+
+  
+
+- 基础WEB应用程序目录机构:
+
+  - 项目名字 et2301
+    - WEB-INF 
+      - lib:存放jar包
+      - classes: 存放class文件
+      - web.xml: 部署描述文件【存放我们开发了哪些Servlet\Filter\Listener. 向tomcat注册组件】
+    - 页面、页面所在目录
+    - index.html
+    - pages/index.html
+
+  
+
+---
+
+## 连接池实现
+
+### AbstractDataSource.java
+
+```java
+import javax.sql.DataSource;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.logging.Logger;
+//抽象的DataSource 模板方法【（抽象方法、基本操作）  + 具体方法】
+public abstract class AbstractDataSource implements DataSource {
+	//抽象方法 基本操作
+	public abstract Connection doGetConnection() throws SQLException ;
+
+	//具体方法 模板方法 ：模板方法中调用抽象方法。
+    @Override
+    public Connection getConnection() throws SQLException {
+        return this.doGetConnection();
+    }
+
+    @Override
+    public Connection getConnection(String username, String password) throws SQLException {
+        return null;
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        return null;
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return false;
+    }
+
+    @Override
+    public PrintWriter getLogWriter() throws SQLException {
+        return null;
+    }
+
+    @Override
+    public void setLogWriter(PrintWriter out) throws SQLException {
+
+    }
+
+    @Override
+    public void setLoginTimeout(int seconds) throws SQLException {
+
+    }
+
+    @Override
+    public int getLoginTimeout() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return null;
+    }
+}
+
+```
+
+### PooledConnectionFactory.java
+
+```java
+import java.sql.*;
+import java.lang.reflect.*;
+
+public class PooledConnectionFactory implements InvocationHandler{
+
+	//真正的连接
+	private Connection realCon;
+	//proxy:代理  代理连接对象
+	private Connection proxyCon;
+	//dataSource
+	private PooledDataSource ds;
+
+	public Connection getProxyCon(){return this.proxyCon;}
+
+	public PooledConnectionFactory(Connection realCon,PooledDataSource ds){
+		this.realCon = realCon;
+		this.ds = ds;
+
+		//代理.静态方法newProxyInstance():获得代理对象。
+		proxyCon =  (Connection)Proxy.newProxyInstance(
+					Connection.class.getClassLoader(),//类加载器
+					new Class[]{Connection.class},//代理的接口
+					this);//处理器InvocationHandler类型的
+
+	/*
+	Proxy.newPrxoyInstance()作用？
+		1.在内存中动态生成一个代理类【接口的实现类】的字节码序列数组。
+
+		2.把字节码序列的数组加载到内存--》构造对象。
+	*/
+	}
+	@Override
+	public Object 	invoke(Object proxy,Method method,	Object[] args)throws Throwable{
+		System.out.println("方法执行:"+method);
+		String methodName = method.getName();
+		if(methodName.equals("close")){
+			//放回到连接池中
+			this.ds.pool.addLast(this.proxyCon);
+		}else{
+			//其他非close方法全部交给realCon执行
+			//调用realCon对象中的当前方法【我们调用的方法】,并传入参数
+			return method.invoke(this.realCon,args);
+		}
+		return null;
+	}
+}
+```
+
+### PooledDataSource.java
+
+```java
+import java.sql.*;
+import java.util.*;
+
+public class PooledDataSource extends AbstractDataSource{
+	/*继承过来的：getConnection()====>doGetConnection()*/
+	protected LinkedList<Connection> pool =new LinkedList<>();
+	//DriverManagerDataSource
+	//初始化个数
+	private int initSize=5;
+
+	//最大可用连接数10.
+	private int maxActive=10;
+	//当前连接数
+	private int current=0;
+	//最大空闲连接数
+	private int maxIdle=8;
+
+	//构造方法中模拟向连接池中添加连接。
+	public PooledDataSource(){
+		try{
+			for(int i=0;i<initSize;i++){
+				//真正连接
+				Connection con = realCreate();
+				PooledConnectionFactory f = new PooledConnectionFactory(con,this);
+				//连接池中存放是代理连接对象，这样才能实现每一个代理对象中的方法执行，都会调用inovokee
+				this.pool.addLast(f.getProxyCon());
+				this.current++;
+			}
+	}catch(Exception e){}
+	}
+
+	//真正获取连接的方法
+	public  Connection doGetConnection() throws SQLException{
+		//如果连接池中有连接，从连接池中获取连接。
+		if(this.pool.size()>0){
+			return this.pool.removeFirst();
+		}
+		//如果连接池中没有连接，判断当前连接数是否超过了最大可用连接数。
+		if(current<maxActive){
+			Connection con = this.realCreate();
+			PooledConnectionFactory f = new PooledConnectionFactory(con,this);
+			//连接池中存放是代理连接对象，这样才能实现每一个代理对象中的方法执行，都会调用inovokee
+
+			this.current++;
+			return f.getProxyCon();
+		}
+		throw new SQLException("真正的没有连接了。。别拿了！！");
+
+	}
+	//当使用完连接时候，再将连接放回到连接池中。
+	public void close(Connection con){
+		try{
+		if(con!=null){
+			if(this.pool.size()<this.maxIdle){
+				this.pool.addLast(con);
+			}else{
+				con.close();
+			}
+			this.current--;
+		}}catch(Exception e){e.printStackTrace();}
+	}
+
+	//对内使用的真正创建连接的方法。
+	private  Connection realCreate() throws SQLException{
+			try{
+				Class.forName("com.mysql.cj.jdbc.Driver");
+			}catch(ClassNotFoundException e){}
+			String url="jdbc:mysql://localhost:3306/et2301?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true";
+			return DriverManager.getConnection(url,"root","etoak");
+	}
+
+}
+```
+
+### Test.java
+
+```java
+import java.sql.*;
+import javax.sql.*;
+public class Test{
+	public static void main(String args[])throws Exception{
+		DataSource ds = new PooledDataSource();
+		for(int i=0;i<15;i++){
+			Connection con = ds.getConnection();
+			System.out.println(con);
+			//ds.close(con);
+			//我们现在需要想办法拦截处理con对象中的close方法：
+			//不能直接关闭，而是放到连接池中。
+			con.close();
+		}
+	}
+}
+```
+
+
+
+---
 
 
 
