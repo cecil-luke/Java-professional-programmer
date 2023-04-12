@@ -1075,7 +1075,7 @@ public class TestPst{
 
 
 
-# day02(线程池、Javaweb基础)
+# day02(线程池)
 
 ## 1.错误1：端口占用
 
@@ -1174,7 +1174,7 @@ public class TestPst{
     - WEB-INF 
       - lib:存放jar包
       - classes: 存放class文件
-      - web.xml: 部署描述文件【存放我们开发了哪些Servlet\Filter\Listener. 向tomcat注册组件】
+      - web.xml: **部署描述文件**【存放我们开发了哪些Servlet\Filter\Listener. 向tomcat注册组件】
     - 页面、页面所在目录
     - index.html
     - pages/index.html
@@ -1401,6 +1401,302 @@ public class Test{
 ---
 
 
+
+# day03(Maven)
+
+## 0. Maven
+
+**<<Maven配置文件>>在/Month4的Maven文件里**
+
+
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+            http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--定义坐标信息：当别人使用我们的jar包时，需要提供坐标信息-->
+    <!--域名（倒过来）【+项目名字】-->
+    <groupId>com.et2301.student</groupId>
+    <!--artifactId:项目名【+模块名】-->
+    <artifactId>student-entity</artifactId>
+    <!--版本号！-->
+    <version>0.0.1</version>
+    <!--packaging:打包方式：
+        普通工程：jar 包
+        web工程： war 包  JAVAEE定制的压缩格式，会被服务器自动解压
+        父子工程： pom-->
+    <packaging>jar</packaging>
+
+    <dependencies>
+    <!--我们用到了第三方的组件：单元测试框架，所以需要导入依赖（maven会自动下载包）
+    依赖的坐标信息来自MAVEN中央仓库： mvnrepository.com -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+
+
+---
+
+## 1. Servlet的生命周期？
+
+1. Servlet类是我们（开发人员）写的，但是并不归我们管理【虽然我们实现类中的方法，但是我们不构造对象，不调用方法】，Servlet类作为组件（零件）交给Tomcat（WEB服务器管理的）。
+
+   
+
+2. Tomcat负责构造Servlet的对象，负责调用Servlet类中方法（尤其是**生命周期方法**）。
+
+   
+
+3. 生命周期方法：`Tomcat一定会调用到的方法，我们只需要在有需求时实现，不同我们调用。` 
+
+   1. **init**(ServletConfig config):初始化
+
+   2. **service**(ServletRequest req,ServletResponse resp):处理请求
+
+   3. **destroy**(): 销毁之前执行。
+
+   4. 除了生命周期方法，还有两个服务的方法：getServletConfig()+getServletInfo()
+
+      
+
+4. 生命周期方法的调用顺序：
+
+   0. 服务器启动，请求发送，Tomcat接收，根据url判断静态资源，如果servlet动态资源，找**web.xml**，根据url-pattern-->servlet-name-->servlet-class--》判断内存中是否已经有该类型对象。
+
+   1. Servlet被Tomcat构造.
+   2. Tomcat调用init()进行初始化。
+   3. 所有请求交给Service处理。
+
+   Tomcat根据我们在service中生成的**response对象**，组装标准的**HTTP响应报文**，会送到浏览器。
+
+   
+
+5. `Tomcat在管理Servlet类对象的时候，采用单例模式，即：不管对某个Servlet的请求有多少次,Tomcat只会创建一个该类型的对象。`【构造方法和初始化方法只会执行一次】
+
+   
+
+6. 实现Servlet类的方式：
+
+   1. 我们直接实现Servlet接口 可以但是不推荐；
+   2. 继承GenericServlet,实现service() 可以但是不推荐
+   3. **继承HttpServlet,实现doXXX方法。**
+
+## 2. Servlet的初始化？
+
+1. `初始化`：就是在servlet的service方法执行之前**预先执行init()方法**，我们可以在init方法加载配置、读取资源等操作。【并不是每次请求都需要初始化】
+
+   
+
+2. 在标准中（javax.servlet.Servlet接口）中，init方法是需要传参（ServletConfig）的。GenericServlet实现init()方法，在方法体中，接收config，调用空参init()，如果有初始化的需要，我们只需要重写init()即可。
+
+   
+
+3. 在init方法中有个参数ServletConfig:
+
+   1. **ServletConfig**是为Servlet服务的，每一个Servlet都有一个与之关联的ServletConfig对象，ServletConfig中存放着Servlet的启动信息。【就相当于我们每个人都有一个身份证】
+
+   2. ServletConfig中的方法列表：
+
+      1. **getInitParameter**(String name):根据名字获取初始化参数的值
+
+      2. **getInitParameterNames**():获取初始化参数名字
+
+      3. **getServletName**():获得Servlet的名字  <servlet-name>
+
+      4. **getServletContext**():获取Servlet所在的上下文环境对象。
+
+         
+
+   3. ServletContext对象：Servlet上下文环境，其中包含了很多Servlet和所在的容器通信的方法，如：获取服务器上工程所在的绝对路径、从服务器中加载资源、动态注册Servlet\Filter\Listener等。
+
+      
+
+   4. ServletContext和Servlet是**一对多**的关系，当服务器启动时，就会创建一个ServletContext,所有的servlet都可以获得也只能获得一个ServletContext;
+
+      
+
+   5. **默认Servlet对象在请求到达服务器时构造并初始化。我们可以通过<load-on-startup>修改特性，通常是一个数字 1，2  告诉tomcat在启动时读取构造Servlet对象并初始化**
+
+      
+
+   6. ![](./note.assets/image-20230412165058350.png)
+
+## 3. 在servlet中处理请求：请求报文？
+
+前台页面：
+
+~~~jsp
+<h2><a href="hello?username=xxx&checkbox=a&checkbox=b&checkbox=c">hello</a></h2>
+
+<form action="hello" method="POST">
+    用户名:<input type="text" name="username"><br>
+    目标城市：
+        <input type="checkbox" name="checkbox" value="jn">济南
+    <input type="checkbox" name="checkbox" value="bj">北京
+    <input type="checkbox" name="checkbox" value="sh">上海
+    <input type="submit" value="提交">
+</form>
+~~~
+
+
+
+~~~java
+  //~~~~~~~~请求行~~~~~~~~~~~~~~~~~~
+        //本次请求提交的方法GET POST
+        String method = req.getMethod();
+        //请求的资源 /项目名/请求路径  /stu/hello.html /stu/login
+        String requestURI = req.getRequestURI();
+        //请求的完整路径 http://......./stu/hello.html
+        String requestURL = req.getRequestURL().toString();
+        //协议版本
+        String protocol = req.getProtocol();
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~请求行结束，请求头开始~~~~~~~~~~~~
+        Enumeration<String> headerNames = req.getHeaderNames();
+        while(headerNames.hasMoreElements()){
+            //请求头 名字
+            String name = headerNames.nextElement();
+            String value = req.getHeader(name);
+            System.out.println(name+"\t"+value+";");
+        }
+        //~~~~~~~~~~~~~~~~~~~~~~~请求头获取完毕~~~~~~~~~~~~~~~~~~~~~~
+        //根据参数名字获得参数值
+        String parameter = req.getParameter("username");
+        String[] checkboxes = req.getParameterValues("checkbox");
+        //参数Map
+        Map<String, String[]> parameterMap = req.getParameterMap();
+        //获取文件：servlet3.0之后提出的获取上传的文件方式之一 不推荐。
+        //Collection<Part> parts = req.getParts();
+        //Part part = req.getPart("");
+        //会话 对象
+        HttpSession session = req.getSession();
+       // session.setAttribute("stus",stus);
+        Cookie[] cookies = req.getCookies();
+        //获取ServletContext 上下文环境对象的另外一种方式
+        ServletContext servletContext = req.getServletContext();
+        req.setAttribute("hello","binbin");
+
+        Object value = req.getAttribute("hello");
+        //req提供给我们的手动解析参数的方法：1.可以通过getParameter获得参数
+        //2.也可以自己通过getInputStream():解析参数【有些情况必须这么干】
+        ServletInputStream inputStream = req.getInputStream();
+        /*int serverPort = req.getServerPort();
+        String serverName = req.getServerName();
+        String remoteAddr = req.getRemoteAddr();
+        int remotePort = req.getRemotePort();
+        */
+        //ContentType:获取Content-Type请求头 代表从客户端发往服务的请求种内容类型
+        //响应头也有Content-Type:与之相反
+        String contentType = req.getContentType();
+        //消息体中的参数长度
+        int contentLength = req.getContentLength();
+        //GET方法提交请求时的?后的参数字符串 POST无效
+        String queryString = req.getQueryString();
+        //协议 HTTP/1.1
+        String scheme = req.getScheme();
+        // /工程名字
+        String contextPath = req.getContextPath();
+
+~~~
+
+`我们可以通过getInputStream方法手动的读取消息体中的参数，一旦我们自己读取参数之后，tomcat不再给我们setParameter，所以req.getInputStream()之后时无法调用getParameter().`
+
+## 4. 关于请求头中的Content-Type对于 <u>浏览器处理参数</u> 的影响? 
+
+1. ##### application/x-www-form-urlencoded （默认方式）
+
+   1. 代表浏览器把参数组装成key=value&key1=value1的格式。
+
+      
+
+2. ##### multipart/form-data （文件上传时、图片）
+
+   ![image-20230412174548672](./note.assets/image-20230412174548672.png)
+
+   1. 代表浏览器把`参数通过分隔符`分割传递到服务器。
+
+   2. 分隔符在每次请求的请求头：Content-Type中
+
+      ![image-20230412174653061](./note.assets/image-20230412174653061.png)
+
+3. ##### application/json
+
+   1. 浏览器把参数以**JSON格式**传递到后台服务器。
+   2. 服务器无法解析参数，不会自动setParameter,所以我们也不能直接request.getParameter(),一般使用request.getInputStream()读取。
+
+
+## 4.1 在servlet中处理请求：返回响应？
+
+从服务器（servlet）返回响应给客户端浏览器，主要使用response.
+
+1. ##### 使用response向客户端返回字符数据
+
+   ~~~java
+   resp.setContentType("text/html;charset=UTF-8"); <font color="red">中国</font>
+       				 text/plain:原样输出  <font color="red">中国</font>
+           //修改编码一定要在获取输出流之前
+          PrintWriter writer = resp.getWriter();
+           writer.print("<html><body><h1>大家好</h1></body></html>");
+           writer.close();
+   ~~~
+
+   
+
+2. ##### 使用response向客户端返回字节数据
+
+   文件下载原理：服务器端的文件，写出客户端浏览器，并且以文件形式保存
+
+   ~~~java
+   resp.setContentType("image/jpeg");
+          //2.使用response.getOutputStream 向客户端输出字节数据
+           //File file = new File("058.jpg");
+   
+           //输入流 文件来自于服务器
+           //InputStream is = new FileInputStream(file);
+           InputStream is = req.getServletContext().getResourceAsStream("/WEB-INF/image/059.jpg");
+           InputStream is1 = Hello2Servlet.class.getClassLoader().getResourceAsStream("../image/060.jpg");
+           //内容的处理方式：以文件的形式保存图片
+           resp.setHeader("Content-Disposition",
+                   "attachment;filename="+
+                           URLEncoder.encode("吴老师","UTF-8") +"abc.jpg");
+           //输出流
+           OutputStream os = resp.getOutputStream();
+   
+           int len;
+           byte[] data = new byte[1024<<3];
+           while((len =is.read(data))!=-1){
+               os.write(data,0,len);
+           }
+           is.close();
+           os.close();
+   ~~~
+
+   
+
+3. ##### 使用跳转的方式跳转其他页面返回【同步方式使用】
+
+   请求转发：hello--->helloservlet-->main.html 转发器：RequestDispatcher
+
+   ​	request.getRequestDispatcher("转发的页面").forward(req,resp)
+
+   重定向：
+
+   ​	response.sendRedirect("目的地")
+
+4. ##### 返回错误
+
+   ​	response.sendError(状态码，状态码对应的字符串)
+
+## 5. 从打开浏览器输入地址到看到内容的过程？
 
 
 
