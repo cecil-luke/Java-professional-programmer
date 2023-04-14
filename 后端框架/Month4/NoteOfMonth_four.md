@@ -1702,9 +1702,303 @@ public class Test{
 
 
 
+# day04
 
 
 
+# day05
+
+## 复习  
+
+#### 1 . JDBC如何返回添加到数据库中的数据的主键？
+
+​	数字
+
+​		Statement.RETURN_GENERATED_KEYS
+
+​		同一连接前提下查询: select last_insert_id()
+
+​	字符串
+
+​		1.先查询后生成主键
+
+​		select replace(uuid(),"-",",")
+
+​		2.添加进数据库
+
+#### 2. AVAWEB中文件上传的原理?
+
+​		客户端： 
+
+​		带有文件上传的表单的enctype = multipart/form-data，method为post，el-upload底层采用JS的方式动态组装我们的选择的文件成formData，通过原始ajax发送到服务器
+
+​		服务器:
+
+​		使用第三方组件解析文件 - **commons - fileupload**
+
+​		第三方组件中获得文件，保存到指定的位置
+
+#### 3. Statement 和PreparedStatement的区别?
+
+**PreparedStatement & Statement**     
+
+- Statement一般用来执行静态SQL，如果有参数，参数是通过**拼接的方式**添加到SQL中
+- PreparedStatement可以执行有动态参数的SQL语句。支持 ？ 占位符。当创建PreparedStatement对象时，立即传入SQL语句，**会被发送到数据库服务器**，编译成可以执行的形式保存，真正执行时只需要传入参数。
+- PreparedStatement可以避免**SQL注入的问题**
+- 不能使用 ？ 占位符
+
+- - ' ' → 中有参数 不支持?
+  - 表名字不支持 ? 
+  - order by / group by 不支持 ？ 
+
+#### 4. 代码题：JDBC的流程?
+
+​	1. 加载驱动
+
+​		class.forName("com.mysql.cj.jdbc.Driver");
+
+​	2.获得与数据库的连接
+
+​		String url = "地址..."
+
+​		Connection con = DriverManager.getConnection(url,user,pwd)
+
+​	3.创建SQL执行器
+
+​		String sql = select * from student
+
+​		Statement sta = con.createStatement();
+
+​	4.执行SQL执行器
+
+​			ResultSet rs = sta.executeQuery(sql);
+
+​	5.处理结果
+​		while(rs.next()){
+​    		int id = rs.getInt("id");
+​    		String name = rs.getString("name");
+​    		Date birth = rs.getDate("birth");
+​    		System.out.println(id+"\t"+name+"\t"+birth);
+​		}
+
+​	6.关闭资源
+
+​		rs.close();
+​		sta.close();
+​		con.close();
+
+#### 5. JAVAWEB中请求和响应分别有哪几部分组成并举例说明?
+
+#### 		请求:
+
+- 请求行：请求方法-get/post/put/delete + 请求资源-/index.html + 协议版本-HTTP/1.1	
+
+- 请求头  Host Accept ...
+
+- 消息体：参数，key=value&key1=value1 {"key":"value"}
+
+  #### 响应:
+
+  - 状态行：协议版本 + 状态码 + 字符串 `HTTP/1.1 200 OK`
+
+  - - 响应头：content-type :text/html;charset=utf-8  
+
+  - 响应正文：<html> </html>
+
+#### 6. 从请求处理的角度简述Servlet的生命周期（就是一次请求的处理过程）
+
+
+
+服务器启动： 
+
+​		1.读取自身配置文件 
+
+​		2.读取管理的其他工程配置文件 成功启动 
+
+客户端请求到达 
+
+​		\1. tomcat接收请求，创建request对象和response对象。
+
+​		\2. 根据请求判断静态资源还是动态资源，静态资源交给DefaultServlet. 
+
+​		\3. 动态资源 根据url-pattern,找到servlet-name,根据servlet-name找到 servlet-class. 
+
+​		\4. 判断内存中是否有对应Servlet类型的对象，如果有则返回，没有则使 用反射创建Servlet的对象。【实例化】
+
+​		\5. tomcat调用init()初始化，并传入ServletConfig 
+
+​		\6. tomcat调用service:执行请求 
+
+​		\7. Tomcat根据service中的response，打包响应返回给客户端。 
+
+​		\8. 服务器关闭时，tomcat调用destroy()..完成
+
+#### 7. 文件下载客户端发送的是同步请求还是异步请求？【2分】文件下载的原理【5分】和关键【3分】代码？
+
+​	\1. 文件下载是同步请求 
+
+​	\2. 文件下载就是 把服务器端的文件以IO的形式写出到客户端。并且以文件的形式接收服务器发送过来 的数据。 
+
+​	\3. 关键代码: 
+
+​		1.response.setHeader("Content-Disposition","attachment;filename=文件名") 
+
+​		2.IO复制文件
+
+#### 8. 请求中Content-Type有哪几种类型，分别代表的含义是什么？
+
+- `application/x-www-form-urlencoded`，tomcat可自动解析这个格式的参数，key=value
+- `multipart/form-data;boundary=----adsfadfad;`
+
+- - 从请求头中获得boundary分隔符
+  - 使用getInputStream获得消息体，再将数据分割。
+  - 以上工作交给第三方组件**commons-fileupload，获得（普通参数+文件参数）**
+
+- `application/json`直接读取消息体，通过第三方组件将JSON格式的字符串转换成JAVA对象{"username":"xx","pwd":"xx"}==>User{uname,pwd}
+
+#### 9. 加载资源 `Student.class.getClassLoader().getResourceAsStream()`和`Student.class.getResourceAsStream()`以及`ServleContext.getResourceAsStream()`的区别？
+
+​	getClassLoader().getResourcesAsStream():包外开始寻找资源 
+
+​	getResourceAsStream():包内寻找资源
+
+​	ServleContext.getResourceAsStream():根目录下寻找资源
+
+#### 10. 代码题：需求如下：客户端通过http://localhost:8080/stu/addStu的URL以`POST`请求的方式将请求传递到服务器，其中参数有两个username和password，值分别是"etoak"和"abc",另外请求头中携带一个权限认证的字段:`authoriation:加密的字符串`，现在需要在Servlet中打印输出请求参数中的值和请求中的认证字段的值，请写出Servlet类及配置?
+
+```java
+
+@WebServlet("/addStu") 
+public class XXServlet extends HttpServlet{ 
+    public void doPost(HttpServletRequest req,HttpServletResponse resp)throws ServletException,IOException{ 
+        String usenrame = req.getParameter("username"); 
+        String pwd = req.getParameter("password"); 
+        String author = req.getHeader("authoriation"); 
+    } 
+}
+```
+
+
+
+---
+
+## day05(项目：前后端交互数据）
+
+### 1. 数据源？
+
+- 作用：提供连接
+- 实现方案：数据库连接池
+- 产品：commons-dbcp
+
+### 2. JDBC/DAO?
+
+![image-20230414091535062](../../../../Month 4/day05/note.assets/image-20230414091535062.png)
+
+### 3. JAVAWEB中文件上传？
+
+1. 浏览器
+
+   1. 请求头：Content-Type: multipart/form-data  
+
+      1. 
+
+         <form  enctype="multipart/form-data">
+         </form>
+
+      2. el-upload:js的方式动态组装formData,通过ajax XmlHttpRequest 发送异步请求传递到服务器的。 
+
+   2. 浏览器把参数按照 分隔符 分割开。
+
+      
+
+2. 服务器端
+
+   1. 不会解析参数，依然会给request对象赋值（请求头 协议 方法 url ..不会解析消息体中参数）
+
+   2. 我们可以自己手动获取分隔符，再读取消息体，按照分隔符，分割参数。
+
+      
+
+   3. 我们不想自己干，交给第三方组件接管请求。
+
+      List<FileItem> items = ServletFileUpload.parseRequest(req);
+
+### 4. 关于Content-Type[内容-类型]?
+
+请求头的Content-Type: 
+
+- multipart/form-data:分割符分割参数	
+- application/x-www-form-urlencoded: 参数key-value
+- application/json:JSON格式 {“key”:"value","key1":{}}
+
+响应头的Content-Type:
+
+- ​	response.setContentType("text/html;charset=UTF-8") html
+- text/plain   原样显示 json
+- image/jpeg
+- video/mp4
+
+### 5. JDBC事务处理？
+
+1. 在开发中，一般事务处理是放在service层的。
+2. 为什么不放在DAO层？
+   1. 因为实际开发中，很多事务是跨DAO的。
+   2. orderDao.insertOrder    GoodDao.updateGoods()  XX.
+3. 
+
+### 6. 实体关联？
+
+数据库中表和表的关系:
+
+1 vs  1:主键 、唯一外键
+
+1  vs n： 外键
+
+m vs n ：关联表
+
+面向对象：
+
+一对一： Student{School sch }
+
+一对多: School { List<Studnet> stus}
+
+多对多: Sc{Student s,Course c}
+
+
+
+---
+
+# day06(项目归纳总结)
+
+## sql语句：
+
+```sql
+update pic set flag=1 where id in(
+    select a.* from(
+        select id from pic where stuid=6 order by uploadtime desc limit 1
+    )a
+);
+
+select
+s.id as stuid, s.name as stuname, age, birth, email, schid,
+sch.id as schoolid, sch.name as schname, phone,
+        concat_ws('-',pro.name,city.name,area.name,info) info,
+       p.id, savepath, realname, uploadtime, flag, stuid
+from student s left join school sch on s.schid = sch.id left join locations pro
+on pro.id = sch.proid left join locations city
+on city.id = sch.cityid left join locations area
+on area.id = sch.areaid left join pic p on p.stuid = s.id and p.flag=1;
+
+select
+    s.id as stuid, s.name as stuname, age, birth, email, schid,
+    sch.id as schoolid, sch.name as schname, phone,
+    concat_ws('-',pro.name,city.name,area.name,info) info,
+    p.id, savepath, realname, uploadtime, flag, stuid
+from student s left join school sch on s.schid = sch.id left join locations pro
+on pro.id = sch.proid left join locations city
+on city.id = sch.cityid left join locations area
+on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid = s.id;
+```
 
 
 
