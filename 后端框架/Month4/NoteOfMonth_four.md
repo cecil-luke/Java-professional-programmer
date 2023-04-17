@@ -1892,7 +1892,7 @@ public class XXServlet extends HttpServlet{
 
 ### 2. JDBC/DAO?
 
-![image-20230414091535062](../../../../Month 4/day05/note.assets/image-20230414091535062.png)
+![image-20230414091535062](./note.assets/image-20230414091535062.png)
 
 ### 3. JAVAWEB中文件上传？
 
@@ -2002,7 +2002,247 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 
 
+# day07(反射)
+
+## Reflection 反射
+
+### 第一、反射的应用案例?[为什么要学？]
+
+1. ##### 案例1：tomcat？
+
+   ~~~
+   1.Tomcat这款WEB服务器是很早之前开发的。我们写的StudentServlet类是今天写的。Tomcat负责构造我们写的StudentServlet类。
+   
+   结论:在Tomcat中一定有一段在运行期根据我们写的Servlet类动态构造对象的代码【反射】
+   ~~~
+
+2. ##### 案例2：idea的.对应的代码？
+
+   ~~~
+   我们运行起idea来 写JAVA代码，写的过程中.触发一段获得当前类中属性、方法等信息的代码。【反射】
+   ~~~
+
+3. JDBC封装、Spring、MyBatis... 
+
+### 第二、反射的简介？
+
+1. ~~~
+   反射是JAVA语言提供的一套在运行期动态获得类中信息的API【Application Programming Interfaces 类库】。java.lang.reflect包 
+   ~~~
+
+2. ~~~
+   JAVA中四大类型: 类 接口 枚举 注解  都会生成.class文件 也可以使用反射解析。
+   ~~~
+
+3. ~~~
+   通过反射我们可以在运行期动态的获得类中的属性、方法、构造方法等信息;通过反射我们可以在运行期动态的执行类中的方法;通过反射我们可以在运行期动态的构造类的对象;通过反射我们可以在运行期动态的判断对象的类型。
+   ~~~
+
+### 第三、反射入口类、平台类（java.lang.Class）
+
+1. ##### java.lang.Class类的理解？
+
+   1. ~~~
+      睡着的同学---》SleepStudent 桌子--》Table 
+      水杯========》Cup   事务=====>Transaction 
+      类==========》Class
+      Class类是描述类的类。一个Class类的对象代表一个具体的类。
+      ~~~
+
+   2. ~~~
+      当JVM加载完一个类之后，构造该类的任何对象之前，会首先在内存的堆区创建一个Class类型的对象，使用该对象存放JVM加载的类的信息。
+      
+      Student.class
+      class文件=====内存JVM===》Class对象
+      
+      Student stu = new Student();
+      0.javac: Student.java----->Student.class
+      
+      1.ClassLoader: 加载Student.class 文件 到内存
+      
+      2.ClassLoader:defineClass  创建Class对象,使用Class对象存放JVM加载的类的信息
+      ~~~
+
+      3.
+
+      ##### 我们要获得类中信息，而在运行期类中信息都在Class对象中，所以我们需要首先获得Class对象。Class类没有公共的构造方法，Class类的对象是JVM加载类时自动构造的，所以外部不能new的。
+
+   3. ~~~
+      一个类的对象可以有很多个，但是这些对象都指向一个Class对象。
+      ~~~
+
+   4. ~~~
+      所有基本数据类型和关键字void都有的Class对象
+      ~~~
+
+   5. ~~~
+      基本数据类型和对应的包装类不是一个Class对象。
+      ~~~
+
+   6. ~~~
+      所有具有相同元素类型和维数的数组都对应一个Class对象。
+      ~~~
+
+2. ##### 如何获得Class类的对象？
+
+   ~~~
+   1.类名字.class 固定形式  Class c = Student.class Stu.class 
+   
+   2.对象.getClass()  stu.getClass()
+   
+   3.类名字  Class cls =  Class.forName(类名字)
+   ~~~
+
+3. ##### 常用方法？
+
+   1. ~~~
+      forName:加载指定名字的类
+      ~~~
+
+   2. ~~~
+      getName() /getSimpleName()
+      ~~~
+
+   3. ~~~
+      newInstance(): 使用无参构造方法构造对象。
+      ~~~
+
+### 第四、通过Class类这个平台获得类中的各种信息？
+
+1. ##### Filed/Method/Constructor 都来自于java.lang.reflect包 
+
+2. ##### 属性:Field是用来描述属性的类，一个Field的对象代表一个具体的属性
+
+   1. Field getField(String)
+   2. Field[] getFields()：获得本类和直接父类中所有的公共的属性。
+   3. getDeclaredField(String)
+   4. getDeclaredFields()：获得本类中所有的属性【包括私有的】
+
+3. ##### 方法：Method是描述方法的类，一个Method对象代表一个具体的方法。
+
+4. ##### 构造方法：Constructor类描述构造方法。。。。。
+
+   ![image-20220322100722144](./image-20220322100722144.png)
+
+### 第五、案例
+
+1. DBUtils 工具类 Spring `JdbcTemplate` ==`QueryRunner` 
+2. Tomcat流程
+
+### 第六、JAVABEAN基本操作？反射基本代码的封装？
+
+内省 自省Introspector+PropertyDescriptor 
+
+比较方便的获得getter和setter
+
+## 回顾:一次请求的过程？
+
+服务器启动：
+
+- 读取自身配置文件
+- 读取管理的所有工程中的配置文件【webapps+热部署】
+- 在8080端口监听
+
+请求到达:
+
+- 浏览器地址栏输入地址 回车
+- 浏览器把地址组装成标准的HTTP请求报文，发送。 DNS
+- 服务器上的Tomcat接受到请求报文，构造请求和响应对象存放解析的请求报文信息和即将生成的响应信息。
+- 判断本次请求时静态资源还是动态资源:
+- 静态资源交给 DefaultServlet处理，成功返回数据,找不到404
+- 动态资源:到WEB.xml中寻找合适的<URL-PATTERN> ====><servlet-name>=====><servlet-class>,到此就找到了处理本次请求了Servlet类了。
+- 判断内存中是否已经有了该类型的对象，如果由，则返回原来的，如果没有，则使用反射创建新的。
+- 容器调用**init()方法**初始化。。。。Method.invoke
+- 容器调用**service()**处理请求 。。。method.invoke===>doXX
+- 容器关闭时调用destroy... method.invoke()
+- 服务器根据生成的响应对象，组装标准的响应报文返回给客户端。
 
 
 
+## 补充:XML解析？
+
+- jdk中提供了两种解析方案:
+
+  - SAX:基于事件的解析方式，不需要把文档加载到内存。占资源少，只能解析一次
+
+  - DOM:面向对象，把整个文档都加载到内存，占资源多，可以多次解析
+
+    ![image-20220322151728383](/image-20220322151728383.png)
+
+- DOM方式和SAX方式都有非常明显的优缺点，一般解析XML使用第三方==**DOM4J**==（结合了DOM和SAX）
+
+
+
+---
+
+## 1. JDK中封装的操作JAVABEAN属性和方法的API？
+
+- JDK中`java.beans`包对于JAVABEAN(尤其是实体bean)提供了比较方便工具类和方法，这些API统称：Introspector [内省、自省]
+
+  
+
+- 内省的API底层分装的最基础反射的API。
+
+  
+
+- name--->"set"+N+"ame"-->setName  age--->"set"+A+"ge"-->setAge
+
+  
+
+- Introspector:
+
+  ~~~java
+   @Test
+      public void testIntrospector() throws IntrospectionException {
+          //获得指定类的描述信息
+          final BeanInfo beanInfo = Introspector.getBeanInfo(Student.class);
+          //获得该类所有描述信息中所有的属性描述信息
+          final PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+          for(PropertyDescriptor pd:propertyDescriptors){
+              System.out.println(pd);
+          }
+          System.out.println("==========");
+          final MethodDescriptor[] methodDescriptors = beanInfo.getMethodDescriptors();
+          for(MethodDescriptor md:methodDescriptors) {
+              System.out.println(md.getMethod());
+          }
+      }
+  ~~~
+
+  
+
+- PropertyDescriptor:属性描述符   关于属性相关信息
+
+  - 名字
+  - 类型
+  - getter
+  - setter
+
+~~~java
+   @Test
+    public void testPropertyDescriptor() throws IntrospectionException, IllegalAccessException, InstantiationException, InvocationTargetException {
+
+        Student stu = Student.class.newInstance();
+        final PropertyDescriptor pd = new
+                PropertyDescriptor("username", Student.class);
+        //属性名字
+        final String name = pd.getName();
+        //属性类型
+        final Class<?> propertyType = pd.getPropertyType();
+        //getter  String getterName = "get"+name.substring(0,1).toUpperCase()+name.substring(1);
+        //return class.getDeclaredMethod(getterName);
+        final Method readMethod = pd.getReadMethod();
+        //setter
+        final Method writeMethod = pd.getWriteMethod();
+
+        writeMethod.invoke(stu,"etoak");
+        final Object value = readMethod.invoke(stu);
+        System.out.println(value);
+
+    }
+~~~
+
+
+
+---
 
