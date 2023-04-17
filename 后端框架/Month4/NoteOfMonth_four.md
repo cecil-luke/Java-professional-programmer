@@ -2246,3 +2246,29 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 ---
 
+## 枚举
+
+1. JAVA中的四大类型
+
+   | 名字 | 关键字     | 英文        |
+   | ---- | ---------- | ----------- |
+   | 类   | class      | class       |
+   | 接口 | interface  | interface   |
+   | 枚举 | enum       | enumeration |
+   | 注解 | @interface | annotation  |
+
+2. 枚举 是JAVA5.0中提出一种新类型,主要目的是描述一些固定值。交通灯：交通灯颜色，点餐系统中动作：查看菜单、结账。学生选课的返回标志: 成功、失败、超时、登录失败、验证码错误，HTTP协议规定请求的方法类型：GET POST PUT DELETE ..
+
+   jquery:JS库 ，提供 操作DOM方式动态组装表格、表单，访问HTML中元素、也提供了一个异步发送请求的方式： $.ajax({type:"post","url":"","data","dataType":"json"})===axios
+
+   POST  /uxx  HTTP/1.1
+
+   accept:application/JSON
+
+3. 自定义枚举
+
+   1. 使用关键字 enum
+
+4. 
+
+![](note.assets/image-20230417210440270.png)
