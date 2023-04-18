@@ -2272,3 +2272,148 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 4. 
 
 ![](note.assets/image-20230417210440270.png)
+
+# day08(JavaBean)
+
+
+
+## 1. JDBC的简化DAO层开发的工具-DBUtils？
+
+- apache-commons提供了一个简化JDBC操作的工具组件：**commons-dbutils**. 其中核心类：**QueryRunner**.
+
+- 结果集处理器的标准：**ResultSetHandler**
+
+- 结果集处理器的实现：
+
+  - **BeanHandler**
+  - **BeanListHandler**
+  - **MapHandler**
+  - **MapListHandler**
+  - **ScalarHandler**
+  - **ArrayHandler....**
+
+- 使用DBUtils改造 DAO层
+
+  
+
+## 2. 一次请求的处理过程？
+
+##### 服务器启动阶段：
+
+1. 服务器读取自身的配置文件，tomcat/conf/xxx.xml xx.properties 如果有错误，服务器无法启动，如果没有错误。服务器正常启动
+
+   
+
+2. 服务器读取管理的所有工程（webapps下的工程+指定的其他目录的工程）的web.xml文件（部署描述文件）、注解、动态注册。
+
+   
+
+3. 都没有问题 成功启动！
+
+##### 请求到达服务器阶段：
+
+1. 我们从浏览器地址栏输入地址，回车。
+
+2. 浏览器自动把请求地址打包成标准的**HTTP请求报文**。通过网络 发送出去。
+
+   www.baidu.com-->ip  DNS
+
+3. 服务器端监听相关接口的应用程序（如：tomcat）接收本次请求。Tomcat 创建两个对象（**HttpServletRequest类型**和**HttpServletResponse类型**）分别存放本次发送过来的请求报文和即将生成的响应报文。
+
+4. 服务器判断本次请求是静态资源还是动态资源：
+
+   1. **静态资源**：html/css/js/png/jpg  不管谁访问 都一样 千人一面
+   2. **动态资源**：servlet/jsp   千人千面
+
+5. 如果是静态资源：Tomcat会交给默认的`静态资源处理器`**DefaultServlet**处理。该处理器（Tomcat提供的Servlet）按照**资源名字**寻找资源：
+
+   1. 找到了返回   hello.html  abc.jpg   jquery.js
+   2. 找不到  返回 标准的404页面
+
+6. 如果是动态资源，如访问某个servlet. Tomcat会从事先加载的**web.xml**中寻找匹配的**url-pattern**,根据url-pattern 找到<servlet-name>根据<servlet-name>找到<servlet-class>,也就找到了本次请求的**处理类（servlet）**。
+
+    
+
+7. Tomcat判断内存中是否已经有该类型的Servlet对象了，如果有则返回原来的，如果没有则使用反射创建新的servlet对象【实例化..】。
+
+   
+
+8. Tomcat调用**init()**方法并传入事先准备好的ServletConfig对象【初始化。。】
+
+   
+
+9. Tomcat调用 **service()**方法处理请求，并传入request和response对象。
+
+   
+
+10. service 调用**doXX**，我们重写 doxx，完成响应的处理。
+
+    
+
+11. Tomcat根据<u>response对象</u>，生成标准的HTTP响应报文，回送给客户端浏览器
+
+    
+
+12. 浏览器接收到报文之后，解析，显示。
+
+    
+
+13. 当tomcat关闭时，所有的**destroy**执行。
+
+## 3. java读取XML？
+
+- JDK中提供了两种处理XML的机制：
+
+  - **SAX方式**：基于事件读取 只能读取一次，占内存少
+
+  - **DOM方式**：面向对象，把整个文件加载到内存，占资源多，反复读取。
+
+    ![image-20230418111813002](./note.assets/image-20230418111813002.png)
+
+- 因为以上两种方式都有明显的优缺点，所以以前在解析的过程中，一般使用第三方解析工具：**dom4j**
+
+
+
+---
+
+
+
+## 1. 对于学生选课系统的改造？
+
+1. #### 问题？
+
+   1. 在学生选课系统中，Servlet（控制器）中需要service对象的时候，我们通过直接new的方式构造的，当service需要DAO的时候，我们也是new的方式构造的，当在DAO中需要QueryRunner的时候，也是直接new的方式构造的，这种直接new的方式构造对象是有问题的：
+
+      1. `导致各层代码之间形成紧密耦合的关系。【我们开发目标：高内聚 低耦合】一旦需要替换某个对象，需要在所有new的地方重新修改源码，重新编译，不利于扩展和维护。`
+
+         
+
+      2. 当我们自己new Service时，还要确保service中的dao对象可用，在new Dao时还要确保dao中QueryRunner可用，也就是 `我们不光直接管理对象也会管理当前的对象依赖的其他对象。（service->dao->QueryRunner->DataSource）` 所有关联的对象以及关联对象关联的其他对象都需要我们自己管理。
+
+         
+
+2. #### 改造思路？
+
+   1. 我们希望把相关的对象的创建统一的交给“别人”、外部（可以是外部容器），我们不想再负责对象的创建、赋值等过程，只想去使用对象。
+
+      
+
+   2. 我们写的代码：（如果我们写的代码中，需要使用某个对象了，找 外部提供容器）+容器提供的对象
+
+      ![image-20230418151148109](./note.assets/image-20230418151148109.png)
+
+      
+
+3. #### 改造结果？
+
+   1. 我们需要的Controller\service\dao\数据源对象，全部交给**BeanFactory**工厂，我们不再关注对象的创建细节，也不再关注对象依赖的其他对象。BeanFactory实现了根据配置文件，自动构造对象，自动注入依赖的其他对象。这种由我们自己创建对象到交给外部容器（BeanFactory）创建对象的过程叫：Inversion  Of Controller 简称：**IOC**(控制反转：控制（对象的创建权限） 反转：由我们自己到容器)
+   2. IOC是一种思想，我们写的BeanFactory可以看做是IOC思想一种具体实现。BeanFactory不只是实现的对象的创建，也实现的属性的赋值，依赖其他的对象自动注入，这种思想叫**Dependency Injection (DI:依赖注入)**。IOC容器既可以实现构造对象也可以实现依赖注入。
+
+
+
+
+
+---
+
+
+
