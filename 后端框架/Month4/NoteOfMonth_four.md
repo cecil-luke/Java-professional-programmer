@@ -2409,11 +2409,627 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
    1. 我们需要的Controller\service\dao\数据源对象，全部交给**BeanFactory**工厂，我们不再关注对象的创建细节，也不再关注对象依赖的其他对象。BeanFactory实现了根据配置文件，自动构造对象，自动注入依赖的其他对象。这种由我们自己创建对象到交给外部容器（BeanFactory）创建对象的过程叫：Inversion  Of Controller 简称：**IOC**(控制反转：控制（对象的创建权限） 反转：由我们自己到容器)
    2. IOC是一种思想，我们写的BeanFactory可以看做是IOC思想一种具体实现。BeanFactory不只是实现的对象的创建，也实现的属性的赋值，依赖其他的对象自动注入，这种思想叫**Dependency Injection (DI:依赖注入)**。IOC容器既可以实现构造对象也可以实现依赖注入。
 
+---
 
+
+
+## 4.上午
+
+## 1. JAVAWEB中的Filter技术？
+
+1. JAVAEE是一个标准，这套标准包含了 多个Jar包。其中javax-servlet.jar是只包括含servlet规范。【甚至不包括jsp】
+
+2. 在javax-servlet.jar包中，总体上提供了三类技术标准：
+
+   1. Servlet标准： Servlet接口+ServletConfig+ServletContext. 处理请求
+   2. Filter标准：Filter接口+FitlerConfig+FilterChain 过滤请求响应
+   3. Listener标准：XXListener监听器接口+XXEvent:监听事件 
+
+3. javaweb中的Filter技术核心api:javax.servlet.Filter接口
+
+   1. 过滤器就是执行过滤任务的对象，过滤请求、响应，或者都过滤。
+
+   2. 方法列表
+
+      1. init(FilterConfig)                              init(ServletConfig)
+      2. doFilter(ServletReqeust,ServletResponse,chain)  service(ServletRequest,ServletResponse)
+      3. destory                         destroy()
+
+   3. 过滤器中真正执行过滤任务的方法时doFilter, servlet中执行业务逻辑的方法是service是一样的。每个过滤器都有一个与之关联的FilterConfig对象。【每一个Servlet都有一个与之关联的ServletConfig对象】FitlerConfig对象和ServletConfig对象一样都是在初始化被容器自动传入的。
+
+      
+
+   4. FilterConfig                                                                           ServletConfig
+
+      getInitParameter(String )                                                      getInitParameter(String )
+
+      getInitParameterNames()                                                      getInitParameterNames()
+
+      getServletContext （）                                                                 getServletContext()
+
+      getFilterName()																					getServletName()
+
+   5. 
+
+4. 案例：算命大师
+
+   1. 实现一套算命流程
+   2. 加入过滤器
+
+5. Filter对象是在容器启动时就会被容器构造和初始化的。默认Servlet实在请求到达时才会构造对象并初始化。【可以使用load-on-startup改变】
+
+6. 在使用XML的配置前提下，过滤同一个请求的多个Filter执行顺序按照<filter-mapping>的摆放顺序
+
+7. 在使用注解配置的前提下，过滤同一个请求的多个Filter执行顺序按照Filter的名字的字母顺序执行。
+
+## 2. JAVAWEB中Listener技术？ 
+
+- 在javaweb中定义了几个监听器接口，主要是tomcat回调。有些场景是需要在请求创建、ServletContext销毁等时间点执行的，这些需要就需要使用监听器。
+- javax.servlet.ServletContextListener:监听ServletContext对象的创建和销毁的
+- javax.servlet.ServletContextAttributeListener:监听ServletContext中属性的变化的。
+  - 三大域（三大范围）
+  - request.setAttribute() getAttribute()
+  - request.getSession.setAttribute()getAttribute()
+  - application(ServletContext) setAttribute getAttribute()
+- javax.servlet.ServletRequestListener:监听ServletRequest对象的创建和销毁的
+- javax.servlet.http.HttpSessionListener:监听session的创建和销毁的
+- javax.servlet.http.HttpSessionIdListener:监听Sessionid的变化的
+- javax.servlet.http.HttpSessionAttributeListener:监听session中属性变化的。
+- `当`xxx时，我们去实现 xxxListener，Tomcat在xx时自动调用 XXlistener对象中的xx方法
+- 当请求被创建时，我们去实现ServletRequestListener接口,tomcat自动在创建请求时，调用我么实现的requestListener接口对象中的 requestCreated。方法。
+
+## 3. 同步请求的发送方式？
+
+1. form表单提交
+2. a连接
+3. js: 表单提交
+4. js: a连接
+
+## 4. 服务器端给客户端响应的方式？
+
+- 使用getWriter直接写出
+- 跳转到其他页面输出
+- ![image-20230419095144752](./note.assets/image-20230419095144752.png)
+
+## 5. 关于XML的约束文件？
+
+- 我们使用某些框架，如果需要XML配置文件，文档的内容一般都是有约束的【不能瞎写】。XML文档的约束文件分为两类:
+
+  - dtd文档： xxx.dtd
+
+    ~~~xml
+    <!DOCTYPE web-app PUBLIC
+     "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+     "http://java.sun.com/dtd/web-app_2_3.dtd" >
+    
+    ~~~
+
+    
+
+  - schame文档： xx.xsd  新  功能多
+
+    ~~~XML
+    <?xml version="1.0" encoding="UTF-8"?>
+    <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+             xmlns:et="http://www.etoak.com/et"
+              xmlns:xsi:固定的
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             schemaLocation:xsd文件的位置
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                          http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd
+                                 http://www.etoak.com/et
+                                 http://www.etoak.com/et/xxxx.xsd"
+             version="4.0">
+        
+        <et:servlet></et:servlet>
+        
+        xmlns: xml的namespace 命名空间 这里默认的命名空间是： 相当于java中pacakge;
+        http://xmlns.jcp/org/xml/ns/javaee
+        
+        所有不带前缀的元素都来自默认的命名空间
+        
+    ~~~
+
+    
+
+## 6. 注册Servlet对象/Filter/Listener给tomcat的方式？
+
+1. web.xml声明
+2. 注解@WebServlet @WebFilter @WebListener
+3. `代码实现ServletContext动态注册`
 
 
 
 ---
 
+# day09（Spring Framework）
 
+
+
+## 1. 框架（framework）
+
+- 框架是来自工程领域，在软件开发领域指的是实现某些通用性功能总结出来的具有`可复用`的代码（库）。
+
+  
+
+- 我们可以把框架理解成 工具，完成某些通用功能工具，如：和数据库交互、日志、事务
+
+  
+
+- 框架是半成品，还需要我们来写核心业务。
+
+## 2. Spring framework?
+
+- 官网：https://spring.io/
+
+- 源码地址:https://github.com/spring-projects/spring-framework
+
+- Spring的全家桶
+
+  - Spring全家桶是以`Spring framework`打底的一套技术栈：Spring boot、Spring CLoud 、 Spring data ..共同组成。
+
+    ![image-20230420092558625](Spring.assets/image-20230420092558625.png)
+
+    
+
+- Spring Framework?
+
+  - Spring 各种其他技术都是以Spring framework 为基础的，Spring framework是实现了IOC 、AOP（面向切面）、Web(mvc \ webflux)、DAO层支持的框架。
+
+  - Spring 实现了各层（controller\service\dao）之间的`解耦`.
+
+  - Spring framework简称：核心容器（Bean管理 IOC、AOP）。
+
+    ![image-20230420093053440](Spring.assets/image-20230420093053440.png)
+
+  - 
+
+- Spring MVC?
+
+  - MVC: Model -View -Controller: 模型 -视图-控制器 MVC是一种软件的架构模式。
+  - Spring mvc:在Spring framework中，基于MVC思想的Spring的WEB框架。
+
+- Spring Boot?
+
+  - Spring Boot：简化 Spring mvc的开发
+
+## 3. Spring的核心容器基本使用？【使用Spring提供的IOC来获取bean】
+
+- 导入依赖
+
+  ![image-20230420095726269](/Spring.assets/image-20230420095726269.png)
+
+- 创建测试bean类
+
+- 配置文件：Spring需要参考的注册bean的配置文件
+
+- BeanFactory:我们使用Spring提供的IOC容器
+
+- 测试
+
+- **默认Spring的IOC容器对应每个注册bean类型，只会创建一个bean对象，当我们多次执行getBean时，其实返回的是同一个，即:默认bean是单例的**
+
+- **我们可以使用scope属性，把默认的singleton 改成，prototype,这样 每次getBean时都会创建一个新的bean对象**
+
+- Spring管理的bean对象 的对象是否是单例 是可控的，通过scope属性控制,Servlet对象是`单例的`
+
+
+
+## 4. BeanFactory和ApplicationContext?
+
+- BeanFactory接口是来自于Spring-beans包，是Spring IOC容器管理bean的核心接口，提供了getBean、getAlias、isSingleton等bean相关的方法。
+
+  ![image-20230420112034905](/Spring.assets/image-20230420112034905.png)
+
+- ConfigurableBeanFactory：【接口】可配置的BeanFactory, 配置：范围scope 、类加载、类型转换器。
+
+- AbstractBeanFactory:【实现类】 实现了getBean方法。---》doGetBean()..
+
+- DefaultListableBeanFactory:【实现类】
+
+- XmlBeanFactory:  extends 上边的类 从指定的XML中加载资源
+
+- ![image-20230420113309157](./Spring.assets/image-20230420113309157.png)
+
+- **BeanFactory采用延迟构造对象的方式，即当真正执行getBean方法时，才会构造对象。**
+
+- **ApplicationContext接口来自于Spring-Context包，继承了BeanFactory,也是一个Bean工厂。一般ApplicationContext和WEB容器联系比较好，我们可以理解为：BeanFactory更多是面向框架（Spring）的内部，管理bean.ApplicationContext更多是面向用户（我们）。所以在实际开发中我们一般使用某个ApplicationContext.**
+
+- `ApplicationContext采用立即构造对象的方式，当构造ApplicationContext对象时，就会注册bean对象【构造对象】。`
+
+- ClassPathXmlApplicationContext:从类路径加载XML的配置文件，构造IOC容器
+
+- FileSystemXMLApplicationContext:从文件系统加载XML配置文件，构造IOC容器
+
+- AnnotationConfigApplicationContext:从注解中加载配置， 构造IOC容器。
+
+
+
+## 5. Spring的IOC容器构造对象的方式？【注册bean对象】
+
+1. ##### 无参构造
+
+   ![image-20230420144218812](./Spring.assets/image-20230420144218812.png)
+
+2. ##### 带参构造
+
+   ![image-20230420144946978](./Spring.assets/image-20230420144946978.png)
+
+3. ##### 静态工厂方法
+
+4. ##### 实例工厂方法
+
+   ![image-20230420150551718](./Spring.assets/image-20230420150551718.png)
+
+5. ##### 通过实现FactoryBean接口注册bean对象:把创建对象的过程交给我们处理。
+
+   1. 实现FactoryBean接口
+
+      ![image-20230420152306430](./Spring.assets/image-20230420152306430.png)
+
+   2. `getBean的时候，返回getObject方法的返回值。`
+
+      ![image-20230420152350590](./Spring.assets/image-20230420152350590.png)
+
+      
+
+6. 注解
+
+## 6. Spring的IOC容器属性赋值的方式？
+
+1. ##### setter方法
+
+   <property>
+
+2. ##### 构造方法
+
+   <constructor-arg>
+
+3. 注解
+
+## 7. BeanFactory接口和FactoryBean接口的区别？
+
+- BeanFactory是IOC容器中获取bean的父接口，提供了配置、管理、获取bean的方法，也可以看做IOC容器使用入口。所有BeanFactory、ApplicationContext都实现了该接口。
+
+  
+
+- FactoryBean 是IOC容器提供了一种向IOC容器中注册bean的方式，允许自定义复杂业务逻辑，采用的延迟注册的机制，当真正getBean时，返回getObject方法的返回值。
+
+## 8.错误1：当注册多个bean，根据类型获取时？
+
+1. 定义
+
+   ![image-20230420105944211](./Spring.assets/image-20230420105944211.png)
+
+2. 获取
+
+   ![image-20230420110011078](./Spring.assets/image-20230420110011078.png)
+
+3. 报错:
+
+   ~~~java
+   org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type 'com.etoak.entity.Student' available: expected single matching bean but found 2: stu,stu1
+   
+   ~~~
+
+   
+
+---
+
+
+
+# day10
+
+## 1. 设计模式：策略模式？
+
+1. #### 定义
+
+   ![image-20230421093629406](../../../../Month 4/day10/note.assets/image-20230421093629406.png)
+
+2. #### 涉及的角色
+
+   ![image-20230421093758674](./note.assets/image-20230421093758674.png)
+
+3. #### 案例
+
+   1. LayoutManager
+      1. 环境： Container
+      2. 抽象策略：LayoutManager
+      3. 具体策略：BorderLayout  GruidLayout ....
+   2. DBUtils工具中使用了策略模式
+      1. 环境：query(sql,ResultSetHandler,Object...params)
+      2. 抽象策略: ResultSetHandler
+      3. 具体策略: BeanHandler BeanListHandler MapHandler KeyHandler......
+   3. JdbcTemplate工具也使用了策略模式:
+      1. 环境：    query() queryForObject()
+      2. 抽象策略： RowMapper
+      3. 具体策略：BeanPropertyRowMapper ColumnMapRowMapper SingleColumnRowMapper
+
+## 2. 注解？
+
+1. 我们已经用过的注解？
+
+   1. @Override
+   2. @WebServlet @WebFilter @WebListener @WebInitParam..
+
+2. 注解的组成部分:
+
+   1. 注解本身
+
+   2. 注解的处理程序【一般我们用别人的注解，别人已经提供好了相关处理程序。】
+
+   3. 使用注解  @WebServlet("/login")
+
+      
+
+3. 自定义注解使用关键字@interface
+
+   ![image-20230421101054684](./note.assets/image-20230421101054684.png)
+
+4. 注解中的属性、成员 必须使用();
+
+5. 注解中的属性，如果名字是value时，赋值可以省略名字，其他名字不可以省略。
+
+6. 注解中，可以使用基本数据类型的成员，但是不能使用包装类。
+
+7. 关于注解的注解？【元注解】java.lang.annotation包
+
+   1. @Retention: 只能用在其他注解上，表示注解的保留策略
+
+      1. value:RetentionPolicy.SOURCE  / RetentionPolicy.CLASS[默认] /RetentionPolicy.RUNTIME
+
+   2. @Target: 表示注解的适用的程序元素的种类
+
+      1. value:ElementType.METHOD/FIELD/CONSTRUTOR/PARAMETER...
+
+   3. @Documented:注解使用可以生成到JAVADOC文档中
+
+      
+
+## 3. 以XML和注解混合配置的方式：打通从controller到db？
+
+1. 导入依赖
+2. 建包
+3. controller
+4. service
+5. entity
+6. 配置文件
+7. 测试
+
+## 4. IOC容器提供的构造对象的注解？
+
+1. 都来自`spring-context.jar`,都是ioc核心容器 注册bean对象的。
+
+   1. ##### @Component：组件，通用性
+
+      ~~~java
+      @Target({ElementType.TYPE})         //该注解用在类、接口 等
+      @Retention(RetentionPolicy.RUNTIME) //该注解会被保留到运行期
+      @Documented
+      @Indexed
+      public @interface Component {
+          String value() default "";
+      }
+      ~~~
+
+   2. ##### @Controller：组件 建议放在Controller类上
+
+      ```java
+      @Target({ElementType.TYPE})
+      @Retention(RetentionPolicy.RUNTIME)
+      @Documented
+      @Component //controller注解  也是@Component 
+      public @interface Controller {
+          @AliasFor(
+              annotation = Component.class
+          )  //我们给value赋值就是给 @Component中的value赋值
+          String value() default "";
+      }
+      ```
+
+   3. ##### @Service:组件 建议放在Service类上
+
+      ~~~java
+      @Target({ElementType.TYPE})
+      @Retention(RetentionPolicy.RUNTIME)
+      @Documented
+      @Component
+      public @interface Service {
+          @AliasFor(
+              annotation = Component.class
+          )
+          String value() default "";
+      }
+      ~~~
+
+   4. ##### @Repository:组件 建议放在DAO层实现类上
+
+      ~~~java
+      @Target({ElementType.TYPE})
+      @Retention(RetentionPolicy.RUNTIME)
+      @Documented
+      @Component
+      public @interface Repository {
+          @AliasFor(
+              annotation = Component.class
+          )
+          String value() default "";
+      }
+      
+      ~~~
+
+   5. ##### @Configuration: 组件，一般放在 配置类上【配置文件--》配置类】
+
+      ~~~java
+      @Target({ElementType.TYPE})
+      @Retention(RetentionPolicy.RUNTIME)
+      @Documented
+      @Component
+      public @interface Configuration {
+          @AliasFor(
+              annotation = Component.class
+          )
+          String value() default "";
+      
+          boolean proxyBeanMethods() default true;
+      }
+      
+      ~~~
+
+
+## 5. IOC容器提供的属性赋值的注解?
+
+- ##### @Autowired: 来自spring-beans包
+
+  - 默认按照类型【byTyp】，从IOC容器中寻找对象给属性赋值，如果一个类型有多个bean对象，默认按照属性名字匹配，我们可以通过@Qualifier注解指定注入的bean的名字，如果没有指定@Qualifer并且也没有按照属性匹配，则报错：NoUniqueBeanDefinitionException
+
+- ##### @Resource: 来自于 javaee包 `javax.annotation`包 不是Spring提供的包【不会与Spring耦合】
+
+  - 默认在IOC容器中根据属性名字寻找bean对象[byName]。 如果没有指定名字的对象，则按照类型注入，可以通过name和type分别指定名字或者类型。
+
+- ##### @Value:来自于spring-beans包  给普通属性赋值
+
+  ![image-20230421151331916](./note.assets/image-20230421151331916.png)
+
+  ![image-20230421151317633](./note.assets/image-20230421151317633.png)
+
+## 6. Spring MVC配置流程？【4步】
+
+1. MVC: Model-View-Controller:控制器，是一种软件的架构模式。【架构模式>设计模式】
+
+   1. jsp[V]+javabean[M]+servlet[C]
+
+   2. SSH: Struts+jsp+hibernate
+
+   3. Spring+SpringMVC[C]+MYBATIS[M]+前端
+
+      
+
+2. #### 步骤1: 导入依赖
+
+   1. spring-jdbc(dao DB) +Spring-webmvc[WEBMVC模块是依赖核心容器]
+   2. 
+
+3. #### 步骤2: 配置文件
+
+   1. applicationContext.xml 
+
+      ![image-20230421153556124](./note.assets/image-20230421153556124.png)
+
+4. #### 步骤3：注解
+
+   1. @RequestMapping: 请求和 方法的映射 对应关系
+
+      
+
+   2. @ResponseBody
+
+      
+
+5. #### 步骤4：配置DispatcherServlet
+
+   ```
+   <!DOCTYPE web-app PUBLIC
+    "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd" >
+   
+   <web-app>
+    <servlet>
+      <servlet-name>mvc</servlet-name>
+      <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!--指定MVC使用的配置文件  默认：项目/WEB-INF/mvc-servlet.xml  -->
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:applicationContext.xml</param-value>
+        </init-param>
+      <load-on-startup>1</load-on-startup>
+    </servlet>
+     <servlet-mapping>
+       <servlet-name>mvc</servlet-name>
+       <url-pattern>/</url-pattern>
+     </servlet-mapping>
+   </web-app>
+   ```
+
+## 7. SpringMVC中controller接收参数？
+
+1. ##### 普通参数
+
+   1. 前端传递 ：key=value格式 `content-type: application/x-www-form-urlencoded`
+
+      如：username=etoak&pwd=xx
+
+   2. 服务器端： 
+
+      1. 可以使用和客户端参数对应 参数名字 接收  add(String username,String pwd)
+      2. 如果客户端参数比较多，也可以使用对象接收 add(User user):User{username,pwd}
+
+2. ##### JSON格式参数
+
+   1. 前端传递JSON格式参数：Content-Type: application/json
+
+      如:{"username":"xx","pwd":""}
+
+   2. 服务器端:
+
+      1. 使用对象接收+@RequestBody(把请求体参数组装成某个对象)
+
+3. ##### 文件参数：
+
+   1. Spring中处理文件上传的方式和JAVAWEB是一样。客户端不变
+
+      
+
+   2. 客户端
+
+      1. form action="" method="POST" enctype="multipart/form-data"
+
+         ​	<input type="file" name="xx">
+
+      2. js: 动态组装formData +ajax XmlHttpRequest 异步发送POST请求
+
+   3. 服务器：
+
+      1. tomcat接收请求，解析请求头 请求行 不再解析消息体
+      2. 一般我们使用第三方的组件解析请求（Commons-fileUpload） 或者 使用servlet3.0新特性 getPart
+      3. Spring: 提供了文件上传解析器 `MultipartResolver`, MultipartResolver会自动的解析参数给Controller中的相应参数赋值，我们就可以像使用普通参数一样使用文件参数。
+      4. MultipartResolver:
+         1. `CommonsMultipartResolver:使用Commons-fileUpload 组件解析请求`
+         2. Standard...Resovler: 使用Servlet3.0之后的新特性
+      5. `默认Spring 没有注册MultipartResovler的bean，需要我们自己配置`
+
+   ~~~java
+    @RequestMapping("/addPic")
+       public Emp addEmp1(MultipartFile pic, HttpServletRequest request){
+   
+           System.out.println(pic);
+           String filename = pic.getOriginalFilename();
+           ServletContext ctx = request.getServletContext();
+           String path= ctx.getRealPath("/files");
+           File f = new File(path);
+           if(!f.exists()){f.mkdir();}
+   
+           File target  = new File(f,filename);
+           //把文件保存到指定目录
+           try {
+               pic.transferTo(target);
+           } catch (IOException e) {
+               e.printStackTrace();
+           }
+   
+           return new Emp();
+       }
+   ~~~
+
+## 错误1：Spring mvc默认配置文件的位置问题？
+
+![image-20230421155033810](./note.assets/image-20230421155033810.png)
+
+
+
+**Spring mvc默认使用 项目/WEB-INF/【servlet-name的值】-servlet.xml 文件作为 配置文件,如果我们不使用默认的配置位置可以通过初始化参数修改 contextConfigLocation**
+
+
+
+---
 
