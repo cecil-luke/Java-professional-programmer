@@ -2724,7 +2724,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 1. #### 定义
 
-   ![image-20230421093629406](../../../../Month 4/day10/note.assets/image-20230421093629406.png)
+   ![image-20230421093629406](./note.assets/image-20230421093629406.png)
 
 2. #### 涉及的角色
 
@@ -3032,4 +3032,296 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 
 ---
+
+
+
+
+
+# day11(纯注解 SPI)
+
+
+
+## 1. Spring中注解？
+
+| 注解名字        | 作用                                                         | 所在包             |
+| --------------- | ------------------------------------------------------------ | ------------------ |
+| @Component      | 向IOC容器注册组件(bean)                                      | spring-context.jar |
+| @Controller     | 向IOC容器注册组件(bean)Controller                            | spring-context.jar |
+| @Service        | 向IOC容器注册组件(bean)Service                               | spring-context.jar |
+| @Repository     | 向IOC容器注册组件(bean)DAO层                                 | spring-context.jar |
+| @Configuration  | 向IOC容器注册组件(bean) 配置bean                             | spring-context.jar |
+|                 |                                                              |                    |
+| @Autowired      | 给属性赋值                                                   | spring-beans.jar   |
+| @Qualifier      | 按照指定名字 给属性赋值                                      | spring-beans.jar   |
+| @Value          | 给普通属性赋值                                               | spring-beans.jar   |
+|                 |                                                              |                    |
+| @Resource       | 给属性赋值                                                   | javax.annotation包 |
+|                 |                                                              |                    |
+| @RequestMapping | 请求映射                                                     | spring-web.jar     |
+| @ResponseBody   | 返回JSON                                                     | spring-web.jar     |
+| @RequestBody    | 把请求的消息体中参数（JSON）转换成对象                       | spring-web.jar     |
+|                 |                                                              |                    |
+| @RequestParam   | Controller中方法的参数和请求中的哪个参数对应                 | spring-web.jar     |
+| @DateTimeFormat | 把参数转换成指定格式的日期类型                               | spring-context.jar |
+| @RequestHeader  | add(@RequestHeader("Content-Type")String ct)  -->Content-Type | spring-web.jar     |
+| @RestController | @Controller+@ResponseBody                                    | spring-web.jar     |
+
+## 2. SPI
+
+参考SPI文档
+
+## 3. 纯注解版的Spring +MVC配置？
+
+1. 思路：把混合版的配置改成纯注解版
+
+2. 导入依赖
+
+3. 配置文件---》配置类
+
+   ~~~java
+   package com.etoak.emp.config;
+   
+   import org.springframework.beans.factory.annotation.Value;
+   import org.springframework.context.annotation.Bean;
+   import org.springframework.context.annotation.ComponentScan;
+   import org.springframework.context.annotation.Configuration;
+   import org.springframework.context.annotation.PropertySource;
+   import org.springframework.jdbc.core.JdbcTemplate;
+   import org.springframework.jdbc.datasource.DriverManagerDataSource;
+   import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+   
+   import javax.sql.DataSource;
+   
+   //applicationContext.xml
+   @Configuration//该类是个配置类 相当于applicationContext.xml
+   //<context:component-scan>
+   @ComponentScan(basePackages = "com.etoak.emp")
+   //property-placeHolder
+   @PropertySource("classpath:db.properties")
+   @EnableWebMvc//<mvc:annotation-drivern>
+   public class ETConfig {
+   
+       //<bean id="jt">
+       @Bean("jt1")  //向IOC容器注册bean对象id默认方法名字 相当于<bean id="" / @Component
+       public JdbcTemplate Jt(){
+           JdbcTemplate jdbcTemplate = new JdbcTemplate();
+           jdbcTemplate.setDataSource(this.ds());
+           return jdbcTemplate;
+       }
+       @Bean("ds")
+       public DataSource ds(){
+           DriverManagerDataSource ds = new DriverManagerDataSource();
+           ds.setDriverClassName(this.driver);
+           ds.setUrl(this.url);
+           ds.setUsername(this.user);
+           ds.setPassword(this.pwd);
+   
+           return ds;
+       }
+       @Value("${m.driver}")
+       private String driver;
+       @Value("${m.url}")
+       private String url;
+       @Value("${m.user}")
+       private String user;
+       @Value("${m.pwd}")
+       private String pwd;
+       //<bean id="dataSource"
+   
+   }
+   
+   ~~~
+
+   
+
+4. 注解
+
+5. DispatcherServlet web.xml-->SPI-->动态注册
+
+
+
+
+
+
+
+---
+
+
+
+## 4.SPI:Service Provider Interfaces
+
+### 1.1. 为什么要学习SPI？
+
+- ​	JDBC中、Servlet3.0之后、其他很多框架都用到了SPI。
+
+### 1.2. SPI的简介？
+
+~~~
+0.SPI(Service Provider Interface):服务提供者接口【服务发现机制】，从classpath、jar下的META-INF/services中查询文件，并自动加载文件中指定的类。
+
+1.是Java提供的可用于第三方实现和扩展的机制，把服务的标准和实现分离，我们可以通过该机制实现标准和实现之间的解耦，使得扩展非常方便。
+        * SPI接口方负责定义和提供默认实现；
+        * SPI调用方可以按需扩展
+        
+2.jdk中提供了服务器加载类ServiceLoader（java.util包），该类是实现自动加载服务的核心类.任何第三方的组件都可以实现自己的服务器加载类。
+JDK中的ServiceLoader类采用的是延迟加载机制。只有真正执行到next方法才会构造对象。
+
+        
+3. SPI的基本角色:
+	1.标准(通常是接口或者抽象类)
+	2.实现(各种不同的实现，都实现一个标准)
+	3.在项目（jar包）classes下 META-INF/services中定义一个文件，文件中内容写具体实现类
+	4.ServiceLoader类中的load方法可以加载指定的类并构造对象
+~~~
+
+![image-20220404115410496](./note.assets/image-20220404115410496.png)
+
+### 1.3. SPI案例？
+
+#### 1.3.1. 代码模仿
+
+![image-20220404120508981](./note.assets/image-20220404120508981.png)
+
+#### 1.3.2. JDBC中的SPI?
+
+- DriverManager类静态代码块中使用了JDK的SPI（ServiceLoader去加载驱动的具体实现）
+
+  ![image-20220404120752352](./note.assets/image-20220404120752352.png)
+
+- loadInitalDrivers方法如下:
+
+  ~~~java
+   private static void loadInitialDrivers() {
+          String drivers;
+          try {
+              drivers = AccessController.doPrivileged(new PrivilegedAction<String>() {
+                  public String run() {
+                      return System.getProperty("jdbc.drivers");
+                  }
+              });
+          } catch (Exception ex) {
+              drivers = null;
+          }
+          // If the driver is packaged as a Service Provider, load it.
+          // Get all the drivers through the classloader
+          // exposed as a java.sql.Driver.class service.
+          // ServiceLoader.load() replaces the sun.misc.Providers()
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          AccessController.doPrivileged(new PrivilegedAction<Void>() {
+              public Void run() {
+  				//使用ServiceLoader加载Driver驱动类
+                  ServiceLoader<Driver> loadedDrivers = ServiceLoader.load(Driver.class);
+                  Iterator<Driver> driversIterator = loadedDrivers.iterator();
+  
+                  /* Load these drivers, so that they can be instantiated.
+                   * It may be the case that the driver class may not be there
+                   * i.e. there may be a packaged driver with the service class
+                   * as implementation of java.sql.Driver but the actual class
+                   * may be missing. In that case a java.util.ServiceConfigurationError
+                   * will be thrown at runtime by the VM trying to locate
+                   * and load the service.
+                   *
+                   * Adding a try catch block to catch those runtime errors
+                   * if driver not available in classpath but it's
+                   * packaged as service and that service is there in classpath.
+                   */
+                  try{
+                      while(driversIterator.hasNext()) {
+                          driversIterator.next();
+                      }
+                  } catch(Throwable t) {
+                  // Do nothing
+                  }
+                  return null;
+              }
+          });
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          println("DriverManager.initialize: jdbc.drivers = " + drivers);
+  
+          if (drivers == null || drivers.equals("")) {
+              return;
+          }
+          String[] driversList = drivers.split(":");
+          println("number of Drivers:" + driversList.length);
+          for (String aDriver : driversList) {
+              try {
+                  println("DriverManager.Initialize: loading " + aDriver);
+                  Class.forName(aDriver, true,
+                          ClassLoader.getSystemClassLoader());
+              } catch (Exception ex) {
+                  println("DriverManager.Initialize: load failed: " + ex);
+              }
+          }
+      }
+  ~~~
+
+  
+
+- 每一个jar包中都有一个META-INF/services,其下都有一个文件java.sql.Driver,指向本包中的具体驱动
+
+  画一个JDBC驱动和实现 寻找的图
+
+  ![image-20220404173725457](./note.assets/image-20220404173725457.png)
+
+- 通过查看jar包mysql-connector-java-5.1.6之后的使用了SPI，所以不需要注册驱动，之前的需要手动注册
+
+- ##### 遗留问题：JAVA如何获得jar包中的信息
+
+  答:DriverManager自动是从Jar包中获取所有的类型是Driver.class的对象，构造对象,当驱动被构造时，静态代码块执行，把自己的对象注册到驱动管理器中
+
+#### 1.3.3.Servlet的新特性 代码方式添加Servlet Filter 等。注解版+ServletInitalizer演示使用SPI
+
+##### 1.编写一个类实现 ServletContainerInititalizer接口 2.resources/META-INF/services中新建一个名字为该接口全限定名的文件，内容是实现类名字
+
+![image-20220405095353477](./note.assets/image-20220405095353477.png)
+
+![image-20220405095414894](./note.assets/image-20220405095414894.png)
+
+##### 问题：Tomcat如何获得ServletContainerInitial类的具体对象的？
+
+加入tomcat-catalina的jar包
+
+```
+WebappServiceLoader：相当于JDK中ServiceLoader
+```
+
+![image-20220405111047848](./note.assets/image-20220405111047848.png)
+
+![image-20220405111128405](./note.assets/image-20220405111128405.png)
+
+![image-20220405111223206](./note.assets/image-20220405111223206.png)
+
+![image-20220405110930408](./note.assets/image-20220405110930408.png)
+
+1.3.4 Spring纯注解版中的 的流程复习回顾+原理
+
+1.导入依赖 webmvc   jdbc  jackson...
+
+2.ETConfig(@Configuration @ComponentScan @PropertySource)
+
+3.注解 Controller @Service
+
+4.写一个类实现【Spring提供的接口WebApplicationInitializer】并且在onStartup方法中注册DispatcherServlet.
+
+`在Spring-webjar包中有javax.servlet.ServletContainerInitializer的文件，其中的指向了一个类，在该类中加载WebApplicationInitializer的实现类，构造对象，然后执行onStartUp方法。`
+
+1.3.5 纯注解版的MVC+MyBatis
+
+@Bean
+
+public SqlSessioFactoryBean factoryBean(){
+
+​	SqlSessionFactoryBean bean = new SqlSessionFactoyBean();
+
+bean.set....
+
+}
+
+---
+
+
+
+
+
+
 
