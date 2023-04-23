@@ -3321,6 +3321,893 @@ bean.set....
 
 
 
+# day12(4.23 Mybatis)
+
+## 1. MyBatis:底层封装了JDBC的持久层框架
+
+### 1.为什么使用MyBatis
+
+#### 1.1. 传统的访问数据库技术介绍?
+
+1. ##### 传统的访问数据库的方式?JDBC
+
+   1. 加载驱动  Class.forName() 
+   2. 获得连接 Connection con..
+   3. 创建执行SQL的Statement对象 PreparedStatement..
+   4. 执行SQL返回结果 execute executeUpdate executeQuery()
+   5. 处理结果 while rs.next()... 
+   6. 关闭资源 close
+
+   ##### 问题：面向对象开发和面向关系存储之间不匹配问题【不完全对应。】开发人员手动处理由对象到关系型数据库之间的对应。【手动处理】
+
+2. ##### ORM思想的出现:
+
+   1. ORM:Object  Relational  Mapping 对象关系映射，这种思想目标是把面向对象开发中的对象映射到基于SQL的关系型数据库中。
+
+   2. addStu(Student stu)            orm:  addStu(Student stu)
+
+      jdbc:手动造车 手动执行         ORM框架.save(stu)-->XML 映射文件 对应关系 
+
+      手动处理结果 手动写SQL    映射文件： 类=表 类中属性-表中字段  
+
+      ​																	hibernate.cfg.xml  xx.hbm.xml
+
+      ​															}
+
+3. ORM是一种思想，其中最著名的实现: Hibernate   
+
+4. Hibernate是一款“全自动”的ORM映射框架:实现了Pojo到数据库表的全套映射机制，开发人员只需要定义好映射文件。Hibernate会自动的根据映射文件逻辑生成SQL语句、自动的执行SQL语句、自动的返回结果。save(stu)Student   table="tb_stu" 
+
+5. Hibernate save()-->insert语句 翻译过程 效率非常低、SQL语句不灵活
+
+   
+
+### 2.MyBatis简介？
+
++++
+
+
+
+1. MyBatis也是一款ORM思想的实现框架，底层也是封装的JDBC。
+
+2. MyBatis是一款"半自动的"ORM框架. MyBatis也会执行SQL，返回结果。具体的SQL语句需要开发人员自己写。 灵活 效率高。
+
+3. MyBatis在2010年之前叫IBatis，属于ASF,后来退出ASF，改名为MyBatis。
+
+4. 文档地址:
+
+   https://mybatis.org/mybatis-3/zh/configuration.html
+
+5. MyBatis中有两类配置文件:
+
+   1. 属性文件mybatis-config.xml:连接数据库的信息+属性 配置
+   2. 映射文件StudentMapper.xml: 我们写的SQL语句
+
+### 3.MyBatis提供的用户接口？
+
++++
+
+1. org.apache.ibatis.session.SqlSessionFactoryBuilder:
+   1. build(IO流)
+   2. build(Configuration 配置对象)
+2. org.apache.ibatis.session.SqlSessionFactory:
+   1. openSession()
+3. org.apache.ibatis.session.SqlSession:[核心]
+   1. insert 
+   2. update
+   3. delete
+   4. selectOne selectList..
+
+
+
+### 4. MyBatis的helloworld[对学生表的CRUD]？
+
++++
+
+1. mybatis-config.xml
+
+   ~~~xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-config.dtd">
+   <configuration>
+       <!--引入外部的配置文件-->
+       <properties resource="db.properties"></properties>
+       <settings><!--logImpl:LOG4J 采用log4j做日志-->
+           <setting name="logImpl" value="LOG4J"></setting>
+       </settings>
+       <environments default="m">
+           <environment id="m">
+               <!--事务管理器:JDBC:代表使用JDBC的方式管理事务
+                   Connection.setAutoCommit();
+                   Connection.commit();/rollback()
+               -->
+               <transactionManager type="JDBC"></transactionManager>
+               <!--POOLED:代表采用MyBatis使用了连接池方式实现的数据源-->
+               <dataSource type="POOLED">
+                   <property name="driver" value="${m.driver}"></property>
+                   <property name="url" value="${m.url}"></property>
+                   <property name="username" value="${m.user}"></property>
+                   <property name="password" value="${m.pwd}"></property>
+               </dataSource>
+           </environment>
+       </environments>
+       <mappers>
+           <mapper resource="StudentMapper.xml" />
+       </mappers>
+   </configuration>
+   ~~~
+
+   ![image-20220607154134435](./note.assets/image-20220607154134435.png)
+
+2. XXMapper.xml
+
+   ~~~xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   <mapper namespace="com.et">
+       <!--
+       insert: 执行 insert语句 executeUpdate
+       -->
+       <insert id="addStu" parameterType="com.etoak.student.pojo.Student">
+           insert into student( name, age, birth, email, schid)
+           values(#{name},#{age},#{birth},#{email},#{schid})
+       </insert>
+       <!--
+       select:执行查询
+       -->
+       <select id="queryStuById" parameterType="int"
+               resultType="com.etoak.student.pojo.Student">
+           select * from student where id=#{id}
+       </select>
+       <!--
+       UPDATE executeUpdate
+       -->
+       <update id="updateStu" >
+           update student set name=#{name},age=#{age},birth=#{birth},
+                              email=#{email} where id=#{id}
+       </update>
+       <!--
+       delete executeUpdate
+       -->
+       <delete id="deleteStu" >
+           delete from student where id=#{id}
+       </delete>
+       <select id="queryAll" resultType="com.etoak.student.pojo.Student">
+           select * from student
+       </select>
+   
+   </mapper>
+   ~~~
+
+   
+
+3. 基础操作
+
+~~~xml
+ session.insert(SQL语句id，参数)
+ session.update(SQL语句id,参数)
+ session.delete(SQL语句id，参数)
+ session.selectOne(SQL语句id，参数)
+ session.selectList(SQL语句id，参数)
+~~~
+
+### 5. Mapper方式实现MyBatis?
+
++++
+
+- Mapper.xml中namespace的名字和Mapper接口的名字一致
+- Mapper.xml中的SQL语句的id和Mapper接口中方法名字一致
+
+### 6. 类中属性和表中字段不完全一致？
+
++++
+
+1. ##### 添加
+
+   #{类中的属性不是表中的字段}
+
+2. ##### 查询
+
+   1. 起别名
+
+      ~~~xml
+       <select id="queryById" parameterType="int"
+          resultType="stu">
+              select
+              s_id as id,
+              s_name name,
+              s_age age,
+              s_birth birth,
+              s_email as email,
+              s_schid as schid
+              from tb_stu where s_id=#{id}
+          </select>
+      ~~~
+
+      
+
+   2. 使用resultMap
+
+      ~~~xml
+      <resultMap id="rMap_stu" type="stu">
+              <id property="id" column="s_id"></id>
+              <result property="name" column="s_name"></result>
+              <result property="age" column="s_age"></result>
+              <result property="birth" column="s_birth"></result>
+              <result property="email" column="s_email"></result>
+              <result property="schid" column="s_schid"></result>
+          </resultMap>
+          <select id="queryById" parameterType="int"  resultMap="rMap_stu">
+              select * from tb_stu where s_id=#{id}
+          </select>
+      ~~~
+
+      
+
+### 7. 传递多个参数？
+
++++
+
+1. Map
+
+2. @Param
+
+3. 对象
+
+~~~java
+ List<Student> querySome1(@Param("start")int startadadfa,
+                            @Param("pageSize") int pageSizeasdfadf);
+
+    List<Student> querySome(Map<String,Object> map);
+~~~
+
+### 8. resultType和resultMap的区别？
+
++++
+
+- resultType:表示执行SQL查询之后的结果集的每一条记录返回的类型,如:自定义的对象Student/User/Teacher、int、map
+- resultMap:一定对应的一个<resultMap>元素的id
+
+### 9. MyBatis如何获得添加到数据库中的主键？
+
++++
+
+1. #### JDBC如何获得？
+
+   1. ##### 自动增长的数字
+
+      1. 开关 Statement.RETURN_GENERATED_KEYS
+      2. 同一个连接前提下查询：select last_insert_id()
+
+   2. ##### 字符串
+
+      1. select replace(uuid(),'-','')
+      2. UUID.randomUUID()
+      3. KeyGenerator.getId()
+
+2. #### MyBatis和JDBC原理一样。
+
+   1. 使用useGeneratedKeys +keyProperty属性
+
+      ~~~xml
+      <insert id="addStudent" parameterType="stu" useGeneratedKeys="true"
+          keyProperty="id" keyColumn="s_id" >
+              insert into tb_stu( s_name, s_age, s_birth, s_email, s_schid)
+              values(#{name},#{age},#{birth},#{email},#{schid})
+          </insert>
+      ~~~
+
+      
+
+   2. selectKey
+
+      ~~~xml
+       <insert id="addStudent" parameterType="stu" >
+              <selectKey keyProperty="id" keyColumn="s_id" resultType="int"
+              order="AFTER">
+                  select last_insert_id()
+                 <!-- select replace(uuid(),'-','')-->
+              </selectKey>
+              insert into tb_stu( s_name, s_age, s_birth, s_email, s_schid)
+              values(#{name},#{age},#{birth},#{email},#{schid})
+          </insert>
+      
+      ~~~
+
+### 10. 批量添加？
+
++++
+
+1. 使用就是动态标签 foreach
+
+   ~~~xml
+    <insert id="addStus1" parameterType="list">
+           insert into tb_stu(s_name, s_age, s_birth, s_email, s_schid)
+           values
+           <foreach collection="list" item="s" separator=",">
+               (#{s.name},#{s.age},#{s.birth},#{s.email},#{s.schid})
+           </foreach>
+   
+       </insert>
+   
+       <insert id="addStus" parameterType="list">
+           insert into tb_stu(s_name, s_age, s_birth, s_email, s_schid)
+   
+           <foreach collection="list" item="s" separator=" union ">
+               (select  #{s.name},#{s.age},#{s.birth},#{s.email},#{s.schid} )
+           </foreach>
+   
+       </insert>
+   ~~~
+
+### 11. 模糊查询：#和$的区别？
+
++++
+
+1.#底层使用的是预编译的Statement,即：PreparedStatement,支持?占位符的。$:底层使用的是普通的Statement，不支持?占位符的，参数只能拼接。
+
+2.有些情况不能使用?占位:
+
+​	参考JDBC ：PrearedStatement和Statement的区别。
+
+### 12. MyBatis中的动态SQL标签?
+
++++
+
+- where
+
+- if 
+
+  ~~~xml
+    <select id="queryByConditions1" resultMap="rMap_stu">
+          select * from tb_stu
+          <where>
+              <if test="name!=null and name!='' ">
+                  and s_name like '%${name}%'
+              </if >
+              <if test="email!=null and email!='' ">
+                  and s_email=#{email}
+              </if>
+          </where>
+      </select>
+  ~~~
+
+  
+
+- foreach
+
+  ~~~xml
+   <insert id="addStus1" parameterType="list">
+          insert into tb_stu(s_name, s_age, s_birth, s_email, s_schid)
+          values
+          <foreach collection="list" item="s" separator=",">
+              (#{s.name},#{s.age},#{s.birth},#{s.email},#{s.schid})
+          </foreach>
+  
+      </insert>
+      <insert id="addStus" parameterType="list">
+          insert into tb_stu(s_name, s_age, s_birth, s_email, s_schid)
+  
+          <foreach collection="list" item="s" separator=" union ">
+              (select  #{s.name},#{s.age},#{s.birth},#{s.email},#{s.schid} )
+          </foreach>
+  
+      </insert>
+  ~~~
+
+  
+
+- trim
+
+  ~~~xml
+   <select id="queryByConditions" resultMap="rMap_stu">
+          select * from tb_stu
+          <!--prefix:前缀  prefixOverrides:前边遇到什么内容干掉-->
+              <trim prefix="where" prefixOverrides="and">
+                  <if test="name!=null and name!='' ">
+                      and s_name like '%${name}%'
+                  </if >
+                  <if test="email!=null and email!='' ">
+                      and s_email=#{email}
+                  </if>
+              </trim>
+  
+      </select>
+  ~~~
+
+  
+
+- chose..when.otherwise
+
+  ~~~xml
+   <select id="queryByConditions" resultMap="rMap_stu">
+          select * from tb_stu
+          <!--prefix:前缀  prefixOverrides:前边遇到什么内容干掉-->
+          <trim prefix="where" prefixOverrides="and">
+             <choose>
+                 <when test="name!=null and name!='' ">
+                     and s_name like '%${name}%'
+                 </when>
+                  <otherwise>
+                      and s_email=#{email}  
+                  </otherwise>
+             </choose>
+          </trim>
+  
+      </select>
+  
+  ~~~
+
+  
+
+### 13. 一对一和一对多的关联查询？
+
++++
+
+- association
+
+  ~~~xml
+   <resultMap id="rMap_stu_sch" type="stu">
+          <id property="id" column="s_id"></id>
+          <result property="name" column="s_name"></result>
+          <result property="age" column="s_age"></result>
+          <result property="birth" column="s_birth"></result>
+          <result property="email" column="s_email"></result>
+          <result property="schid" column="s_schid"></result>
+          <!--association:一对一关联
+              property:类中的属性 javaType:属性的类型-->
+          <association property="sch" javaType="com.etoak.student.entity.School">
+              <id property="id" column="id"></id>
+              <result property="name" column="name"></result>
+              <result property="phone" column="phone"></result>
+              <result property="info" column="info"></result>
+          </association>
+      </resultMap>
+      <select id="queryByIdWithSch" resultMap="rMap_stu_sch">
+          select
+          s_id, s_name, s_age, s_birth, s_email, s_schid,
+          sch.id, sch.name, sch.phone,sch.info
+          from tb_stu s left join school sch
+              on s.s_schid = sch.id where s.s_id=#{id}
+      </select>
+  ~~~
+
+  
+
+- collection：一对多
+
+  ~~~xml
+    <resultMap id="rMap_sch" type="com.etoak.student.entity.School">
+          <id property="id" column="id"></id>
+          <result property="name" column="name"></result>
+          <result property="phone" column="phone"></result>
+          <result property="info" column="info"></result>
+          <!--
+          collection：表示集合 List /set都可以
+              property:类中的属性
+              ofType:集合中每一个元素的类型
+          -->
+          <collection property="stus" ofType="stu">
+              <id property="id" column="s_id"></id>
+              <result property="name" column="s_name"></result>
+              <result property="age" column="s_age"></result>
+              <result property="birth" column="s_birth"></result>
+              <result property="email" column="s_email"></result>
+              <result property="schid" column="s_schid"></result>
+          </collection>
+      </resultMap>
+      <select id="querySchWithStus" resultMap="rMap_sch">
+          select sch.id, sch.name, sch.phone,sch.info,
+                 s_id, s_name, s_age, s_birth, s_email, s_schid
+          from school sch   left join tb_stu s on s.s_schid = sch.id
+          where sch.id=#{id}
+      </select>
+  ~~~
+
+  
+
+### 14. MyBatis的核心接口【面向内部的】？
+
++++
+
+1. #### org.apache.ibatis.session.Configuration:
+
+   1. 代表MyBatis中的配置文件
+   2. 其中的属性：Environment:代表环境<environment>标签
+   3. 其中的属性:MappedStatement:代表SQL映射文件中的<insert><update><delete><select>等标签
+   4. 
+
+2. #### org.apache.ibatis.mapping.Environment:
+
+   1. 代表环境元素<environment>.
+   2. 其中的属性：id+transactionFactory+dataSource
+
+3. #### org.apache.ibatis.mapping.MappedStatement:
+
+   1. 代表SQL映射文件中的<insert><update><select>标签
+
+   2. 其中的属性:
+
+      1. StatementType:执行器的类型 枚举
+
+         ~~~
+         STATEMENT:普通的执行器
+         PREPARED：预编译的执行器
+         CALLABLE：执行触发器的执行器
+         ~~~
+
+      2. ResultSetType:结果集的类型 枚举
+
+         ~~~
+         	DEFAULT(-1)：默认的结果集
+            FORWARD_ONLY(1003)：不可滚动的结果集
+            SCROLL_INSENSITIVE(1004)：可滚动结果集
+            SCROLL_SENSITIVE(1005)：可滚动的结果集
+         ~~~
+
+         
+
+      3. SqlCommandType:SQL语句的类型 枚举
+
+         ~~~
+         INSERT/UPDATE/DELETE/SELECT/UNKNOWN
+         ~~~
+
+      4. SqlSource:解析SQL语句的方法+获得SQL的方法
+
+         ```
+         其中有一个方法getBoundSql:BoundSql真正代表SQL语句
+         ```
+
+   3. 
+
+4. #### org.apache.ibatis.type.TypeAliasRegistry：类型别名注册器  存放别名
+
+   1. TypeAliasRegistry构造时默认注册一些别名: int  string list
+
+   2. new Configuration():中 自动添加别名  如:JDBC POOLED LOG4J
+
+   3. 我们写的别名 
+
+      1. <typeAlias type="" alias="">
+
+      2. <typeAliasPackage value="">
+
+         
+
+5. ![image-20220609112351413](./note.assets/image-20220609112351413.png)
+
+6. #### org.apache.ibatis.builder.BaseBuilder:基本的解析器
+
+   1. 代表解析器。解析XML的。
+
+   2. 其中主要属性和构造方法
+
+      ~~~java
+      public abstract class BaseBuilder{    
+          protected final Configuration configuration;
+          protected final TypeAliasRegistry typeAliasRegistry;
+          protected final TypeHandlerRegistry typeHandlerRegistry;
+      
+          public BaseBuilder(Configuration configuration) {
+              this.configuration = configuration;
+              this.typeAliasRegistry = this.configuration.getTypeAliasRegistry();
+              this.typeHandlerRegistry = this.configuration.getTypeHandlerRegistry();
+          }
+      ~~~
+
+      
+
+   3. BaseBuilder有很多子类:
+
+      1. XMLConfigBuilder:解析 mybatis-config.xml
+      2. XMLMapperBuilder:解析 *Mapper.xml
+      3. XMLStatementBuilder:解析insert update delete标签的
+      4. XMLScriptBuilder:SQL语句
+
+7. #### org.apache.ibatis.io.Resources:资源
+
+   1. 该类是MyBatis封装的工具类。专门加载配置文件
+   2. 底层委托 classLoaderWrapper实现具体加载的。原理就是使用ClassLoader.getResourceAsStream实现的。
+   3. 
+
+8. 
+
+### 15. 解析配置以及SqlSessionFactory构造的过程?
+
++++
+
+1. #### SF工厂
+
+   ![image-20220609145233034](./note.assets/image-20220609145233034.png)
+
+   
+
+2. #### build(reader)
+
+   ![image-20220609145822553](./note.assets/image-20220609145822553.png)
+
+3. ##### 分步骤解析:1.XMLConfigBuilder parser = new XMLConfigBuilder(reader)
+
+   ![image-20220609151604650](./note.assets/image-20220609151604650.png)
+
+   ##### XMLPathParser:接收mybatis-config.xml流+resolver,本身提供把流转换成Document对象【JDK中提供DOM解析器】的方法和一堆使用JDK中提供的XPath方式计算XML中每一个部分的的方法。
+
+   ![image-20220609153036508](./note.assets/image-20220609153036508.png)
+
+4. ##### 分析步骤2: parser.parse():挨个解析mybatis-config和mapper.xml中的每一个元素 最终都装configuration对象
+
+   ![image-20220609153901781](./note.assets/image-20220609153901781.png)
+
+5. ##### 步骤分析3：new DefaultSqlSessioFacotry（config）
+
+### 16. parseConfiguration中的几个部分分析？
+
++++
+
+1. #### 解析<properties>元素
+
+   ![image-20220609161030846](./note.assets/image-20220609161030846.png)
+
+2. #### 解析<typeAliases>元素
+
+   ![image-20220609162202900](./note.assets/image-20220609162202900.png)
+
+3. #### 解析<environments>元素
+
+   ![image-20220609164157309](./note.assets/image-20220609164157309.png)
+
+4. XMLConfigBuilder：解析mybatis-config.xml
+
+   1.XMLConfigBuilder中 调用 XMLMapperBuilder解析 Mapper.xml，
+
+   2.然后再XMLMapperBuilder 调用XMLStatementBuilder专门解析<insert></update><delete><select>元素中的每一个属性和内容
+
+   2.然后再XMLStatementBuilder中调用XMLScriptBuilder 构造SQL语句 BoundSql===》SqlSource
+
+5. 
+
+
+
+---
+
+
+
+## 2. MyBatis核心API？[用户角度： 我们写代码用到的]
+
+##### API1: org.apache.ibatis.session.SqlSessionFactoryBuilder:
+
+1. 读取配置文件【所有build(流)方法都调用 build(Configuration)】
+
+   Configuration对象===》存放MyBatis中所有配置的【mybatis-config.xml +*Mapper.xml SQL】
+
+2. 构造SqlSessionFactory对象
+
+![image-20230423100514549](./note.assets/image-20230423100514549.png)
+
+##### AP2:org.apache.ibatis.session.SqlSessionFacotory:
+
+​	1. 后去SqlSession对象的
+
+![image-20230423100953092](./note.assets/image-20230423100953092.png)
+
+##### API3:org.apache.ibaits.session.SqlSession:核心
+
+	1. insert(String sql)
+	1. update(String sql)
+	1. delete(String)
+	1. select /selectOne().
+
+## 2. MyBatis helloworld?使用MyBatis完成对Student表的CRUD？
+
+mybatis-config.xml
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <!--logImpl: STDDOUT_LOGGING:打印日志到控制台-->
+        <setting name="logImpl" value="STDOUT_LOGGING"></setting>
+    </settings>
+    <!--配置的所有环境  可以配置多个 默认使用哪个 就使用default来标注-->
+    <environments default="m">
+        <!--具体环境-->
+        <environment id="m">
+            <!--事务管理器： JDBC:表示采用JDBC的方式管理事务
+                Connection.setAutoCommit(false); commit() rollback()-->
+            <transactionManager type="JDBC"></transactionManager>
+            <!--数据源：POOLED:表示使用Mybatis采用数据库连接池方式实现的数据源对象-->
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"></property>
+                <property name="url" value="jdbc:mysql://localhost:3309/et2301?characterEncoding=utf8&amp;useSSL=false&amp;serverTimezone=Asia/Shanghai&amp;rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=true"></property>
+                <property name="username" value="root"></property>
+                <property name="password" value="etoak"></property>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="EmpMapper.xml"></mapper>
+    </mappers>
+</configuration>
+~~~
+
+EmpMapper.xml
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.et2301">
+    <insert id="addEmp" parameterType="com.etoak.pojo.Emp">
+        insert into emp(ename,job,sal,hiredate,deptno)
+        values(#{ename},#{job},#{sal},#{hiredate},#{deptno})
+    </insert>
+    <select id="queryById"  resultType="com.etoak.pojo.Emp">
+        select * from emp where empno=#{id}
+    </select>
+    <select id="queryAll"  resultType="com.etoak.pojo.Emp">
+        select * from emp
+    </select>
+    <select id="querySome"  resultType="com.etoak.pojo.Emp">
+        select * from emp limit #{start},#{pageSize}
+    </select>
+    <update id="updateEmpById" >
+        update emp set ename=#{ename},job=#{job},sal=#{sal},hiredate=#{hiredate}
+        where empno=#{empno}
+    </update>
+    <delete id="deleteEmpById">
+        delete from emp where empno=#{id}
+    </delete>
+</mapper>
+~~~
+
+## 3. 通过getMapper获取映射器实现CRUD？
+
+1. namespace的值要和Mapper接口名字完全一样
+2. Mapper.xml中的SQL语句id和方法名字完全一样。
+
+## 4. 类中属性和表中字段不完全一致的处理方式？
+
+1. 如果传递的参数是自定义对象（Student/Teacher/Emp） #{类中属性而不是表中字段}
+
+2. 查询
+
+   1. 起别名
+
+   2. 使用restultMap
+
+      ![image-20230423155902666](./note.assets/image-20230423155902666.png)
+
+## 5. resultMap和resultType的区别？
+
+1. resultType:一般指返回类型： int  String map  自定义对象 stu emp
+2. resultMap: 一定指向一个<resultMap>元素的id ，指向对应关系。
+
+## 6. MyBatis中获取添加到数据库中主键？
+
+1. MyBatis中获取主键和JDBC中是一样的。
+
+2. 方式1：使用JDBC自带开关 
+
+   ~~~xml
+       <!--表：主键字段  类：对象标识 主键属性
+       useGeneratedKeys:是否使用自动生成的主键
+           keyProperty:主键属性、对象标识 类型【必选】
+           keyColumn:主键字段【可选】
+       -->
+       <insert id="addEmp" parameterType="emp" useGeneratedKeys="true"
+               keyProperty="empno" keyColumn="e_empno">
+           insert into tb_emp(e_ename,e_job,e_sal,e_hiredate,e_deptno)
+           values(#{ename},#{job},#{sal},#{hiredate},#{deptno})
+       </insert>
+   ~~~
+
+   
+
+3. 方式2：同一个连接查询
+
+   ~~~xml
+      <insert id="addEmp" parameterType="emp" >
+           <selectKey keyProperty="empno" keyColumn="e_empno" resultType="int">
+               select last_insert_id()
+           </selectKey>
+           insert into tb_emp(e_ename,e_job,e_sal,e_hiredate,e_deptno)
+           values(#{ename},#{job},#{sal},#{hiredate},#{deptno})
+       </insert>
+   ~~~
+
+   
+
+## 7. MyBatis传递多个参数？
+
+1. 多个参数组装成对象
+
+2. 多个参数放到一个Map
+
+3. 使用@Param注解指定参数名字 
+
+   ![image-20230423171052013](./note.assets/image-20230423171052013.png)
+
+## 8. 模糊查询？#和$的区别？
+
+1. #相当于JDBC使用PreparedStatement,支持？占位符 ;$相当JDBC使用普通的Statement,不支持？占位符，参数只能拼接。
+2. 推荐使用#,但是一些特殊请情况，不能使用？占位符：
+   1. 参考JDBC中PreparedStatement和Statement的区别
+
+## 9. 批量操作：批量添加？
+
+
+
+## 10. MyBatis处理分页？
+
+1. MyBatis自带分页机制，采用假分页（查询所有数据，只显示需要的部分），分页参数放在RowBounds（offset:起始位置 limit: 每页的记录数）逻辑分页
+2. 我们一般自己写分页语句，使用真分页 ，物理分页 关键字 。
+3. 实际开发中，我们通常使用分页组件（Pagehelper）来分页。
+
+
+
+
+
+---
+
+## 1. MyBatis的核心API?
+
+- API1:`org.apache.ibatis.session.Configuration`：配置类
+  - 代表MyBatis中的所有配置
+  - `Environment `类：代表 本次使用的环境信息【id+TransactionFactory+DataSource】
+  - `ResultSetType`:结果集类型FORWARD SCROLL.. 枚举
+  - `ExecutorType`:执行器类型 SIMPLE REUSE BATCH等 枚举
+  - ` TypeAliasRegistry`:类型别名注册器【1.基本类型+常见集合 2.JDBC POOLED 3.<typeAliases>自定义】
+  - `MappedStatement`：代表mapper.xml中生命<insert><update><delete><select>SQL语句从开始标签到结束标签的所有内容。
+    - id
+    - parameterType
+    - resultType
+    - resultSetType
+    - resultMap
+    - SqlSource==>{BoundSql}
+    - enum StatementType: PREPARE  STATEMENT CALLABLE 
+    - 
+- API2:Builder体系？
+  - BaseBuilder:
+    - XMLConfigBuilder:MyBATIS-config.xml
+    - XMLMapperBuilder:*Mapper.xml
+    - XMLStatementBuilder: <insert></update>
+    - XMLScriptBuilder. <foreach><if ><where>..
+
+
+
+## 2. 解析配置返回SqlSessionFactory的过程？
+
+```java
+public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
+	//1.构造XML文档解析器 reader=mybatis-config.xml[-->EmpMapper.xml]
+   	XMLConfigBuilder parser = new XMLConfigBuilder(reader, environment, properties);
+    
+    //2.解析XML文档：parser解析mybatis-config.xml+*Mapper.xml
+    //Configuration对象代表、存放 MyBatis中的所有配置
+	Configuration config =   parser.parse();
+    
+    //3.构造SqlSessionFactory接口具体实现类的对象（DefaultSqlSessionFactory）并且传入配置Configuration对象。
+    SqlSessionFactory   var5 = this.build(config);
+ 
+    return var5;
+}
+```
+
+
+
+
+
+---
+
+
+
 
 
 
