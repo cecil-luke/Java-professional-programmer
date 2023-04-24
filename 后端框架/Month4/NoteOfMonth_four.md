@@ -4208,7 +4208,193 @@ public SqlSessionFactory build(Reader reader, String environment, Properties pro
 
 
 
+# day13(Spring+mybatis整合)
 
+## 1. 批量添加？
+
+- insert into xx(f1,f2...fn) values(),(),()
+- insert into xx(f1,f2..fn) (select..) union [all]
+
+## 2. 批量查询？
+
+~~~xml
+    <select id="queryByIds" parameterType="list" resultMap="rMap_emp">
+        select * from tb_emp
+        <foreach collection="list" open=" where e_empno in (" close=")"  item="id" separator=",">
+            #{id}
+        </foreach>
+    </select>
+~~~
+
+
+
+## 3. MyBatis动态标签、动态SQL？
+
+1. if
+
+2. where
+
+3. trim
+
+   ~~~xml
+       <select id="queryByCondition" parameterType="map" resultMap="rMap_emp">
+           select * from tb_emp
+           <trim prefixOverrides="and" prefix=" where ">
+               <if test="ename!=null and ename!='' ">
+                   and e_ename like '%${ename}%'
+               </if>
+               <if test="job!=null and job!='' ">
+                   and e_job=#{job}
+               </if>
+   
+           </trim>
+       </select>
+   ~~~
+
+   
+
+4. choose when otherwise
+
+   ```xml
+   <select id="queryByCondition" parameterType="map" resultMap="rMap_emp">
+       select * from tb_emp
+       <where>
+           <choose>
+               <when test="ename!=null and ename!='' ">and e_ename like '%${ename}%'</when>
+               <otherwise>
+                   <choose>
+                       <when test="job!=null and job!='' ">and e_job=#{job}</when>
+                       <otherwise>
+                           <if test="hiredate!=null and hiredate!='' ">
+                               and e_hiredate=date_format(#{hiredate},'%Y-%m-%d')
+                           </if>
+                       </otherwise>
+                   </choose>
+               </otherwise>
+           </choose>
+   
+       </where>
+   </select>
+   ```
+
+5. set
+
+6. foreach
+
+具体SQL动态标签,参考文档:
+
+https://mybatis.org/mybatis-3/zh/dynamic-sql.html
+
+## 3. MyBatis多表关联查询？
+
+1. association:一对一
+2. collection: 一对多
+
+~~~xml
+    <resultMap id="rMap_emp1" type="emp">
+        <id property="empno" column="e_empno"></id>
+        <result property="ename" column="e_ename"></result>
+        <result property="job" column="e_job"></result>
+        <result property="hiredate" column="e_hiredate"></result>
+        <result property="sal" column="e_sal"></result>
+        <result property="deptno" column="e_deptno"></result>
+        <!--dept:和job,ename等一样都是属性名字 javaType:dept的类型-->
+        <association property="dept"  javaType="com.etoak.emp.pojo.Dept">
+            <id property="deptno" column="deptno"></id>
+            <result property="dname" column="dname"></result>
+            <result property="loc" column="loc"></result>
+        </association>
+    </resultMap>
+    <select id="queryEmpByIdWithDept" resultMap="rMap_emp1">
+        select
+        e.e_empno,e.e_ename,e.e_job,e_sal,e_hiredate,e_deptno,
+        d.deptno,d.dname,d.loc
+        from tb_emp e left join dept d on e.e_deptno = d.deptno
+        where e_empno=#{id}
+    </select>
+
+    <resultMap id="rMap_dept" type="com.etoak.emp.pojo.Dept">
+        <id property="deptno" column="deptno"></id>
+        <result property="dname" column="dname"></result>
+        <result property="loc" column="loc"></result>
+        <!--collection:表示该属性是集合，ofType:集合中的元素类型-->
+        <collection property="emps" ofType="emp" javaType="java.util.Set">
+            <id property="empno" column="e_empno"></id>
+            <result property="ename" column="e_ename"></result>
+            <result property="job" column="e_job"></result>
+            <result property="hiredate" column="e_hiredate"></result>
+            <result property="sal" column="e_sal"></result>
+            <result property="deptno" column="e_deptno"></result>
+        </collection>
+    </resultMap>
+    <select id="queryDeptByIdWithEmp" resultMap="rMap_dept">
+        select
+        d.deptno,d.dname,d.loc,
+        e.e_empno,e.e_ename,e.e_job,e_sal,e_hiredate,e_deptno
+        from dept d left join tb_emp e  on e.e_deptno = d.deptno
+        where d.deptno=#{id}
+    </select>
+
+~~~
+
+## 4. MyBatis中的分页插件？
+
+官网:https://pagehelper.github.io/docs/
+
+1. 导入依赖
+
+   ![image-20230424114358267](./note.assets/image-20230424114358267.png)
+
+2. 配置拦截器：
+
+   ~~~xml
+    <plugins>
+           <!-- com.github.pagehelper为PageHelper类所在包名 -->
+           <plugin interceptor="com.github.pagehelper.PageInterceptor">
+               <!-- 使用下面的方式配置参数，后面会有所有的参数介绍 rownum-->
+               <property name="helperDialect" value="mysql"/>
+           </plugin>
+       </plugins>
+   ~~~
+
+   
+
+3. 在service中需要分页的方法之前 ：PageHelper.startPage(pageNumber,pageSize)
+
+## 5. Spring+Spring MVC+MyBatis?
+
+1. 整合思路：把MyBatis中的相关API对象注册到IOC容器中，交给容器管理。SqlSession Factory ...
+
+   
+
+2. ##### Spring IOC容器注册bean的方式？
+
+   1. 无参构造方法 <bean id="" class="">
+
+   2. 带参构造方法
+
+   3. 静态工厂方法  factory-method
+
+   4. 实例工厂方法  factory-bean
+
+   5. 实现FactoryBean接口  getObject   <bean id="xx" class="XXFactoryBean">
+
+   6. 注解
+
+      1. @Component    @Controller       @Service  @Repository +<context:component-scan>
+
+         ​						@Bean
+
+      2. @Configuration  + @Bean 方法 public JdbcTemplate jt(){ JdbcTemplate jt = new .. return jt;}  @ComponentScan
+
+3. ##### Spring MVC配置步骤
+
+   1. 依赖 webmvc +jdbc (事务) +jackson +mysql+ mybatis+ `mybatis-spring`
+   2. 配置文件=-===》配置类
+   3. 注解
+   4. DispatcherServlet..
+
+4. 
 
 
 
