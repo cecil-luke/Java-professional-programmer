@@ -4398,3 +4398,214 @@ https://mybatis.org/mybatis-3/zh/dynamic-sql.html
 
 
 
+# day14(Spring的生命周期，点餐系统)
+
+
+
+
+
+## 1. Spring中的bean?
+
+- 所有的交给Spring IOC容器管理的对象，都可以认为是Spring的bean
+
+## 2. Spring中bean元素的属性？
+
+1. id:bean的标识 唯一
+
+2. name:beans的别名 ，可以有多个
+
+3. class:bean的类型
+
+4. factory-method/factory-bean: 静态工厂方法  实例工厂方法 
+
+5. scope:[bean的作用域] @Scope
+
+   1. singleton: 单例bean
+
+   2. prototype:每次getBean都创建一个新的bean对象
+
+      ---------------------------------------以下三种作用域必须有web模块才可用~~~~~~~~~~~~~~~~~~~
+
+   3. request: 每次getBean都会创建一个新的
+
+   4. session:每次回话 ，如果getBean会创建一个
+
+   5. application:全局一个bean
+
+6. ```
+   primary:当前bean 在被其他bean引用时是否作为主bean,如果是主bean，则配置不管有多少个相同类型bean,
+   当前这个bean优先匹配。 默认优先级一样的，把谁设置为primary=true,谁就作为主bean.
+   
+   autowire-candidate:自动注入时，是否把该bean作为备选的bean
+   
+   @Lazy
+   lazy-init: 是否延迟构造对象，默认false，不懒，当启动IOC容器，读完配置文件，立刻构造对象
+   		  true:懒，启动IOC容器读取配置文件 不会构造对象，当getBean时才会构造对象。
+   		  
+   depend-on:可以通过该属性指定当前bean构造之前，指定bean需要先构造【影响bean构造顺序】，该属性不是强依赖，不是表示当前bean中有个其他bean. @DependsOn
+   
+   init-method:初始化方法 指定任意方法作为初始化。
+   
+   destroy-method: 销毁的方法 指定任意方法 作为销毁的方法
+   
+   DisposableBean：指定destroy方法，作为销毁方法。 在destroy-method执行
+   ```
+
+## 3. Spring中bean的生命周期？【面试题】
+
+1. 我们在什么情况下研究生命周期？	
+   1. 我们没有对象的控制权【构造、调用方法】
+2. ![Spring Bean的生命周期](./note.assets/Spring Bean的生命周期.png)
+
+## 4. 注解版SSM(Spring+SpringMVC+MyBatis)?
+
+1. 导入依赖
+
+2. 配置类 MapperScannerConfigure   和SqlSessionFactoryBean  
+
+   ~~~xml
+   package com.etoak.emp.config;
+   
+   import com.github.pagehelper.Page;
+   import com.github.pagehelper.PageInterceptor;
+   import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+   import org.mybatis.spring.SqlSessionFactoryBean;
+   import org.mybatis.spring.annotation.MapperScan;
+   import org.mybatis.spring.annotation.MapperScans;
+   import org.springframework.beans.factory.annotation.Value;
+   import org.springframework.context.annotation.*;
+   import org.springframework.core.io.ClassPathResource;
+   import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+   import org.springframework.jdbc.datasource.DriverManagerDataSource;
+   import org.springframework.transaction.TransactionManager;
+   import org.springframework.transaction.annotation.EnableTransactionManagement;
+   import org.springframework.web.multipart.MultipartFile;
+   import org.springframework.web.multipart.MultipartResolver;
+   import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+   
+   import javax.sql.DataSource;
+   import java.util.Properties;
+   
+   //1.核心容器扫描 2.外部配置文件 3.datasource 4.mapperScannerConfgure
+   //5.sqlSessionFactory  6.mvc:注解扫描 7.mvc:静态资源处理器
+   
+   // 8.文件上传解析器 9.事务处理
+   @Configuration
+   @ComponentScan(basePackages = "com.etoak.emp")
+   @PropertySource("classpath:db.properties")
+   @MapperScan(basePackages = "com.etoak.emp.mapper") //<mapperScannerConfigure>
+   //@MapperScans(value = {@MapperScan("com.etoak.a"),@MapperScan("com.etoak.b")})
+   @EnableTransactionManagement //开启事务管理器  <mvc:annotation-driven transction-manager="">
+   @Import(ETMVCConfig.class)
+   public class ETConfig {
+   
+       @Bean("multipartResolver")
+       public MultipartResolver multipartResolver(){
+           CommonsMultipartResolver resolver = new CommonsMultipartResolver();
+           //每个文件上传最大限制2M
+           resolver.setMaxUploadSizePerFile(2097152);
+           return resolver;
+       }
+   
+       @Bean
+       public TransactionManager tm(){
+           DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+           dataSourceTransactionManager.setDataSource(this.ds());
+           return dataSourceTransactionManager;
+       }
+       @Bean("f")
+       public SqlSessionFactoryBean sqlSessionFactoryBean(){
+           SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+           factoryBean.setDataSource(this.ds());
+           factoryBean.setMapperLocations(new ClassPathResource("mappers/EmpMapper.xml"));
+           factoryBean.setConfigLocation(new ClassPathResource("mybatis-config.xml"));
+           factoryBean.setTypeAliasesPackage("com.etoak.emp.entity");
+   
+           PageInterceptor inter =new PageInterceptor();
+           Properties pro = new Properties();
+           pro.setProperty("helperDialect","mysql");
+           inter.setProperties(pro);
+   
+           factoryBean.setPlugins(inter);
+   
+           return factoryBean;
+       }
+   
+       @Bean
+       public DataSource ds(){
+           DriverManagerDataSource ds = new DriverManagerDataSource();
+           ds.setDriverClassName(this.driver);
+           ds.setUrl(this.url);
+           ds.setUsername(this.user);
+           ds.setPassword(this.pwd);
+           return ds;
+       }
+       @Value("${m.driver}")
+       private String driver;
+   
+       @Value("${m.url}")
+       private String url;
+   
+       @Value("${m.user}")
+       private String user;
+   
+       @Value("${m.pwd}")
+       private String pwd;
+   }
+   
+   ~~~
+
+   
+
+3. 注解 
+
+4. DispatcherServlet
+
+
+
+---
+
+
+
+# day15(redis)
+
+## 1. redis？
+
+- redis是一款基于`内存存储`（快，也可以持久化到硬盘）的非关系型数据库。
+- 关系型
+  - mysql
+  - oracle
+  - sqlserver.
+  - 表 行 列 记录
+- 非关系型
+  - redis：key:value
+  - mongdb
+- redis以key:value存放数据的， 其中的value，又可以有5中类型 ：String 类型 hash类型
+  - String key:value     et2301:"xxxxx"
+  - hash  key: field:value  et2301: k:value ,k:value
+- 购物车使用就是 redis 中hash类型数据：
+  - session版购物车：
+    - 车Map==》session中 
+    - 篮子{商品}
+  - redis版购物车
+    - 车：redis
+    - key:会员id    field(foodid):num数量
+
+## 2. redis安装？
+
+- 解压即安装：把redis的压缩包放到没有中文的目录下
+
+- | 操作           | mysql                       | redis                            |
+  | -------------- | --------------------------- | -------------------------------- |
+  | 安装           | 解压、exe                   | windows 解压                     |
+  | 启动、开启服务 | 服务 开启服务               | 双击redis-server.exe             |
+  | 访问           | cmd/navicat/idea 客户端工具 | redis-cli.exe 客户端工具         |
+  | JAVA访问 驱动  | mysql-connector-java.jar    | jedis.jar                        |
+  | 简化操作       | DBUtils封装了JDBC的操作     | RedisUtils 封装JAVA访问redis操作 |
+
+  不是spring整合redis,不需要redisTemplate   jdbcTempated  SqlSesionTemplate
+
+
+
+---
+
