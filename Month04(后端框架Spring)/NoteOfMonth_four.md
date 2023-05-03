@@ -54,21 +54,21 @@ day16~day19:综合项目 WEB版+模拟
 
 ## 4. JDBC的核心API？
 
-1. `java.sql.Driver`【接口】【造桥的人】
+1. **`java.sql.Driver`**【接口】【造桥的人】
 
-   1. 驱动标准，所有的驱动jar包中都需要提供该接口的实现，该接口也是真正创建连接的。
+   1. 驱动标准，所有的驱动jar包中都需要提供该接口的实现，该接口也是**真正创建连接**的。
    2. ![image-20230410103006108](./note.assets/image-20230410103006108.png)
 
-2. `java.sql.DriverManager`:【类】【造桥指挥部】
+2. **`java.sql.DriverManager`**:【类】【造桥指挥部】
 
-   1. 驱动管理器，主要用来管理驱动【注册、注销、存放驱动对象】
+   1. **驱动管理器**，主要用来管理驱动【注册、注销、存放驱动对象】
    2. 对外获取连接
    3. ![image-20230410103453729](./note.assets/image-20230410103453729.png)
-   4. ![image-20230410103523737](../../../../Month 4/day01/4.10/note.assets/image-20230410103523737.png)
+   4. ![image-20230410103523737](./note.assets/image-20230410103523737.png)
 
-3. `java.sql.Connection`:【接口】【桥】
+3. **`java.sql.Connection`**:【接口】【桥】
 
-   1. 构造SQL语句的执行器
+   1. **构造SQL语句的执行器**
 
       ![image-20230410103735583](./note.assets/image-20230410103735583.png)
 
@@ -82,7 +82,7 @@ day16~day19:综合项目 WEB版+模拟
 
       ![image-20230410103858118](./note.assets/image-20230410103858118.png)
 
-      ![image-20230410103920687](../../../../Month 4/day01/4.10/note.assets/image-20230410103920687.png)
+      ![image-20230410103920687](./note.assets/image-20230410103920687.png)
 
    3. 对于连接的一些设置相关属性。
 
@@ -92,7 +92,7 @@ day16~day19:综合项目 WEB版+模拟
 
 4. `java.sql.Statement`:【接口】【车】
 
-   1. 负责向数据库中运行SQL，以及返回从数据库中查询的结果
+   1. **负责向数据库中运行SQL**，以及返回从数据库中查询的结果
 
       ![image-20230410104135138](./note.assets/image-20230410104135138.png)
 
@@ -100,7 +100,7 @@ day16~day19:综合项目 WEB版+模拟
 
    2. 一些执行器的设置
 
-5. `ResultSet`:【接口】【存放从数据库中查询的结果的对象】
+5. **`ResultSet`**:【接口】【存放从数据库中查询的结果的对象】
 
    1. 获取数据的方法
 
@@ -114,33 +114,37 @@ day16~day19:综合项目 WEB版+模拟
 
 ## 5. JDBC程序helloworld:对数据库的CRUD？
 
-- 注册驱动：告诉驱动管理器有哪些驱动可以使用 
+- 1注册驱动：告诉驱动管理器有哪些驱动可以使用 
 
-- 获取连接
+- 2获取连接
 
-- 创建运送SQL的Statement对象
+- 3创建运送SQL的Statement对象
 
-- 执行SQL返回结果
+- 4执行SQL返回结果
 
-- 处理结果
+- 5处理结果
 
-- 关闭资源
+- 6关闭资源
 
   ~~~java
   import java.sql.*;//Connection Driver DriverManager Statement ResultSet
   //测试JDBC程序
   public class Test{
   	public static void main(String args[])throws Exception{
+          
   		//1.注册驱动
   		Class.forName("com.mysql.cj.jdbc.Driver");
+          
   		//2.获取连接
   		String url="jdbc:mysql://localhost:3309/et2301?"+
   		"characterEncoding=utf8&useSSL=false&"+
   		"serverTimezone=Asia/Shanghai"+
   		"&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true";
   		Connection con = DriverManager.getConnection(url,"root","etoak");
+          
   		//3.创建执行SQL的Statement
   		Statement sta= con.createStatement();
+          
   		//4.执行SQL返回结果
   		ResultSet rs = sta.executeQuery("select * from student");
   		while(rs.next()){
@@ -149,8 +153,10 @@ day16~day19:综合项目 WEB版+模拟
   			int age = rs.getInt("age");
   			Date birth = rs.getDate("birth");
   			String email = rs.getString("email");
+              //
   			System.out.println(id+"\t"+name+"\t"+age+"\t"+birth+"\t"+email);
   		}
+          
   		//关闭资源
   		rs.close();
   		sta.close();
@@ -158,7 +164,7 @@ day16~day19:综合项目 WEB版+模拟
   	}
   }
   ~~~
-
+  
   
 
 ## 6. 插播:批量添加？
@@ -180,6 +186,7 @@ day16~day19:综合项目 WEB版+模拟
     -> (select 'zhaoliu',age,birth,'zhaoliu@qq.com' from student where name='lisi')
        -> union all
        -> (select name,age,now(),'etoak@qq.com' from student where name='wangwu');
+       
    Query OK, 2 rows affected, 1 warning (0.01 sec)
    Records: 2  Duplicates: 0  Warnings: 1
    ~~~
@@ -188,7 +195,7 @@ day16~day19:综合项目 WEB版+模拟
 
 1. #### 加载驱动/注册驱动
 
-- Class.forName():Class类静态方法forName作用是加载指定名字的类（不只是加载驱动），我们这里使用它来加载驱动。
+- **Class.forName()**  :Class类静态方法forName作用是加载指定名字的类（不只是加载驱动），我们这里使用它来加载驱动。
 
   ![image-20230410113349883](./note.assets/image-20230410113349883.png)
 
@@ -214,7 +221,7 @@ day16~day19:综合项目 WEB版+模拟
       2. 主要用来读取：key=value形式的配置文件【一般我们称为javabean属性文件，通常后缀.properties】
       3. 这里可以使用Properties对象存放数据库的连接信息。
 
-   3. ##### Class.getResourceAsStream()和ClassLoader.getResourceAsStream()的区别？
+   3. ##### Class.getResourceAsStream() 和 ClassLoader.getResourceAsStream()的区别？
 
 
    ![image-20230410120415771](./note.assets/image-20230410120415771.png)
@@ -226,10 +233,11 @@ day16~day19:综合项目 WEB版+模拟
    2. ##### execute: 
 
       ~~~java
-      	Statement中的execute方法：
+         Statement中的execute方法：
       		执行DDL(create): 执行成功，返回false.
       		执行DML(insert)：执行成功，返回false.
       		执行DQL(select): 返回true
+             
          execute方法总结：
          	1.万能方法：可以执行任何的SQL语句.
          	2.返回值是以是否有ResultSet返回为判断标准的【只要有resultset(可以为empty)返回，就是返回true】。
@@ -242,7 +250,6 @@ day16~day19:综合项目 WEB版+模拟
       		Statement sta = con.createStatement();
       		boolean flag = sta.execute(select);
       		System.out.println(flag);//true
-      
       	}
       ~~~
 
@@ -250,19 +257,19 @@ day16~day19:综合项目 WEB版+模拟
 
    3. ##### executeUpdate
 
-      - 主要执行DML，insert 、update、delete操作。返回<u>对数据库影响的行数</u>。
+      - 主要执行DML，insert 、update、delete操作。返回<u>对数据库影响的**行数**</u>。
       - 执行DDL,返回0，
       - 不能执行返回结果集的语句
       - ![image-20230410150738454](./note.assets/image-20230410150738454.png)
 
    4. ##### executeQuery()
 
-      	Connection con = getConnection();
+      		Connection con = getConnection();
       		String select="select id,age,name as stuname,birth,email from student";
       		Statement sta = con.createStatement(
       			ResultSet.TYPE_SCROLL_INSENSITIVE, //1004、1005
       			ResultSet.CONCUR_READ_ONLY);//1007
-      		ResultSet rs = sta.executeQuery(select);
+      			ResultSet rs = sta.executeQuery(select);
       		//Thread.sleep(20000);
       	
       		while(rs.next()){
@@ -278,7 +285,7 @@ day16~day19:综合项目 WEB版+模拟
 
 4. ### 关于ResultSet?
 
-   - ResultSet一般执行查询数据库的语句生成，主要用来**存放从数据库中返回的结果**。默认resultset有一个指向**当前行的光标**,最初光标位于第一行之前，next方法将光标向下移动一行，因为该方法在没有下一行时返回false,所以可以在while中迭代使用。
+   - ResultSet一般执行**查询数据库的语句**生成，主要用来**存放从数据库中返回的结果**。默认resultset有一个指向**当前行的光标**,最初光标位于第一行之前，next方法将光标向下移动一行，因为该方法在没有下一行时返回false,所以可以在while中迭代使用。
 
    - 在使用getXX()获取列内容时，可以使用列名字也可以使用列的索引，如果使用列名字，`需要和查询列表中的名字对应（有别名按照别名查询）`
 
@@ -302,7 +309,7 @@ day16~day19:综合项目 WEB版+模拟
 
      ![image-20230410151625705](./note.assets/image-20230410151625705.png)
 
-   - `结果集默认是只能从第一行到最后一行遍历一次，不能来回遍历的,也就是默认结果集不可滚动，如果需要重复遍历或者使用可滚动的结果集，需要打开开关。`
+   - 结果集默认是只能从第一行到最后一行遍历一次，不能来回遍历的,也就是默认结果集不可滚动，如果需要**重复遍历**或者使用可滚动的结果集，需要打开开关。
 
      ![image-20230410151936091](./note.assets/image-20230410151936091.png)
 
@@ -321,12 +328,12 @@ day16~day19:综合项目 WEB版+模拟
 
    - 可滚动结果集的应用场景：`假分页`
 
-     - **真分页**: 按需提取数据 【查询部分】  物理分页 分页关键字 **limit rownum**
+     - **真分页**: 按需提取数据 【**查询部分**】  物理分页 分页关键字 **limit rownum**
 
-     - **假分页**:按需展示数据【查询所有的】逻辑分页 
+     - **假分页**:按需展示数据【**查询所有的**】逻辑分页 
 
        ~~~java
-       	//每页的记录数
+       		//每页的记录数
        		int pageSize=3;
        		//当前页
        		int pageNumber=2;
@@ -334,6 +341,7 @@ day16~day19:综合项目 WEB版+模拟
        		//起始位置
        		int start =(pageNumber-1)*pageSize;
        		System.out.println("================");
+       
        		//1003:代表不可滚动
        		if(rs.getType()!=1003){
        			//1004 1005 可滚动
@@ -364,7 +372,7 @@ day16~day19:综合项目 WEB版+模拟
 
    
 
-2. 实际开发中，更多情况时需要传递参数的时候，使用PreparedStatement**["预编译"的执行器**]，PreparedStatement在被创建时，就需要传入SQL语句，此时SQL就会被发送数据库服务器，编译存储。支持?占位符，传参比较方便。
+2. 实际开发中，更多情况时需要传递参数的时候，使用PreparedStatement**["预编译"的执行器**]，PreparedStatement在被创建时，就需要传入SQL语句，此时SQL就会被发送数据库服务器，编译存储。支持**?占位符**，传参比较方便。
 
    
 
@@ -372,21 +380,22 @@ day16~day19:综合项目 WEB版+模拟
 
    
 
-4. ##### 有些情况，不能使用?占位符：MyBatis 中#和$的区别 再回首！！
+   1. ##### 有些情况，不能使用?占位符：MyBatis 中#和$的区别 再回首！！
 
-   1. ###### 表名字未知
+   2. ###### 表名字未知
 
       ![image-20230410172035149](./note.assets/image-20230410172035149.png)
 
-   2. ###### 查询参数在引号中
+   3. ###### 查询参数在引号中
 
       ![image-20230410172357347](./note.assets/image-20230410172357347.png)
 
-   3. ###### order by 后的字段
+   4. ###### order by 后的字段
 
       1. order by 后跟?，导致排序失效
 
          ![image-20230410172757587](./note.assets/image-20230410172757587.png)
+
 
 ## 9.  事务？
 
@@ -503,7 +512,7 @@ day16~day19:综合项目 WEB版+模拟
    
    
    	}
-   	//提供连接的方法
+   		//提供连接的方法
    		private static Connection getConnection()throws Exception{
    			//1.读取配置文件
    			Properties pro = new Properties();
@@ -514,9 +523,7 @@ day16~day19:综合项目 WEB版+模拟
    
    			Class.forName(pro.getProperty("m.driver"));
    
-   			Connection con = DriverManager.getConnection(
-   							pro.getProperty("m.url"),
-   							pro);
+   			Connection con = DriverManager.getConnection( pro.getProperty("m.url"),pro);
    			return con;
    
    	}
@@ -543,11 +550,9 @@ day16~day19:综合项目 WEB版+模拟
 
 3. ##### 数据库连接池？[必考必问]
 
-   1. 数据库连接池是在服务器启动时初始化一些连接放到连接池（容器、集合）中，当需要获取连接时，首先查看连接池中是否有空闲的连接，如果有则返回，如果没有则判断当前连接数是否超过了最大可用的连接数，如果没超过，则创建新的连接，返回，如果超过了最大可用连接数，等待或者抛出无可用连接的异常。
+   1. **数据库连接池**是在服务器启动时初始化一些**连接**放到**连接池**（容器、集合）中，当需要获取连接时，首先查看连接池中是否有空闲的连接，如果有则返回，如果没有则判断当前连接数是否超过了最大可用的连接数，如果没超过，则创建新的连接，返回，如果超过了最大可用连接数，等待或者抛出无可用连接的异常。
 
-      
-
-   2. 当连接使用完毕之后，再把连接放回到连接池中，从而实现连接的`复用`
+   2. 当连接使用完毕之后，再把连接放回到连接池中，从而实现连接的**复用**
 
 4. ##### 数据源产品？
 
@@ -569,9 +574,11 @@ day16~day19:综合项目 WEB版+模拟
       public static void testNumberKeys1()throws Exception{
       		String sql="insert into test1(id,name) values(null,?)";
       		try(Connection con = getConnection();
+                  
       				PreparedStatement pst = con.prepareStatement(sql,
       				Statement.RETURN_GENERATED_KEYS)){//返回主键的开关
       				pst.setString(1,"xx");
+                  
       				int count = pst.executeUpdate();
       				System.out.println("执行成功,影响:"+count+"行");
       				//获取自动生成的主键
@@ -585,7 +592,7 @@ day16~day19:综合项目 WEB版+模拟
       			}
       	}
       ~~~
-
+      
       
 
   - 同一个连接，查询 mysql: select last_insert_id() 
@@ -631,10 +638,12 @@ day16~day19:综合项目 WEB版+模拟
       			String sql="insert into test3(id,name) values(?,?)";
       			try(Connection con = getConnection();
       					PreparedStatement pst = con.prepareStatement(sql)){
+                      
       					String id = UUID.randomUUID().toString().replaceAll("-","");
       					pst.setString(1,id);
       					pst.setString(2,"xxx");
       					int count = pst.executeUpdate();
+                      
       					System.out.println("执行成功,影响:"+count+"行");
       					//同一个连接 进行查询
       					System.out.println("主键:"+id);
@@ -680,25 +689,25 @@ day16~day19:综合项目 WEB版+模拟
 
 ## 14. 数据库中能不能直接存放图片？
 
-  - 在数据库中有专门存放图片、音频、视频、大文本文档 字段类型，这种类型叫：**lob**（Large Object）类型,mysql中 文本大对象 text、二进制大对象（图片、音频视频）blob
+  - 在数据库中有专门存放图片、音频、视频、大文本文档 字段类型，这种类型叫：**lob**（Large Object）类型,mysql中 文本大对象 text、二进制大对象（图片、音频视频）**blob**
 
   - 一般的客户端都不支持直接操作lob类型的数据，lob类型的数据一般通过程序（JDBC）采用IO流的方式添加和查询的。
 
     
 
-  - `一般在保存文件、音视频等资源的时候，都是先把资源放到服务器端的指定目录中，然后再把保存地址放到数据库中`
+  - 一般在保存文件、音视频等资源的时候，都是先把资源放到**服务器端**的**指定目录**中，然后再把**保存地址**放到数据库中
 
     
 
   - ![image-20230410212248159](./note.assets/image-20230410212248159.png)
 
-
-
 ## 15. 实现数据源?
+
+
 
 ## 16.DAO:Data Access Object 数据访问对象
 
-- DAO层一般是由 接口+实现+实体类构成的，一般存放所有的系统中和数据库交互的方法。
+- **DAO层**一般是由 接口+实现+实体类构成的，一般存放所有的系统中和数据库交互的方法。
 - IStudentDao:接口 
   - getAllSchs():查询所有学校
   - querySomeStu():分页查询学生
@@ -930,7 +939,7 @@ public class TestPst{
 			e.printStackTrace();
 		}
 	}
-	//真分页
+	//真分页 limit ?,?
 	public static void testQuery()throws Exception{
 		String sql = "select * from student limit ?,?";
 		try(Connection con = getConnection();
@@ -1009,6 +1018,7 @@ public class TestPst{
 			e.printStackTrace();
 		}
 	}
+    
 	//创建school表
 	//id ,name,phone,省id,市id,区县的id,详细地址 ，
 	public static void testCreateSchool()throws Exception{
@@ -1083,7 +1093,7 @@ public class TestPst{
 
 错误原因：`端口被占用`，常见场景：
 
-1. ​	开服务器的同时，再开服务器。
+1. 开服务器的同时，再开服务器。
 2. 先开前端项目（前端项目默认8080），再开后端项目（后端项目默认端口8080）
 
 ## 2. 我们模拟实现一个web 服务器？
@@ -1108,7 +1118,7 @@ public class TestPst{
 
       
 
-5. JAVA官方制定的JAVAEE的标准：其中定义了servlet的技术规范（接口），在这套规范中定义了核心的几个接口:
+5. JAVA官方制定的JAVAEE的标准：其中定义了**servlet**的技术规范（接口），在这套规范中定义了核心的几个接口:
 
    1. javax.servlet.**Servlet**：处理请求 生成响应
 
@@ -1122,7 +1132,7 @@ public class TestPst{
 
       
 
-6. 以上标准中，Servlet接口由`开发人员实现`,其他接口由WEB服务器（Tomcat）实现。我们在Servlet类中处理请求，生成响应，如果需要其他资源（如：请求、响应、配置、Context）等 Tomcat全部送给我们了。等我们实现完毕Servlet之后，我们再把Servlet类注册到**web服务器（Tomcat）**上，在服务器接收到请求之后，就可以使用我们写的Servlet类处理请求了。
+6. 以上标准中，**Servlet接口**由`开发人员实现`,其他接口由WEB服务器（Tomcat）实现。我们在Servlet类中处理请求，生成响应，如果需要其他资源（如：请求、响应、配置、Context）等 Tomcat全部送给我们了。等我们实现完毕Servlet之后，我们再把Servlet类注册到**web服务器（Tomcat）**上，在服务器接收到请求之后，就可以使用我们写的Servlet类处理请求了。
 
    
 
@@ -1369,7 +1379,7 @@ public class PooledDataSource extends AbstractDataSource{
 			try{
 				Class.forName("com.mysql.cj.jdbc.Driver");
 			}catch(ClassNotFoundException e){}
-			String url="jdbc:mysql://localhost:3306/et2301?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true";
+			String url="jdbc:mysql://localhost:3306/et2301?						characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true";
 			return DriverManager.getConnection(url,"root","etoak");
 	}
 
@@ -1407,8 +1417,6 @@ public class Test{
 ## 0. Maven
 
 **<<Maven配置文件>>在/Month4的Maven文件里**
-
-
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -1449,7 +1457,7 @@ public class Test{
 
 ## 1. Servlet的生命周期？
 
-1. Servlet类是我们（开发人员）写的，但是并不归我们管理【虽然我们实现类中的方法，但是我们不构造对象，不调用方法】，Servlet类作为组件（零件）交给Tomcat（WEB服务器管理的）。
+1. **Servlet类**是我们（开发人员）写的，但是并不归我们管理【虽然我们实现类中的方法，但是我们不构造对象，不调用方法】，Servlet类作为组件（零件）交给Tomcat（WEB服务器管理的）。
 
    
 
@@ -1469,7 +1477,7 @@ public class Test{
 
       
 
-4. 生命周期方法的调用顺序：
+4. 生命周期方法的**调用顺序**：
 
    0. 服务器启动，请求发送，Tomcat接收，根据url判断静态资源，如果servlet动态资源，找**web.xml**，根据url-pattern-->servlet-name-->servlet-class--》判断内存中是否已经有该类型对象。
 
@@ -1493,7 +1501,7 @@ public class Test{
 
 ## 2. Servlet的初始化？
 
-1. `初始化`：就是在servlet的service方法执行之前**预先执行init()方法**，我们可以在init方法加载配置、读取资源等操作。【并不是每次请求都需要初始化】
+1. `初始化`：就是在servlet的service方法执行之前**预先执行init()方法**，我们可以在init方法**加载配置、读取资源**等操作。【并不是每次请求都需要初始化】
 
    
 
@@ -1542,8 +1550,8 @@ public class Test{
     用户名:<input type="text" name="username"><br>
     目标城市：
         <input type="checkbox" name="checkbox" value="jn">济南
-    <input type="checkbox" name="checkbox" value="bj">北京
-    <input type="checkbox" name="checkbox" value="sh">上海
+        <input type="checkbox" name="checkbox" value="bj">北京
+        <input type="checkbox" name="checkbox" value="sh">上海
     <input type="submit" value="提交">
 </form>
 ~~~
@@ -1551,7 +1559,7 @@ public class Test{
 
 
 ~~~java
-  //~~~~~~~~请求行~~~~~~~~~~~~~~~~~~
+ 		//~~~~~~~~请求行~~~~~~~~~~~~~~~~~~
         //本次请求提交的方法GET POST
         String method = req.getMethod();
         //请求的资源 /项目名/请求路径  /stu/hello.html /stu/login
@@ -1614,7 +1622,7 @@ public class Test{
 
 1. ##### application/x-www-form-urlencoded （默认方式）
 
-   1. 代表浏览器把参数组装成key=value&key1=value1的格式。
+   1. 代表浏览器把**参数**组装成**key=value&key1=value1**的格式。
 
       
 
@@ -1624,7 +1632,7 @@ public class Test{
 
    1. 代表浏览器把`参数通过分隔符`分割传递到服务器。
 
-   2. 分隔符在每次请求的请求头：Content-Type中
+   2. 分隔符在每次请求的请求头：**Content-Type**中
 
       ![image-20230412174653061](./note.assets/image-20230412174653061.png)
 
@@ -1636,17 +1644,19 @@ public class Test{
 
 ## 4.1 在servlet中处理请求：返回响应？
 
-从服务器（servlet）返回响应给客户端浏览器，主要使用response.
+从服务器（servlet）返回响应给客户端浏览器，主要使用**response**.
 
 1. ##### 使用response向客户端返回字符数据
 
    ~~~java
-   resp.setContentType("text/html;charset=UTF-8"); <font color="red">中国</font>
-       				 text/plain:原样输出  <font color="red">中国</font>
-           //修改编码一定要在获取输出流之前
+   resp.setContentType("text/html;charset=UTF-8");
+   		<font color="red">中国</font>
+       	text/plain:原样输出  <font color="red">中国</font>
+               
+          //修改编码一定要在获取输出流之前
           PrintWriter writer = resp.getWriter();
-           writer.print("<html><body><h1>大家好</h1></body></html>");
-           writer.close();
+          writer.print("<html><body><h1>大家好</h1></body></html>");
+          writer.close();
    ~~~
 
    
@@ -1663,7 +1673,7 @@ public class Test{
            //输入流 文件来自于服务器
            //InputStream is = new FileInputStream(file);
            InputStream is = req.getServletContext().getResourceAsStream("/WEB-INF/image/059.jpg");
-           InputStream is1 = Hello2Servlet.class.getClassLoader().getResourceAsStream("../image/060.jpg");
+               InputStream is1 = 		Hello2Servlet.class.getClassLoader().getResourceAsStream("../image/060.jpg");
            //内容的处理方式：以文件的形式保存图片
            resp.setHeader("Content-Disposition",
                    "attachment;filename="+
@@ -1684,11 +1694,11 @@ public class Test{
 
 3. ##### 使用跳转的方式跳转其他页面返回【同步方式使用】
 
-   请求转发：hello--->helloservlet-->main.html 转发器：RequestDispatcher
+   请求转发：hello--->helloservlet-->main.html  **转发器：RequestDispatcher**
 
    ​	request.getRequestDispatcher("转发的页面").forward(req,resp)
 
-   重定向：
+   **重定向**：
 
    ​	response.sendRedirect("目的地")
 
@@ -1929,11 +1939,11 @@ public class XXServlet extends HttpServlet{
 
 - multipart/form-data:分割符分割参数	
 - application/x-www-form-urlencoded: 参数key-value
-- application/json:JSON格式 {“key”:"value","key1":{}}
+- application/json:JSON格式 { “key”:"value","key1":{ } }
 
 响应头的Content-Type:
 
-- ​	response.setContentType("text/html;charset=UTF-8") html
+- response.setContentType("text/html;charset=UTF-8") html
 - text/plain   原样显示 json
 - image/jpeg
 - video/mp4
@@ -2122,7 +2132,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 4. ##### 构造方法：Constructor类描述构造方法。。。。。
 
-   ![image-20220322100722144](./image-20220322100722144.png)
+   ![image-20220322100722144](./note.assets/image-20220322100722144.png)
 
 ### 第五、案例
 
@@ -2167,7 +2177,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
   - DOM:面向对象，把整个文档都加载到内存，占资源多，可以多次解析
 
-    ![image-20220322151728383](/image-20220322151728383.png)
+    ![image-20220322151728383](./note.assets/image-20220322151728383.png)
 
 - DOM方式和SAX方式都有非常明显的优缺点，一般解析XML使用第三方==**DOM4J**==（结合了DOM和SAX）
 
@@ -2177,11 +2187,11 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 ## 1. JDK中封装的操作JAVABEAN属性和方法的API？
 
-- JDK中`java.beans`包对于JAVABEAN(尤其是实体bean)提供了比较方便工具类和方法，这些API统称：Introspector [内省、自省]
+- JDK中`java.beans`包对于JAVABEAN(尤其是实体bean)提供了比较方便工具类和方法，这些API统称：**Introspector [内省、自省]**
 
   
 
-- 内省的API底层分装的最基础反射的API。
+- 内省的API底层封装的最基础反射的API。
 
   
 
@@ -2279,7 +2289,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 ## 1. JDBC的简化DAO层开发的工具-DBUtils？
 
-- apache-commons提供了一个简化JDBC操作的工具组件：**commons-dbutils**. 其中核心类：**QueryRunner**.
+- **apache-commons**提供了一个简化JDBC操作的工具组件：**commons-dbutils**. 其中核心类：**QueryRunner**.
 
 - 结果集处理器的标准：**ResultSetHandler**
 
@@ -2314,7 +2324,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 1. 我们从浏览器地址栏输入地址，回车。
 
-2. 浏览器自动把请求地址打包成标准的**HTTP请求报文**。通过网络 发送出去。
+2. 浏览器自动把<u>请求地址</u>打包成标准的**HTTP请求报文**。通过网络 发送出去。
 
    www.baidu.com-->ip  DNS
 
@@ -2334,7 +2344,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
     
 
-7. Tomcat判断内存中是否已经有该类型的Servlet对象了，如果有则返回原来的，如果没有则使用反射创建新的servlet对象【实例化..】。
+7. Tomcat判断内存中是否已经有该类型的Servlet对象了，如果有则返回原来的，如果没有则**使用反射**创建新的servlet对象【实例化..】。
 
    
 
@@ -2406,7 +2416,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 3. #### 改造结果？
 
-   1. 我们需要的Controller\service\dao\数据源对象，全部交给**BeanFactory**工厂，我们不再关注对象的创建细节，也不再关注对象依赖的其他对象。BeanFactory实现了根据配置文件，自动构造对象，自动注入依赖的其他对象。这种由我们自己创建对象到交给外部容器（BeanFactory）创建对象的过程叫：Inversion  Of Controller 简称：**IOC**(控制反转：控制（对象的创建权限） 反转：由我们自己到容器)
+   1. 我们需要的Controller\service\dao\数据源对象，全部交给**BeanFactory**工厂，我们不再关注对象的创建细节，也不再关注对象依赖的其他对象。BeanFactory<u>实现了</u>**根据配置文件，自动构造对象，自动注入依赖的其他对象**。这种由我们自己创建对象到交给外部容器（BeanFactory）创建对象的过程叫：Inversion  Of Controller 简称：**IOC**(**控制反转**：控制（对象的创建权限） 反转：由我们自己到容器)
    2. IOC是一种思想，我们写的BeanFactory可以看做是IOC思想一种具体实现。BeanFactory不只是实现的对象的创建，也实现的属性的赋值，依赖其他的对象自动注入，这种思想叫**Dependency Injection (DI:依赖注入)**。IOC容器既可以实现构造对象也可以实现依赖注入。
 
 ---
@@ -2421,9 +2431,9 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 2. 在javax-servlet.jar包中，总体上提供了三类技术标准：
 
-   1. Servlet标准： Servlet接口+ServletConfig+ServletContext. 处理请求
-   2. Filter标准：Filter接口+FitlerConfig+FilterChain 过滤请求响应
-   3. Listener标准：XXListener监听器接口+XXEvent:监听事件 
+   1. **Servlet标准**： Servlet接口+ServletConfig+ServletContext. **处理请求**
+   2. **Filter标准**：Filter接口+FitlerConfig+FilterChain **过滤请求响应**
+   3. **Listener标准**：XXListener监听器接口+XXEvent: **监听事件** 
 
 3. javaweb中的Filter技术核心api:javax.servlet.Filter接口
 
@@ -2456,7 +2466,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
    1. 实现一套算命流程
    2. 加入过滤器
 
-5. Filter对象是在容器启动时就会被容器构造和初始化的。默认Servlet实在请求到达时才会构造对象并初始化。【可以使用load-on-startup改变】
+5. **Filter对象**是在**容器启动时**就会被容器构造和初始化的。默认Servlet是在请求到达时才会构造对象并初始化。【可以使用load-on-startup改变】
 
 6. 在使用XML的配置前提下，过滤同一个请求的多个Filter执行顺序按照<filter-mapping>的摆放顺序
 
@@ -2506,13 +2516,13 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
     
 
-  - schame文档： xx.xsd  新  功能多
+  - schame文档： xx.xsd  新功能多
 
     ~~~XML
     <?xml version="1.0" encoding="UTF-8"?>
     <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
              xmlns:et="http://www.etoak.com/et"
-              xmlns:xsi:固定的
+             xmlns:xsi:固定的
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              schemaLocation:xsd文件的位置
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
@@ -2535,7 +2545,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 ## 6. 注册Servlet对象/Filter/Listener给tomcat的方式？
 
 1. web.xml声明
-2. 注解@WebServlet @WebFilter @WebListener
+2. 注解**@WebServlet @WebFilter @WebListener**
 3. `代码实现ServletContext动态注册`
 
 ---
@@ -2628,9 +2638,9 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
   - Spring 各种其他技术都是以Spring framework 为基础的，Spring framework是实现了IOC 、AOP（面向切面）、Web(mvc \ webflux)、DAO层支持的框架。
 
-  - Spring 实现了各层（controller\service\dao）之间的`解耦`.
+  - Spring 实现了各层（**controller\service\dao**）之间的`解耦`.
 
-  - Spring framework简称：核心容器（Bean管理 IOC、AOP）。
+  - Spring framework简称：**核心容器**（Bean管理 IOC、AOP）。
 
     ![image-20230420093053440](Spring.assets/image-20230420093053440.png)
 
@@ -2638,7 +2648,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 - Spring MVC?
 
-  - MVC: Model -View -Controller: 模型 -视图-控制器 MVC是一种软件的架构模式。
+  - MVC: **Model -View -Controller**: 模型 -视图-控制器 MVC是一种软件的架构模式。
   - Spring mvc:在Spring framework中，基于MVC思想的Spring的WEB框架。
 
 - Spring Boot?
@@ -2669,17 +2679,17 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 ## 4. BeanFactory和ApplicationContext?
 
-- BeanFactory接口是来自于Spring-beans包，是Spring IOC容器管理bean的核心接口，提供了getBean、getAlias、isSingleton等bean相关的方法。
+- **BeanFactory接口**是来自于Spring-beans包，是Spring IOC容器管理bean的核心接口，提供了getBean、getAlias、isSingleton等bean相关的方法。
 
-  ![image-20230420112034905](/Spring.assets/image-20230420112034905.png)
+  ![image-20230420112034905](./Spring.assets/image-20230420112034905.png)
 
-- ConfigurableBeanFactory：【接口】可配置的BeanFactory, 配置：范围scope 、类加载、类型转换器。
+- **ConfigurableBeanFactory**：【接口】可配置的BeanFactory, 配置：范围scope 、类加载、类型转换器。
 
-- AbstractBeanFactory:【实现类】 实现了getBean方法。---》doGetBean()..
+- **AbstractBeanFactory**:【实现类】 实现了getBean方法。---》doGetBean()..
 
-- DefaultListableBeanFactory:【实现类】
+- **DefaultListableBeanFactory**:【实现类】
 
-- XmlBeanFactory:  extends 上边的类 从指定的XML中加载资源
+- **XmlBeanFactory**:  extends 上边的类 从指定的XML中加载资源
 
 - ![image-20230420113309157](./Spring.assets/image-20230420113309157.png)
 
@@ -2689,11 +2699,11 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 - `ApplicationContext采用立即构造对象的方式，当构造ApplicationContext对象时，就会注册bean对象【构造对象】。`
 
-- ClassPathXmlApplicationContext:从类路径加载XML的配置文件，构造IOC容器
+- ClassPathXmlApplicationContext:从**类路径加载XML**的配置文件，构造IOC容器
 
-- FileSystemXMLApplicationContext:从文件系统加载XML配置文件，构造IOC容器
+- FileSystemXMLApplicationContext:从**文件系统加载XML**配置文件，构造IOC容器
 
-- AnnotationConfigApplicationContext:从注解中加载配置， 构造IOC容器。
+- AnnotationConfigApplicationContext:从**注解中加载配置**， 构造IOC容器。
 
 
 
@@ -2741,11 +2751,11 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 ## 7. BeanFactory接口和FactoryBean接口的区别？
 
-- BeanFactory是IOC容器中获取bean的父接口，提供了配置、管理、获取bean的方法，也可以看做IOC容器使用入口。所有BeanFactory、ApplicationContext都实现了该接口。
+- BeanFactory是IOC容器中获取bean的父接口，提供了配置、管理、获取bean的方法，也可以看做**IOC容器使用入口**。所有BeanFactory、ApplicationContext都实现了该接口。
 
   
 
-- FactoryBean 是IOC容器提供了一种向IOC容器中注册bean的方式，允许自定义复杂业务逻辑，采用的延迟注册的机制，当真正getBean时，返回getObject方法的返回值。
+- FactoryBean 是IOC容器提供了一种向IOC容器中注册bean的方式，允许自定义复杂业务逻辑，采用的**延迟注册**的机制，当真正getBean时，返回getObject方法的返回值。
 
 ## 8.错误1：当注册多个bean，根据类型获取时？
 
@@ -2824,17 +2834,17 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
 6. 注解中，可以使用基本数据类型的成员，但是不能使用包装类。
 
-7. 关于注解的注解？【元注解】java.lang.annotation包
+7. 关于注解的注解？【**元注解**】java.lang.annotation包
 
-   1. @Retention: 只能用在其他注解上，表示注解的保留策略
+   1. **@Retention**: 只能用在其他注解上，表示注解的<u>保留策略</u>
 
       1. value:RetentionPolicy.SOURCE  / RetentionPolicy.CLASS[默认] /RetentionPolicy.RUNTIME
 
-   2. @Target: 表示注解的适用的程序元素的种类
+   2. **@Target**: 表示注解的适用的程序元素的种类
 
       1. value:ElementType.METHOD/FIELD/CONSTRUTOR/PARAMETER...
 
-   3. @Documented:注解使用可以生成到JAVADOC文档中
+   3. **@Documented**:注解使用可以生成到**JAVADOC文档**中
 
       
 
@@ -2929,11 +2939,11 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
       ~~~
 
 
-## 5. IOC容器提供的属性赋值的注解?
+## 5. IOC容器提供的 属性赋值 的注解?
 
 - ##### @Autowired: 来自spring-beans包
 
-  - 默认按照类型【byTyp】，从IOC容器中寻找对象给属性赋值，如果一个类型有多个bean对象，默认按照属性名字匹配，我们可以通过@Qualifier注解指定注入的bean的名字，如果没有指定@Qualifer并且也没有按照属性匹配，则报错：NoUniqueBeanDefinitionException
+  - 默认按照类型【byTyp】，从IOC容器中寻找对象给属性赋值，如果一个类型有多个bean对象，默认按照属性名字匹配，我们可以通过**@Qualifier**注解指定注入的bean的名字，如果没有指定@Qualifer并且也没有按照属性匹配，则报错：NoUniqueBeanDefinitionException
 
 - ##### @Resource: 来自于 javaee包 `javax.annotation`包 不是Spring提供的包【不会与Spring耦合】
 
@@ -3024,7 +3034,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 
    2. 服务器端:
 
-      1. 使用对象接收+@RequestBody(把请求体参数组装成某个对象)
+      1. 使用对象接收+**@RequestBody**(把请求体参数组装成某个对象)
 
 3. ##### 文件参数：
 
@@ -3043,7 +3053,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
    3. 服务器：
 
       1. tomcat接收请求，解析请求头 请求行 不再解析消息体
-      2. 一般我们使用第三方的组件解析请求（Commons-fileUpload） 或者 使用servlet3.0新特性 getPart
+      2. 一般我们使用第三方的组件**解析请求（Commons-fileUpload）** 或者 使用servlet3.0新特性 getPart
       3. Spring: 提供了文件上传解析器 `MultipartResolver`, MultipartResolver会自动的解析参数给Controller中的相应参数赋值，我们就可以像使用普通参数一样使用文件参数。
       4. MultipartResolver:
          1. `CommonsMultipartResolver:使用Commons-fileUpload 组件解析请求`
@@ -3051,7 +3061,7 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
       5. `默认Spring 没有注册MultipartResovler的bean，需要我们自己配置`
 
    ~~~java
-    @RequestMapping("/addPic")
+    	@RequestMapping("/addPic")
        public Emp addEmp1(MultipartFile pic, HttpServletRequest request){
    
            System.out.println(pic);
@@ -4841,6 +4851,706 @@ export default {
 
 
 ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+# 5.3 看到day11
+
+
+
+# 补充：添加菜品信息(包含图片)
+
+
+
+### 添加照片和食物信息Controller
+
+```java
+@RequestMapping("/food")
+@RestController
+public class FoodController {
+    @Autowired
+    IFoodService service;
+    
+    // 添加 food 时添加图片
+    @RequestMapping("/addPic")
+    public JsonResponse addPic(MultipartFile pic, HttpServletRequest req) throws IOException {
+        // 获得原名   例如 水果拌饭.jpg
+        String name = pic.getOriginalFilename();
+        // fExt :  .jpg
+        //图片类型
+        String fExt = name.substring(name.lastIndexOf("."));
+        // 改名
+        String newName = UUID.randomUUID().toString().replaceAll("-","")
+                +fExt;
+        // 获得 context
+        ServletContext servletContext = req.getServletContext();
+        //真正的保存地址 在class中
+        String realPath = servletContext.getRealPath("/files/");
+        //
+        File parent = new File(realPath);
+        if(!parent.exists()){
+            //没有则创建
+            parent.mkdir();
+        }
+        //
+        File target = new File(parent,newName);
+        // 保存文件到目标地址
+        pic.transferTo(target);
+        //返回文件保存信息给前端
+        Pic pic1 = new Pic();
+        pic1.setSavepath("/files/"+newName);
+        pic1.setRealname(name);
+        pic1.setUploadtime(new Timestamp(System.currentTimeMillis()));
+
+        return ResponseStatus.suc(pic1);
+    }
+
+    // 添加 food
+    @RequestMapping("/addFood")
+    public JsonResponse addFood(@RequestBody FoodDTO dto){
+        boolean flag = service.addFoodAndPic(dto);
+        return flag ? ResponseStatus.suc("添加 food 成功") : ResponseStatus.error("添加图片失败");
+    }
+}
+```
+
+
+
+### 添加食物和照片的Service
+
+```java
+@Service
+public class FoodServiceImpl implements IFoodService{
+    @Autowired
+    IFoodMapper mapper;
+    
+    @Override
+    @Transactional
+    public boolean addFoodAndPic(FoodDTO dto) {
+        int count1 = mapper.addFood(dto);
+        String[] Ss = dto.getSs();
+
+        if(Ss != null && Ss.length > 0 ){
+            int k = 0;
+            for (String savepath : Ss){
+                Pic pic = new Pic();
+                pic.setSavepath(savepath);
+                pic.setFlag(0);
+                pic.setFooid(dto.getId());
+                pic.setRealname(dto.getRs()[k]);
+                pic.setUploadtime(ETDateUtils.string2Timestamp1(dto.getUs()[k]));
+                mapper.addPic(pic);
+                k++;
+            }
+        }
+
+        int count2 = mapper.updateFlagWhenAdd(dto.getId());
+        return count1 > 0 && count2 > 0;
+    }
+}
+```
+
+
+
+### 添加食物和照片的Mapper
+
+```java
+public interface IFoodMapper {
+    
+	int addFood(FoodDTO dto);
+
+    void addPic(Pic pic);
+
+    int updateFlagWhenAdd(int id);
+}
+```
+
+
+
+### FoodDTO.java
+
+```java
+public class FoodDTO extends Food {
+    private int pageSize;
+    private int pageNumber;
+    private int start;
+
+    private String[] ss; //savepaths
+    private String[] us; //uploadtimes
+    private String[] rs; //realnames
+
+    public String[] getSs() {
+        return ss;
+    }
+
+    public void setSs(String[] ss) {
+        this.ss = ss;
+    }
+
+    public String[] getUs() {
+        return us;
+    }
+
+    public void setUs(String[] us) {
+        this.us = us;
+    }
+
+    public String[] getRs() {
+        return rs;
+    }
+
+    public void setRs(String[] rs) {
+        this.rs = rs;
+    }
+
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
+    public int getStart() {
+        return (pageNumber - 1 ) * pageSize;
+    }
+
+}
+```
+
+
+
+### Pic.java
+
+```java
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Pic {
+    private int id;
+    private String savepath;
+    private String realname;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Timestamp uploadtime;
+    private int flag;
+    private int fooid;
+
+}
+```
+
+
+
+### foodMapper.xml
+
+```java
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.etoak.rst.food.mapper.IFoodMapper">
+    
+    <insert id="addFood" parameterType="com.etoak.rst.food.fooddto.FoodDTO" useGeneratedKeys="true" keyProperty="id">
+        insert into food(name, oldprice, nowprice, tags, status, typeid)
+        values (#{name},#{oldprice},#{nowprice},#{tags},#{status},#{typeid})
+    </insert>
+    
+    <insert id="addPic" parameterType="com.etoak.rst.food.pojo.Pic">
+        insert into pic(savepath, realname, uploadtime, flag, fooid)
+        values (#{savepath},#{realname},#{uploadtime},#{flag},#{fooid});
+    </insert>
+        
+    <update id="updateFlagWhenAdd" parameterType="int">
+        update pic set flag=1 where id in (select a.* from
+        (select id from pic where fooid= #{id} order by uploadtime desc limit 1)a )
+    </update>
+        
+</mapper>
+```
+
+
+
+
+
+### 前端addFood.vue
+
+```vue
+<template>
+        <el-form :model="food" :rules="rules" ref="ruleForm" label-width="100px">
+            
+            <el-form-item label="选择菜品图片">
+                <el-upload
+                class="upload-demo"
+                action="http://localhost:8080/hotel/food/addPic"
+                :on-success="handleSuccess"
+                name="pic"
+                :file-list="fileList"
+                list-type="picture">
+                    <el-button size="small" type="primary">点击上传</el-button>
+                </el-upload>
+            </el-form-item>
+            
+            <el-form-item label="菜品名称" prop="name">
+                <el-input v-model="food.name"></el-input>
+            </el-form-item>
+            <el-form-item label="菜品原价" prop="oldprice">
+                <el-input v-model="food.oldprice"></el-input>
+            </el-form-item>
+            <el-form-item label="菜品现价" prop="nowprice">
+                <el-input v-model="food.nowprice"></el-input>
+            </el-form-item>
+            <el-form-item label="菜品菜系" prop="typeid">
+                <el-select v-model="food.typeid" placeholder="请选择菜系">
+                    <el-option :label="item.name" :value="item.id" v-for="item in enums" :key="item.id"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item  label="菜品状态" prop="status">
+                <el-select v-model="food.status" placeholder="请选择">
+                    <el-option :label="item.label" :value="item.value" v-for="item in options" :key="item.value"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="菜品标签" prop="tags">
+                <el-input v-model="food.tags"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="addFood('food')">立即创建</el-button>
+                <el-button @click="resetForm('ruleForm')">重置</el-button>
+            </el-form-item>
+        </el-form>
+</template>
+
+<script>
+    export default {
+        data(){
+            
+            return{
+                fileList:[],
+                enums:[],
+                food:{
+                    name:'',
+                    oldprice:'',
+                    nowprice:'',
+                    tags:'', 
+                    status:'', 
+                    typeid:'',
+                    ss:[],
+                    us:[],
+                    rs:[],
+                },
+                options:[
+                    {
+                        value: 0,
+                        label: '正常上架'
+                    },
+                    {
+                        value: '1',
+                        label: '下架'
+                    }
+                ],
+                rules: {
+                    name: [
+                        { required: true, message: '请输入菜名', trigger: 'blur' },
+                        { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' }
+                    ],
+                    typeid: [
+                        { required: true, message: '请选择菜系', trigger: 'change' }
+                    ],
+                    oldprice: [
+                        {required: true,message: '请输入原价', trigger : 'blur'} 
+                    ],
+                    nowprice: [
+                        {required: true,message: '请输入现价', trigger : 'blur'} 
+                    ],
+                    tags: [
+                        {required: true,message: '请输入标签', trigger : 'blur'} 
+                    ],
+                    status: [
+                        {required: true,message: '请输入状态，0 上架 1 下架', trigger : 'blur'} 
+                    ]
+                }
+            }
+            
+        },
+        methods:{
+            //查询所有菜系
+            queryAllFoodType(){
+                this.$ajax.get('/food/queryAllFoodType')
+                .then(response =>{
+                    this.enums = response.data.data
+                }).catch(error => {
+                    console.error('error is:',error)
+                })
+            },
+            addFood(){
+                this.$refs.ruleForm.validate(resp =>{
+                    if(!resp){
+                        this.$message('请填写必填项')
+                    }else{
+                        this.$ajax.post('/food/addFood',this.food).then(response =>{
+                            console.log(response)
+                            if(response.data.code==200){
+                                this.$message('添加成功')
+                                this.food.ss = []
+                                this.food.us=[]
+                                this.food.rs=[]
+                                this.fileList = []
+                                this.$refs.ruleForm.resetFields()
+                            }
+                            
+                        }).catch(error =>{
+                            console.log('error is :',error)
+                        })
+                    }
+                })
+            },
+            handleSuccess(response, file, fileList){
+                this.food.ss.push(response.data.savepath)
+                this.food.us.push(response.data.uploadtime)
+                this.food.rs.push(response.data.realname)
+            },
+            resetForm(formName){
+                this.$refs[formName].resetFields()
+                this.food.ss = []
+                this.food.us=[]
+                this.food.rs=[]
+                this.fileList = []
+            }
+        },
+        created(){
+            this.queryAllFoodType()
+        }
+    }
+</script>
+
+<style scoped>
+
+</style>
+```
+
+
+
+### foodList.vue
+
+```vue
+<template>
+    <div>
+        <el-tabs v-model="activeName" type="card" @tab-click="querySome">
+            <el-tab-pane :label="en.name" :name="en.id +''"  v-for="en in enums" :key="en.id">
+                <el-row>
+                    <el-col :span="6" v-for="food in foods" :key="food.id"> 
+                        <el-card :body-style="{ padding: '0px' }" >
+                            <img :src="food.foodPic ? path+food.foodPic.savepath : mypic" style="width:300px;height:240px;">
+                            <div style="padding: 14px;">
+                                <span>菜名： {{ food.name }}</span> <br>
+                                <span>菜系： {{ en.name }}</span> <br>
+                                <span>原价： {{ food.oldprice }}</span><br>
+                                <span>现价： {{ food.nowprice }}</span>
+                                <div>
+                                    <el-button type="text" class="button" @click="showFoodInfo(food)">菜品详情</el-button>
+                                </div>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+                        <!-- 分页 -->
+                <el-pagination
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+                :current-page="params.pageNumber"
+                :page-size="params.pageSize"
+                layout="total, prev, pager, next, jumper"
+                :total="total">
+                </el-pagination>
+            </el-tab-pane>
+        </el-tabs>
+        <!-- 菜品详情 -->
+        <el-dialog title="菜品详细信息" :visible.sync="foodFlag" width="50%" >
+            <el-descriptions class="margin-top" title="详细信息" :column="2" border>
+                <el-descriptions-item>
+                    <template slot="label">
+                        <i class="el-icon-user"></i>
+                        菜品名称
+                    </template>
+                    <el-input v-model="food.name" placeholder="请输入名字"></el-input>
+                </el-descriptions-item>
+                <el-descriptions-item>
+                    <template slot="label">
+                        <i class="el-icon-mobile-phone"></i>
+                        菜品原价
+                    </template>
+                    <el-input v-model="food.oldprice" placeholder="请输入原价"></el-input>
+                </el-descriptions-item>
+                <el-descriptions-item>
+                    <template slot="label">
+                        <i class="el-icon-location-outline"></i>
+                        菜品现价
+                    </template>
+                    <el-input v-model="food.nowprice" placeholder="请输入现价"></el-input>
+                </el-descriptions-item>
+                <el-descriptions-item>
+                    <template slot="label">
+                        <i class="el-icon-tickets"></i>
+                        标签
+                    </template>
+                    <el-input v-model="food.tags" placeholder="请输入标签"></el-input>
+                </el-descriptions-item>
+                <el-descriptions-item>
+                    <template slot="label">
+                        <i class="el-icon-office-building"></i>
+                        菜品状态
+                    </template>
+                        <el-select v-model="food.status" placeholder="请选择">
+                            <el-option :label="item.label" :value="item.value" v-for="item in options" :key="item.value"></el-option>
+                        </el-select>
+                </el-descriptions-item>
+                <el-descriptions-item :span="2">
+                    <template slot="label">
+                        <i class="el-icon-office-building"></i>
+                        添加菜品图像
+                    </template> <!-- data 上传时附带的参数 注意必须是一个 js 对象 例如： stuid{ id:''}-->
+                        <el-upload
+                        :data="foodid" 
+                        name="pic"
+                        class="upload-demo"
+                        action="http://localhost:8080/hotel/food/addPic1"
+                        :on-success="handleSuccess"
+                        :file-list="fileList"
+                        list-type="picture">
+                            <el-button size="small" type="primary">点击上传</el-button>
+                        </el-upload>
+                </el-descriptions-item>
+                <el-descriptions-item :span="2">
+                    <template slot="label">
+                        <i class="el-icon-user"></i>
+                        菜品图片
+                    </template>
+                    <el-row>
+                        <el-col :span="8" v-for="o in pics" :key="o.id">
+                            <el-card :body-style="{ padding: '0px' }">
+                                <img :src="path+o.savepath" style="width:400px;height:240px;">
+                                <div style="padding: 14px;">
+                                    <span>{{ o.realname }}</span>
+                                    <div class="bottom clearfix">
+                                        <time class="time">{{ o.uploadtime }}</time>
+                                        <el-button :type='o.flag==1?"success":"primary"' @click="changefm(o.id)">{{ o.flag==1?"当前封面":"设为封面"}}</el-button>
+                                        <el-button type="danger" @click="deletePic(o.id)">删除图片</el-button>
+                                    </div>
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                </el-descriptions-item>
+            </el-descriptions>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="deleteFood(food)" type="danger" round>删除菜品</el-button>
+                <el-button @click="cancel" type="info" round>取 消</el-button>
+                <el-button type="primary" @click="changefood(food)" round>确定修改</el-button>
+            </span>
+        </el-dialog>
+    </div>
+</template>
+
+<script>
+    export default {
+        data(){
+            return{
+                enums:[],
+                activeName:0,
+                foods:[],
+                total:0,
+                start:0,
+                params:{
+                    pageNumber:1,
+                    pageSize:8,
+                    typeid:0,
+                },
+                mypic:require('@/assets/logo.png'),
+                foodFlag:false,
+                food:[],
+                pics:[],
+                foodid:{
+                    id:''
+                },
+                fileList:[],
+                options:[
+                    {
+                        value: 0,
+                        label: '正常上架'
+                    },
+                    {
+                        value: 1,
+                        label: '下架'
+                    }
+                ],
+            }
+        },
+        methods:{
+            //查询所有菜系
+            queryAllFoodType(){
+                this.$ajax.get('/food/queryAllFoodType')
+                .then(response =>{
+                    this.enums = response.data.data
+                }).catch(error => {
+                    console.error('error is:',error)
+                })
+            },
+            //查询 菜品
+            querySome(){
+                this.params.typeid = this.activeName
+                this.$ajax.post('/food/querySome',this.params).then(resp => {
+                        console.log(resp)
+                        this.foods = resp.data.data.rows
+                        this.total = resp.data.data.total
+                        this.start = resp.data.data.start
+                }).catch(error =>{
+                    console.log("error is :",error)
+                })
+            },
+            //每页记录数发生变化时触发
+            handleSizeChange(val) {
+                this.params.pageSize = val
+                this.querySome()
+            },
+            //当前页发生变化时触发
+            handleCurrentChange(val) {
+                this.params.pageNumber = val
+                this.querySome()
+            },
+            //每页序号递增
+            calcIndex(v){
+                return this.start+v+1
+            },
+            //显示菜品详情
+            showFoodInfo(value){
+                this.foodFlag = true
+                this.food = value
+                this.foodid.id = value.id
+                this.queryPicByFoodId(value.id)
+            },
+            // 详情页 根据 food 的 id  查询菜品图片
+            queryPicByFoodId(id){
+                this.$ajax.post('/food/queryPicByFoodId','id='+id)
+                .then(resp =>{
+                    if(resp.data.code=200){
+                        this.pics = resp.data.data
+                    }else{
+                        this.$message('图片查询失败')
+                        this.pics = []
+                    }
+                })
+            },
+            //添加图片成功时执行
+            handleSuccess(){
+                this.$message('添加成功')
+                this.queryPicByFoodId(this.food.id)
+            },
+            //更改菜品封面图片
+            changefm(id){
+                this.$ajax.post('/food/changefm','id='+id)
+                .then(resp =>{
+                    console.log('dfdsafasd',resp)
+                    if(resp.data.code==200){
+                        this.$message('封面更改成功')
+                        this.queryPicByFoodId(this.food.id)
+                        this.querySome()
+                    }else{
+                        this.$message('封面图片更改失败')
+                    }
+                })
+            },
+            // 删除 菜品 图片
+            deletePic(id){
+                this.$ajax.post('/food/deletePic','id='+id)
+                .then(resp => {
+                    if(resp.data.code==200){
+                        this.$message('菜品图片删除成功')
+                        this.queryPicByFoodId(this.food.id)
+                        this.querySome()
+                    }else{
+                        this.$message('菜品图片删除失败')
+                    }
+                })
+            },
+            //详情页 取消按钮
+            cancel(){
+                this.foodFlag = false
+                this.querySome()
+            },
+            //详情页 确定按钮
+            changefood(food){
+                this.$ajax.post('/food/changeFood',food)
+                .then(resp => {
+                    if(resp.data.code=200){
+                        this.$message('菜品信息修改成功')
+                        this.foodFlag = false
+                        this.querySome()
+                    }else{
+                        this.$messgae('菜品信息修改失败')
+                    }
+                })
+            },
+            // 详情页 删除菜品
+            deleteFood(food){
+                this.$ajax.post('/food/deleteFood',food)
+                .then(resp => {
+                    if(resp.data.code==200){
+                        this.$message('菜品删除成功')
+                        this.foodFlag = false
+                        this.querySome()
+                    }else{
+                        this.$message('菜品删除失败')
+                    }
+                })
+            }
+        },
+        created(){
+            this.queryAllFoodType()
+        }
+    }
+</script>
+
+<style scoped>
+
+</style>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
