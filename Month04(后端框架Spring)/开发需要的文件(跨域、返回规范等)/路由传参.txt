@@ -1,0 +1,51 @@
+路由传参
+1.方案一
+// 路由定义
+{
+  path: '/describe/:id',
+  name: 'Describe',
+  component: Describe
+}
+// 页面传参
+this.$router.push({
+  path: `/describe/${id}`,
+})
+// 页面获取
+this.$route.params.id
+
+
+2.方案二
+
+// 路由定义
+{
+  path: '/describe',
+  name: 'Describe',
+  component: Describe
+}
+// 页面传参
+this.$router.push({
+  name: 'Describe',
+  params: {
+    id: id
+  }
+})
+// 页面获取
+this.$route.params.id
+
+3.方案三
+
+// 路由定义
+{
+  path: '/describe',
+  name: 'Describe',
+  component: Describe
+}
+// 页面传参
+this.$router.push({
+  path: '/describe',
+    query: {
+      id: id
+  `}
+)
+// 页面获取
+this.$route.query.id

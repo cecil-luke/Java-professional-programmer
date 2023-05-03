@@ -2538,6 +2538,58 @@ on area.id = sch.areaid left join (select * from pic where flag=1) p on p.stuid 
 2. 注解@WebServlet @WebFilter @WebListener
 3. `代码实现ServletContext动态注册`
 
+---
+
+## 1. JAVAWEB回话跟踪技术：cookie机制和session机制？
+
+1. HTTP协议是一种无状态的协议，就是多次请求之间不会有任何的关联信息，但是在实际开发中，很多时候是需要保持状态信息，如：加入购物车和查看购物车是两次请求，但是是必须得有关系。【我们使用cookie和session达到在多次请求之间传递信息】
+
+   
+
+2. JAVAWEB中提供了两种保持回话的技术:
+
+   1. cookie机制
+
+   2. session机制。
+
+      
+
+3. cookie机制
+
+   1. cookie机制的核心API:javax.servlet.http.Cookie类，cookie类也是javaweb中唯一一个我们能够构造对象的类。
+
+      
+
+   2. Cookie【“小饼干 曲奇饼”】代表从服务器（Servlet）发送给客户端（浏览器）的一小段文本信息。保存在浏览器端（硬盘、内存），稍后会送给服务器。
+
+      
+
+   3. Cookie包括：名字=值 +可选属性组成。
+
+      
+
+   4. 我们使用response.addCookie(new Cookie(..))就可以把cookie信息从服务器发送到客户端。【底层实际上是通过添加`HTTP响应头`的方式把cookie传到客户端的。】
+
+      
+
+   5. cookie可以保存在浏览器内存中，也可以保存在浏览器硬盘中，一般我们设置的最大的有效时间就会保存到硬盘上。【每个浏览器的cookie保存机制、目录也是不一样】
+
+      
+
+   6. 客户端（浏览器）回送cookie是通过添加HTTP请求头【回送cookie是默认行为，不需要我们参与】，所以我们可以在服务器端（Servlet）中，通过request.getCookies()获取本次请求中携带的上一次服务器给客户端的cookie信息。
+
+   7. 案例:
+
+      1. 上次访问时间
+      2. 最近浏览的商品 足迹
+      3. jquery  session
+
+## session机制？
+
+1. session: 会话，从打开浏览器到关闭浏览的整个过程，通常叫做一次会话。
+
+
+
 
 
 ---
@@ -4608,6 +4660,87 @@ https://mybatis.org/mybatis-3/zh/dynamic-sql.html
 
 
 ---
+
+
+
+## 3. 地址信息管理 两端布局
+
+~~~vue
+ <!--flex：1-->
+         <el-card class="box-card">
+              <div style="display:flex;align-items:center">
+              
+                  <!--单选框-->
+                   <el-radio v-model="radio" label=" "></el-radio>
+                  <!--省市区 详细地址 收货人的姓名+电话-->
+                   <div>
+                       <div>山东省-济南市-历下区</div>
+                       <div>趵突泉北路6号508</div>
+                       <div>金志 13512341234</div>
+                   </div>
+                  
+                  <!--更多箭头-->
+                  <div style="flex:1;text-align:right">
+                      <span><i class="el-icon-d-arrow-right" /></span>
+                  </div>
+              </div>
+          </el-card>
+        <!--两端布局：justify-content:space-between-->
+         <el-card class="box-card">
+              <div style="display:flex;justify-content:space-between">
+                <div style="display:flex;align-items:center">
+                  <!--单选框-->
+                   <el-radio v-model="radio" label=" "></el-radio>
+                  <!--省市区 详细地址 收货人的姓名+电话-->
+                   <div>
+                       <div>山东省-济南市-历下区</div>
+                       <div>趵突泉北路6号508</div>
+                       <div>金志 13512341234</div>
+                   </div>
+                  </div>
+                  <!--更多箭头-->
+                  <div style="">
+                      <span><i class="el-icon-d-arrow-right" /></span>
+                  </div>
+              </div>
+          </el-card>
+        <!--flex:右侧固定  左侧absolute 绝对定位-->
+         <el-card class="box-card">
+              <div class="addressBox">
+                  <!--单选框-->
+                   <el-radio v-model="radio" label=" "></el-radio>
+                  <!--省市区 详细地址 收货人的姓名+电话-->
+                   <div>
+                       <div>山东省-济南市-历下区</div>
+                       <div>趵突泉北路6号508</div>
+                       <div>金志 13512341234</div>
+                   </div>
+                  
+                  <!--更多箭头-->
+                  <div style="position:absolute; right:40px">
+                      <span><i class="el-icon-d-arrow-right" /></span>
+                  </div>
+              </div>
+          </el-card>
+        <!--flex:  最左侧：margin-left:auto 充满左侧剩余部分-->
+          <el-card class="box-card">
+              <div class="addressBox">
+                  <!--单选框-->
+                   <el-radio v-model="radio" label=" "></el-radio>
+                  <!--省市区 详细地址 收货人的姓名+电话-->
+                   <div>
+                       <div>山东省-济南市-历下区</div>
+                       <div>趵突泉北路6号508</div>
+                       <div>金志 13512341234</div>
+                   </div>
+                  
+                  <!--更多箭头-->
+                  <div style="margin-left:auto">
+                      <span><i class="el-icon-d-arrow-right" /></span>
+                  </div>
+              </div>
+          </el-card>
+~~~
 
 
 
