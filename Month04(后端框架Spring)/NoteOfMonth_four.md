@@ -4374,7 +4374,9 @@ public SqlSessionFactory build(Reader reader, String environment, Properties pro
 
 5. set
 
-6. foreach
+
+
+1. foreach
 
 具体SQL动态标签,参考文档:
 
