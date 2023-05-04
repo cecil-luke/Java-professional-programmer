@@ -3337,7 +3337,7 @@ JDK中的ServiceLoader类采用的是延迟加载机制。只有真正执行到n
 
 ![image-20220405095353477](./note.assets/image-20220405095353477.png)
 
-![image-20220405095414894](./note.assets/image-20220405095414894.png)
+![ ](./note.assets/image-20220405095414894.png)
 
 ##### 问题：Tomcat如何获得ServletContainerInitial类的具体对象的？
 
@@ -3361,7 +3361,7 @@ WebappServiceLoader：相当于JDK中ServiceLoader
 
 2.ETConfig(@Configuration @ComponentScan @PropertySource)
 
-3.注解 Controller @Service
+3.注解 @Controller @Service
 
 4.写一个类实现【Spring提供的接口WebApplicationInitializer】并且在onStartup方法中注册DispatcherServlet.
 
@@ -3404,7 +3404,7 @@ bean.set....
 
 2. ##### ORM思想的出现:
 
-   1. ORM:Object  Relational  Mapping 对象关系映射，这种思想目标是把面向对象开发中的对象映射到基于SQL的关系型数据库中。
+   1. ORM:Object  Relational  Mapping **对象关系映射**，这种思想目标是把面向对象开发中的对象映射到基于SQL的关系型数据库中。
 
    2. addStu(Student stu)            orm:  addStu(Student stu)
 
@@ -3430,9 +3430,9 @@ bean.set....
 
 
 
-1. MyBatis也是一款ORM思想的实现框架，底层也是封装的JDBC。
+1. MyBatis也是一款**ORM思想**的实现框架，底层也是封装的JDBC。
 
-2. MyBatis是一款"半自动的"ORM框架. MyBatis也会执行SQL，返回结果。具体的SQL语句需要开发人员自己写。 灵活 效率高。
+2. MyBatis是一款**"半自动的"ORM框架**. MyBatis也会执行SQL，返回结果。具体的SQL语句需要开发人员自己写。 灵活 效率高。
 
 3. MyBatis在2010年之前叫IBatis，属于ASF,后来退出ASF，改名为MyBatis。
 
@@ -3449,12 +3449,12 @@ bean.set....
 
 +++
 
-1. org.apache.ibatis.session.SqlSessionFactoryBuilder:
+1. org.apache.ibatis.session.**SqlSessionFactoryBuilder**:
    1. build(IO流)
    2. build(Configuration 配置对象)
-2. org.apache.ibatis.session.SqlSessionFactory:
+2. org.apache.ibatis.session.**SqlSessionFactory**:
    1. openSession()
-3. org.apache.ibatis.session.SqlSession:[核心]
+3. org.apache.ibatis.session.**SqlSession**:[核心]
    1. insert 
    2. update
    3. delete
@@ -3508,6 +3508,7 @@ bean.set....
    <?xml version="1.0" encoding="UTF-8" ?>
    <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
            "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
    <mapper namespace="com.et">
        <!--
        insert: 执行 insert语句 executeUpdate
@@ -3516,6 +3517,7 @@ bean.set....
            insert into student( name, age, birth, email, schid)
            values(#{name},#{age},#{birth},#{email},#{schid})
        </insert>
+       
        <!--
        select:执行查询
        -->
@@ -3523,6 +3525,7 @@ bean.set....
                resultType="com.etoak.student.pojo.Student">
            select * from student where id=#{id}
        </select>
+       
        <!--
        UPDATE executeUpdate
        -->
@@ -3530,16 +3533,42 @@ bean.set....
            update student set name=#{name},age=#{age},birth=#{birth},
                               email=#{email} where id=#{id}
        </update>
+       
        <!--
        delete executeUpdate
        -->
        <delete id="deleteStu" >
            delete from student where id=#{id}
        </delete>
+       
        <select id="queryAll" resultType="com.etoak.student.pojo.Student">
            select * from student
        </select>
    
+       <!--==============返回数据类型================-->
+       <resultMap id="rMap_food" type="com.etoak.rst.food.pojo.Food">
+           <id property="id" column="foodid"></id>
+           <result property="name" column="food_name"></result>
+           <result property="price" column="food_price"></result>
+           <result property="nowPrice" column="food_nowprice"></result>
+           <result property="tags" column="food_tags"></result>
+           <result property="status" column="food_status"></result>
+           <result property="foodTypeId" column="food_foodtype_id"></result>
+           <association property="ft" javaType="com.etoak.rst.food.pojo.FoodType">
+               <id property="id" column="ftid"></id>
+               <result property="name" column="foodtype_name"></result>
+               <result property="info" column="foodtype_info"></result>
+           </association>
+           <association property="fm" javaType="com.etoak.rst.food.pojo.Pic">
+               <id property="id" column="id"></id>
+               <result property="savepath" column="pic_savepath"></result>
+               <result property="uploadtime" column="pic_uploadtime"></result>
+               <result property="realname" column="pic_realname"></result>
+               <result property="flag" column="pic_flag"></result>
+               <result property="foodid" column="pic_foodid"></result>
+           </association>
+       </resultMap>
+       
    </mapper>
    ~~~
 
@@ -3559,8 +3588,8 @@ bean.set....
 
 +++
 
-- Mapper.xml中namespace的名字和Mapper接口的名字一致
-- Mapper.xml中的SQL语句的id和Mapper接口中方法名字一致
+- Mapper.xml中**namespace**的名字和**Mapper接口**的名字一致
+- Mapper.xml中的SQL语句的**id**和**Mapper接口中方法名字**一致
 
 ### 6. 类中属性和表中字段不完全一致？
 
@@ -3619,7 +3648,7 @@ bean.set....
 3. 对象
 
 ~~~java
- List<Student> querySome1(@Param("start")int startadadfa,
+ 	List<Student> querySome1(@Param("start")int startadadfa,
                             @Param("pageSize") int pageSizeasdfadf);
 
     List<Student> querySome(Map<String,Object> map);
@@ -3629,8 +3658,8 @@ bean.set....
 
 +++
 
-- resultType:表示执行SQL查询之后的结果集的每一条记录返回的类型,如:自定义的对象Student/User/Teacher、int、map
-- resultMap:一定对应的一个<resultMap>元素的id
+- resultType:表示执行SQL查询之后的结果集的**每一条记录返回的类型**,如:自定义的对象Student/User/Teacher、int、map
+- resultMap:一定对应的一个<resultMap>元素的**id**
 
 ### 9. MyBatis如何获得添加到数据库中的主键？
 
@@ -3685,7 +3714,7 @@ bean.set....
 1. 使用就是动态标签 foreach
 
    ~~~xml
-    <insert id="addStus1" parameterType="list">
+   	<insert id="addStus1" parameterType="list">
            insert into tb_stu(s_name, s_age, s_birth, s_email, s_schid)
            values
            <foreach collection="list" item="s" separator=",">
@@ -3723,7 +3752,8 @@ bean.set....
 - if 
 
   ~~~xml
-    <select id="queryByConditions1" resultMap="rMap_stu">
+    	//模糊查询
+  	<select id="queryByConditions1" resultMap="rMap_stu">
           select * from tb_stu
           <where>
               <if test="name!=null and name!='' ">
@@ -3741,7 +3771,7 @@ bean.set....
 - foreach
 
   ~~~xml
-   <insert id="addStus1" parameterType="list">
+   	<insert id="addStus1" parameterType="list">
           insert into tb_stu(s_name, s_age, s_birth, s_email, s_schid)
           values
           <foreach collection="list" item="s" separator=",">
@@ -3749,6 +3779,7 @@ bean.set....
           </foreach>
   
       </insert>
+  
       <insert id="addStus" parameterType="list">
           insert into tb_stu(s_name, s_age, s_birth, s_email, s_schid)
   
@@ -3903,7 +3934,7 @@ bean.set....
       2. ResultSetType:结果集的类型 枚举
 
          ~~~
-         	DEFAULT(-1)：默认的结果集
+            DEFAULT(-1)：默认的结果集
             FORWARD_ONLY(1003)：不可滚动的结果集
             SCROLL_INSENSITIVE(1004)：可滚动结果集
             SCROLL_SENSITIVE(1005)：可滚动的结果集
@@ -3972,7 +4003,7 @@ bean.set....
 7. #### org.apache.ibatis.io.Resources:资源
 
    1. 该类是MyBatis封装的工具类。专门加载配置文件
-   2. 底层委托 classLoaderWrapper实现具体加载的。原理就是使用ClassLoader.getResourceAsStream实现的。
+   2. 底层委托 **classLoaderWrapper**实现具体加载的。原理就是使用ClassLoader.getResourceAsStream实现的。
    3. 
 
 8. 
@@ -4071,6 +4102,7 @@ mybatis-config.xml
 <!DOCTYPE configuration
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-config.dtd">
+
 <configuration>
     <settings>
         <!--logImpl: STDDOUT_LOGGING:打印日志到控制台-->
@@ -4086,7 +4118,7 @@ mybatis-config.xml
             <!--数据源：POOLED:表示使用Mybatis采用数据库连接池方式实现的数据源对象-->
             <dataSource type="POOLED">
                 <property name="driver" value="com.mysql.cj.jdbc.Driver"></property>
-                <property name="url" value="jdbc:mysql://localhost:3309/et2301?characterEncoding=utf8&amp;useSSL=false&amp;serverTimezone=Asia/Shanghai&amp;rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=true"></property>
+                <property name="url" value="jdbc:mysql://localhost:3306/et2301?characterEncoding=utf8&amp;useSSL=false&amp;serverTimezone=Asia/Shanghai&amp;rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=true"></property>
                 <property name="username" value="root"></property>
                 <property name="password" value="etoak"></property>
             </dataSource>
@@ -4105,6 +4137,7 @@ EmpMapper.xml
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.et2301">
     <insert id="addEmp" parameterType="com.etoak.pojo.Emp">
         insert into emp(ename,job,sal,hiredate,deptno)
@@ -4209,8 +4242,8 @@ EmpMapper.xml
 ## 10. MyBatis处理分页？
 
 1. MyBatis自带分页机制，采用假分页（查询所有数据，只显示需要的部分），分页参数放在RowBounds（offset:起始位置 limit: 每页的记录数）逻辑分页
-2. 我们一般自己写分页语句，使用真分页 ，物理分页 关键字 。
-3. 实际开发中，我们通常使用分页组件（Pagehelper）来分页。
+2. 我们一般自己写分页语句，使用**真分页** ，物理分页 关键字 。
+3. 实际开发中，我们通常使用**分页组件（Pagehelper）**来分页。
 
 
 
@@ -4323,7 +4356,7 @@ public SqlSessionFactory build(Reader reader, String environment, Properties pro
        <where>
            <choose>
                <when test="ename!=null and ename!='' ">and e_ename like '%${ename}%'</when>
-               <otherwise>
+               <otherwise>//否则
                    <choose>
                        <when test="job!=null and job!='' ">and e_job=#{job}</when>
                        <otherwise>
@@ -4367,6 +4400,7 @@ https://mybatis.org/mybatis-3/zh/dynamic-sql.html
             <result property="loc" column="loc"></result>
         </association>
     </resultMap>
+
     <select id="queryEmpByIdWithDept" resultMap="rMap_emp1">
         select
         e.e_empno,e.e_ename,e.e_job,e_sal,e_hiredate,e_deptno,
@@ -4389,6 +4423,7 @@ https://mybatis.org/mybatis-3/zh/dynamic-sql.html
             <result property="deptno" column="e_deptno"></result>
         </collection>
     </resultMap>
+
     <select id="queryDeptByIdWithEmp" resultMap="rMap_dept">
         select
         d.deptno,d.dname,d.loc,
@@ -4410,7 +4445,7 @@ https://mybatis.org/mybatis-3/zh/dynamic-sql.html
 2. 配置拦截器：
 
    ~~~xml
-    <plugins>
+       <plugins>
            <!-- com.github.pagehelper为PageHelper类所在包名 -->
            <plugin interceptor="com.github.pagehelper.PageInterceptor">
                <!-- 使用下面的方式配置参数，后面会有所有的参数介绍 rownum-->
@@ -4665,7 +4700,7 @@ https://mybatis.org/mybatis-3/zh/dynamic-sql.html
   | JAVA访问 驱动  | mysql-connector-java.jar    | jedis.jar                        |
   | 简化操作       | DBUtils封装了JDBC的操作     | RedisUtils 封装JAVA访问redis操作 |
 
-  不是spring整合redis,不需要redisTemplate   jdbcTempated  SqlSesionTemplate
+  不是spring整合redis,**不需要redisTemplate**   jdbcTempated  SqlSesionTemplate
 
 
 
@@ -4758,11 +4793,11 @@ https://mybatis.org/mybatis-3/zh/dynamic-sql.html
 
 
 
-# day16(SideBar )
+# day16(SideBar 导航栏菜单组件)
 
 ## 介绍
 
-这是一个是基于`element-UI`的导航菜单组件基础上，进行了二次封装的菜单组件，该组件以组件递归的方式，实现了可根据从后端接收到的`json`菜单数据，动态渲染多级菜单的功能。
+这是一个是基于`element-UI`的**导航菜单组件**基础上，进行了二次封装的菜单组件，该组件以**组件递归**的方式，实现了可根据从后端接收到的`json`菜单数据，动态渲染多级菜单的功能。
 
 ## 使用方法
 
@@ -4770,7 +4805,7 @@ https://mybatis.org/mybatis-3/zh/dynamic-sql.html
 
 ## 工作流程
 
-组件封装好之后，由父组件调用该组件，父组件先向后端发送请求获取菜单数据，然后将菜单数据传递给封装好的菜单组件，菜单组件通过解析数据，完成菜单渲染。
+组件封装好之后，由**父组件调用该组件**，父组件先向后端发送请求获取菜单数据，然后将菜单数据传递给封装好的菜单组件，菜单组件通过解析数据，完成菜单渲染。
 
 ## 使用示例
 
@@ -4854,11 +4889,211 @@ export default {
 
 
 
+# day18(复习，最后一天)
 
+## 1. JAVAWEB
 
+![image-20230504091406395](./note.assets/image-20230504091406395.png)
 
+### 1. HTTP协议
 
+HTTP协议是应用层（物理层/网络层[IP]/传输层【TCP/UDP】/应用层[http smtp ftp dns telnet]）基于请求、响应模式的无状态的应用层协议。
 
+1. 请求：从客户端 发往服务器端的报文信息（固定格式）
+   1. 请求行 请求的方法  请求资源    协议/版本
+      1. GET/POST/PUT/DELETE/. @RequestMapping(value="/querySome",method=RequestMethod.POST)
+      2. 资源
+         1. index.html  login.jsp   css/abc.css  js/xx.js   servlet/login
+      3. 协议版本 HTTP/1.1
+         1. HTTP   HTTPS FTP
+         2. 1.1
+   2. 请求头
+      1. Host:主机地址
+      2. Accept:当前浏览器可以接收的内容 text/html  application/json
+      3. Content-Type:本次请求携带到服务器端的内容的类型 
+         1. application/x-www-form-urlencoded: key=value&key1=value2
+         2. appliction/json:  {"key":"value"}
+         3. multipart/form-data: 分隔符 分割 文件上传 
+      4. cookie: 本次请求携带的上一次服务器给客户端cookie信息 
+      5. refere:从哪里来到当前位置的。统计来源
+   3. 消息体
+      1. 参数  
+2. 响应：从服务器返回给客户端的报文信息（固定格式）
+   1. 状态行  HTTP/1.1  状态码   状态码字符串
+      1. 状态码 字符串
+         1. 200  ok
+         2. 404 file not found
+         3. 500  服务器内部 代码写错了
+         4. 405 method not supported 
+         5. 406  Spring  jackson缺包  返回的格式有问题  null
+         6. 302  +locations 重定向
+         7. 304 ：从缓存中获取
+   2. 响应头
+      1. Content-Type:  本次响应给客户端的内容类型  application/json  text/html..
+   3. 响应正文
+      1. <html>
+      2. {json}
+
+### 2. WEB服务器
+
+1. 能够接收标准的HTTP请求，返回标准的HTTP响应的软件。
+
+2. Tomcat就是一款免费的、开源的纯JAVA实现的WEB服务器。
+
+3. Tomcat:
+
+   1. 接收请求
+   2. 处理请求，生成响应【我们 实现Servlet标准，在Servlet中实现我们自己业务逻辑】
+   3. 返回响应
+
+4. 标准
+
+   1. JAVAEE==>javax.servlet包和 javax.servlet.http包
+   2. 实现：【{....}】
+      1. Tomcat
+         1. request
+         2. response
+         3. servletContext
+         4. servletConfig
+         5. filterConfig
+         6. ..event..
+      2. 我们
+         1. Servlet
+            1. service ()  doxxx(req,resp) servletContext
+         2. Filter doFilter() init(FilterConfig)
+         3. Listener  ..event
+
+5. 核心API:
+
+   1. javax.servlet:
+
+      1. Servlet:  Servlet
+      2. ServletConfig
+      3. ServletContext
+      4. Filter
+      5. FilterConfig
+      6. ServletRequestListener
+      7. ServletContextListener
+      8. ..
+
+   2. javax.servlet.http:
+
+      1. HttpServlet
+      2. Cookie
+      3. HttpSession:接口
+      4. HttpServletRequest:接口
+      5. HttpServletResponse:接口
+      6. HttpSessionlistener:接口
+      7. HttpSessionEvent:接口
+
+      
+
+6. 获取客户端信息？
+
+   1. 测试request对象中的所有的方法
+
+      1. 结论：一旦需要获取请求的内容，一定去找request对象
+
+      2. 获取参数：
+
+         1. request.getParameter(String )：单个参数
+
+         2. request.getParameterValues(String):复选框
+
+         3. request.getParameterMap(): 把参数装成map
+
+            
+
+         4. request.getInputStream(): 读取消息体中的内容 一旦自己手动getInputStream接下来getParameter().
+
+7. 返回客户端信息？
+
+   1. response.getWriter():字符串 /json
+   2. response.getOutputStream:字节内容
+      1. 文件下载  resp.setHeader("Content-Disposition","attachment;filename=xxx")
+      2. IO
+   3. response.sendError():返回错误！
+   4. response.sendRedirect():重定向跳转页面 cookie+session
+
+### 3.案例：学生选课系统？
+
+1. 走基本的流程 前端----》controller==》service-->dao 流程
+2. 数据源
+3. 事务 
+4. dao  DBUtils
+
+第二周:
+
+## 1. 反射
+
+- Class类
+- Method 
+- Field
+- Constructor
+- Annotation
+- DBUtils  Handler  策略模式  ：抽象策略  具体策略  环境
+- Tomcat :模拟tomcat处理请求的过程
+- 枚举+注解
+
+## 2.Spring 
+
+1. IOC思想的引入？
+   1. 分析学生选课系统问题引入ioc
+   2. BeanFactory   IOC +DI
+2. Spring提供的IOC容器 基本介绍？
+3. Spring 提供的IOC容器构造对象？
+   1. xml	
+      1. <bean id="" class=""> 无参构造
+      2. <bean ><constructor-arg> 带参构造
+      3. <bean factory-method> 静态工厂方法
+      4. <bean factory-method factory-bean> 实例工厂方法
+      5. <bean id="" class="XXX..XXFactoryBean"> FactoryBean
+   2. 注解
+      1. @Component @Controller @Service @Repository
+      2. @Configuration +@Bean 
+      3. @Import 
+   3. 纯XML
+   4. XML+注解==》mvc
+   5. 纯注解
+4. Spring 提供的IOC容器属性赋值？
+5. Spring MVC配置步骤
+   1. 依赖
+   2. 配置类--配置文件
+   3. 注解
+   4. DispatcherServlet
+6. Spring+jdbc改造 学生选课系统
+
+第三周：
+
+mybatis
+
+1. mybatis 传统  session.insert/update/delete  ..
+2. Mapper方法实现MyBatis 
+3. MyBATIS各种知识点 
+   1. 类 别不一致
+   2. 多表
+   3. resultType resultMap
+   4. 起别名 
+   5. 分页查询
+   6. 分页插件
+4. Spring+mybatis整合
+5. Spring+MyBatis 学生选课。
+
+第四周：
+
+​	点餐系统
+
+​	用户模块
+
+   菜品模块
+
+   会员模块
+
+  订单模块
+
+​	用户 查看菜单  下单 
+
+​	用户管理 RBAC
 
 
 
@@ -4866,7 +5101,9 @@ export default {
 
 ---
 
-# 5.3 看到day11
+---
+
+
 
 
 
@@ -5144,7 +5381,7 @@ public class Pic {
         data(){
             
             return{
-                fileList:[],
+                fileList:[],//文件集合
                 enums:[],
                 food:{
                     name:'',
@@ -5153,9 +5390,9 @@ public class Pic {
                     tags:'', 
                     status:'', 
                     typeid:'',
-                    ss:[],
-                    us:[],
-                    rs:[],
+                    ss:[],//保存路径
+                    us:[],//上传时间
+                    rs:[],//真正的名字
                 },
                 options:[
                     {
@@ -5259,20 +5496,22 @@ public class Pic {
                 <el-row>
                     <el-col :span="6" v-for="food in foods" :key="food.id"> 
                         <el-card :body-style="{ padding: '0px' }" >
-                            <img :src="food.foodPic ? path+food.foodPic.savepath : mypic" style="width:300px;height:240px;">
+                            <img :src="food.foodPic ? path+food.foodPic.savepath : mypic" 
+                                 style="width:300px;height:240px;">
                             <div style="padding: 14px;">
                                 <span>菜名： {{ food.name }}</span> <br>
                                 <span>菜系： {{ en.name }}</span> <br>
                                 <span>原价： {{ food.oldprice }}</span><br>
                                 <span>现价： {{ food.nowprice }}</span>
                                 <div>
-                                    <el-button type="text" class="button" @click="showFoodInfo(food)">菜品详情</el-button>
+                                    <el-button type="text" class="button" @click="showFoodInfo(food)">菜
+                                        品详情</el-button>
                                 </div>
                             </div>
                         </el-card>
                     </el-col>
                 </el-row>
-                        <!-- 分页 -->
+                <!-- 分页 -->
                 <el-pagination
                 @size-change="handleSizeChange"
                 @current-change="handleCurrentChange"
@@ -5320,7 +5559,8 @@ public class Pic {
                         菜品状态
                     </template>
                         <el-select v-model="food.status" placeholder="请选择">
-                            <el-option :label="item.label" :value="item.value" v-for="item in options" :key="item.value"></el-option>
+                            <el-option :label="item.label" :value="item.value" v-for="item in options" 
+                                       :key="item.value"></el-option>
                         </el-select>
                 </el-descriptions-item>
                 <el-descriptions-item :span="2">
