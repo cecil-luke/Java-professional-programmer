@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.etoak.rst.mapper.FoodMapper">
+
+    <select id="queryAllFoodType" resultType="com.etoak.rst.pojo.FoodType">
+        select f.id id,f.foodtype_name name,f.foodtype_info info from rst_foodtype f
+    </select>
+
+    <!--查询所有菜-->
+    <select id="queryFoods" resultType="com.etoak.rst.pojo.Food" parameterType="com.etoak.rst.vo.FoodsVo">
+        select f.id as id,food_name name,food_foodtype_id foodTypeId,
+        ft.foodtype_name foodtype_name,food_price price,food_nowprice nowPrice,
+        food_tags tags,food_status status
+        from rst_food f left join rst_foodtype ft on f.food_foodtype_id = ft.id
+
+    </select>
+</mapper>
