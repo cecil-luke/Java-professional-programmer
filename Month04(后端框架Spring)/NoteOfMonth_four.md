@@ -4195,6 +4195,8 @@ EmpMapper.xml
        useGeneratedKeys:是否使用自动生成的主键
            keyProperty:主键属性、对象标识 类型【必选】
            keyColumn:主键字段【可选】
+           
+           插入返回的主键id是映射回原实体类中的！
        -->
        <insert id="addEmp" parameterType="emp" useGeneratedKeys="true"
                keyProperty="empno" keyColumn="e_empno">
