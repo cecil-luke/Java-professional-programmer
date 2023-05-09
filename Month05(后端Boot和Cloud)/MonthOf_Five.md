@@ -399,7 +399,312 @@
 
 
 
-# Day03
+# Day03(SpringMVC处理器适配器)
+
+
+
+# 上午内容(git rebase)
+
+1. git rebase命令
+2. git diff命令
+3. 文件在三大区域穿梭
+
+## 1. git rebase命令
+
+1. 修改提交记录的消息（commit msg）
+2. 合并历史记录
+3. 合并分支，可以将历史记录合并为一条直线
+
+### 1.1. 修改提交记录的消息（commit msg）
+
+- **<font color="red">前提：要修改的历史记录没有推送到远程版本库</font>**
+
+1. 分三次修改签到功能，向本地版本库提交三个版本
+
+   <img src="imgs\image-20230509092606106.png" style="zoom:40%;" /> 
+
+2. 使用`git rebase`修改第二次历史记录的消息
+
+   <img src="imgs\image-20230509092825017.png" style="zoom:40%;" /> 
+
+### 1.2 合并历史记录
+
+- **<font color="red">前提：要修改的历史记录没有推送到远程版本库</font>**
+
+1. 使用`git rebase`合并1.1节中提交的三个版本
+
+   <img src="imgs\image-20230509093734938.png" style="zoom:40%;" /> 
+
+   <img src="imgs\image-20230509093838369.png" style="zoom:40%;" /> 
+
+### 1.3 合并本地分支的版本
+
+- **<font color="red">前提：要修改的历史记录没有推送到远程版本库</font>**
+
+1. 创建**test分支**
+
+   <img src="imgs\image-20230509095224549.png" style="zoom:40%;" /> 
+
+2. 在master分支上修改课程功能（修改Course.java），提交到本地版本库
+
+   <img src="imgs\image-20230509095449294.png" style="zoom:40%;" /> 
+
+3. 切换**test分支**上修改课程功能（修改Course.java），提交到本地版本库
+
+   <img src="imgs\image-20230509095608053.png" style="zoom:40%;" /> 
+
+4. 在**test分支，将test分支**的版本rebase到master，此时出现合并冲突
+
+   <img src="imgs\image-20230509100007953.png" style="zoom:40%;" /> 
+
+5. 手动解决test分支上的冲突
+
+6. 使用`git add`标记冲突解决了（告诉Git冲突解决了）
+
+   <img src="imgs\image-20230509100336144.png" style="zoom:40%;" /> 
+
+7. 使用`git rebase --continue`完成本次版本的合并（test上现在有master版本，但是master上没有test分支的版本）
+
+   <img src="imgs\image-20230509100539889.png" style="zoom:40%;" /> 
+
+8. 切换到master分支，对test分支做一次`merge`操作（快进）
+
+   <img src="imgs\image-20230509100635738.png" style="zoom:40%;" /> 
+
+9. 合并结果展示
+
+   ![image-20230509100758130](imgs\image-20230509100758130.png) 
+
+### 1.4 合并远程分支的版本
+
+1. lisi修改作业功能，推送到远程版本库
+
+   <img src="imgs\image-20230509101708596.png" style="zoom:50%;" /> 
+
+2. zs在没有更新最新版本的情况下，也修改了作业功能，向远程版本库推送时被拒绝了
+
+   <img src="imgs\image-20230509101855521.png" alt="image-20230509101855521" style="zoom:50%;" /> 
+
+3. zs先拉取远程版本库的版本（这里使用**`git pull --rebase origin master`**），此时出现版本冲突
+
+   <img src="imgs\image-20230509101958829.png" alt="image-20230509101958829" style="zoom:50%;" /> 
+
+4. zs手动解决冲突
+
+5. zs使用`git add`标记解决了冲突
+
+   <img src="imgs\image-20230509102126992.png" alt="image-20230509102126992" style="zoom:50%;" /> 
+
+6. zs使用`git rebase --continue`完成本次版本合并
+
+   
+
+7. zs最后将合并结果推送到远程版本库
+
+   `git push origin master`
+
+## 2. git diff命令 - 对比文件内容差异
+
+1. 对比工作区和暂存区文件差异：`git diff [文件...]`
+
+2. 对比暂存区和版本库文件差异：`git diff --cached [文件...]`
+
+3. 对比工作区和版本库文件差异
+
+   与最新版本对比：`git diff HEAD [文件...]`
+
+   与其它版本对比：`git diff commit [文件...]`
+
+4. 对比版本之间的文件差异
+
+   `git diff commit1 commit2 [文件...]`
+
+## 3. 文件在三大区域穿梭
+
+<img src="imgs\Git文件穿梭.png" style="margin-left: 20px; zoom: 40%" />
+
+
+
+---
+
+
+
+#  下午(Spring  MVC内容)
+
+1. 什么是Web MVC
+2. 什么是Spring MVC
+3. Spring MVC的核心组件
+4. Spring MVC的执行流程
+5. Spring MVC的参数传递方式
+6. Spring MVC对静态资源的处理
+7. Spring MVC如何处理REST（RestFul）风格的请求
+8. Spring MVC容器和Spring容器的关系
+9. Spring MVC使用MyBatis
+10. Spring AOP
+11. Spring的事务
+    - Spring事务隔离级别
+    - **Spring事务传播机制**
+    - Spring事务回滚机制
+12. Spring MVC使用commons-fileupload实现文件上传
+13. Spring MVC使用hibernate-validator实现后端Java Bean校验
+14. Spring MVC的全局异常处理
+15. Spring MVC的拦截器
+16. 使用**Java Config**方式搭建Spring MVC环境
+17. 其它知识点
+    - 使用**SLF4J + Logback**做**日志记录**
+    - Apache Commons的工具类、HuTool（国内的工具类）
+
+## 1. 什么是Web MVC
+
+- **MVC**是一种设计模式，它将应用程序分为**模型、视图、控制器**三部分
+
+1. 模型：Java Bean
+
+   保存数据状态的Java Bean：实体类等
+
+   处理业务逻辑的Java Bean：Service、Dao
+
+2. 视图：与用户交互界面
+
+3. 控制器：实现了模型和视图的解耦
+
+   接收视图发送请求
+
+   委托模型层处理业务
+
+   使用模型数据渲染页面，响应用户请求
+
+## 2. 什么是Spring MVC
+
+1. Spring MVC是建立在**Servlet API**之上的Web框架，从一开始就包含在Spring框架中；
+1. 它的正式名称：**Spring Web MVC**（来自于它在Spring框架中的模块名称），通常被称为**Spring MVC**。
+
+## 3. Spring MVC的核心组件
+
+1. **前端控制器DispatcherServlet**：拦截用户请求，将请求转发给其它组件，并负责页面渲染等，是Spring MVC的核心控制器；
+2. **处理器映射器HandlerMapping**：映射请求的URI到**处理器**（根据请求的URI查找处理器）
+3. **处理器适配器HandlerAdapter**：执行处理器（调用处理器的方法）
+4. **视图解析器ViewResolver**：解析**逻辑视图ModelAndView**，创建**View对象**
+5. **处理器**：开发者自己编写业务逻辑
+6. **拦截器**、MultipartResolver、国际化组件....
+
+## 4. Spring MVC执行流程
+
+<img src="imgs\Spring MVC执行流程图.png" style="zoom:50%; margin-left: 50px" />
+
+1. **<font color="red">客户端发送请求到DispatcherServlet</font>**
+
+2. **<font color="red">DispatcherServlet请求处理器映射器查找处理器</font>**
+
+3. **<font color="red">处理器映射器找到处理器之后，返回一个处理器执行链对象给DispatcherServlet</font>**
+
+4. **<font color="orange">DispatcherServlet请求处理器适配器执行处理器</font>**
+
+5. **<font color="orange">处理器适配器执行处理器</font>**
+
+6. **<font color="orange">处理器执行完成之后返回一个逻辑视图对象给处理器适配器</font>**
+
+7. **<font color="orange">处理器适配器将逻辑视图返回给DispatcherServlet</font>**
+
+8. **<font color="blue">DispatcherServlet请求视图解析器解析逻辑视图</font>**
+
+9. **<font color="blue">视图解析器解析逻辑视图，返回一个View对象给DispatcherServlet</font>**
+
+10. **<font color="blue">DispatcherServlet使用视图对象和模型数据渲染视图，响应客户端请求</font>**
+
+    <img src="imgs\doDispatch.png" style="zoom:50%" /> 
+
+## 5. 第一个Spring MVC工程
+
+1. 创建Maven项目，导入Maven依赖
+
+2. 配置DispatcherServlet
+
+   有几种配置Servlet的方式：web.xml、@WebServlet、SPI（Java代码）
+
+3. 配置处理器映射器
+
+4. 配置处理器适配器
+
+5. 配置视图解析器
+
+6. 开发处理器，并配置为Spring容器的对象
+
+7. 开发视图
+
+8. 部署工程到Tomcat，测试请求
+
+## 6. 第二个Spring MVC工程
+
+1. 替换处理器映射器：`SimpleUrlHandlerMapping`
+
+2. 替换处理器适配器：`HttpRequestHandlerAdapter`
+
+   <img src="imgs\image-20230509155344660.png" style="zoom:40%;" /> 
+
+## 7. 第三个Spring MVC工程
+
+1. 替换处理器映射器：`ReqeustMappingHandlerMapping`
+2. 替换处理器适配器：`ReqeustMappingHandlerAdapter`
+
+- 特点：
+
+  1、必须一起使用
+
+  2、不要求处理器实现任何接口（处理器可以自定义）
+
+  3、使用`@ReqeustMapping`注解的path或value属性值映射URI到处理器的方法
+
+## 8. 第四个Spring MVC工程
+
+## 9. `<mvc:annotation-driven>`
+
+​	由`org.springframework.web.servlet.config.AnnotationDrivenBeanDefinitionParser`解析，向Spring容器中注册如下Bean
+
+1. 处理器**映射器**
+
+   `RequestMappingHandlerMapping`、`BeanNameUrlHandlerMapping`
+
+2. 处理器**适配器**
+
+   `RequestMappingHandlerAdapter`、`HttpRequestHandlerAdapter`、`SimpleControllerHandlerAdapter`
+
+3. 异常**解析器**：`ExceptionHandlerExceptionResolver`
+
+4. Java Bean校验器
+
+5. 一组`HttpMessageConverter`
+
+## 10. 今天练习
+
+1. `BeanNameUrlHandlerMapping` + **`SimpleServletHandlerAdapter`**
+2. `SimpleUrlHandlerMapping` + `SimpleControllerHanlerAdapter`
+
+
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
