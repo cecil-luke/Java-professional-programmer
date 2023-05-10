@@ -686,17 +686,438 @@
 
 
 
+# Day04(SpringMVC整合Mybatis)
+
+## 今天内容
+
+1. Spring MVC参数传递方式
+2. `@RequestParam`注解
+3. `@RequestMapping`注解
+4. 解决POST请求中文乱码
+5. Spring父容器（Spring Root容器）和Spring MVC容器之间的关系
+6. Spring整合MyBatis
+7. SLF4J + Logback记录日志
+
+## 1. Spring MVC参数传递 - 接收参数
+
+### 1.1 常用的请求参数类型：HTTP请求头的Content-Type表示
+
+1. form表单、key-value键值对：`x-www-form-urlencoded`
+2. JSON：`application/json`
+3. 文件：`multipart/form-data`
+
+### 1.2 常用的响应结果类型：HTTP响应头的Content-Type表示
+
+1. html：`text/html`
+2. 纯文本、字符串：`text/plain`
+3. JSON：`application/json`
+4. 图片：`image/jpeg`、`image/gif`....
+5. 二进制
+6. ....
+
+### 1.3 Spring MVC接收参数的方式
+
+1. Servlet API：HttpServletRequest对象
+
+2. String、基本数据类型及其包装类
+
+3. 对象
+
+4. 数组
+
+5. List
+
+   <img src="imgs\image-20230510112902852.png"  style="zoom:43%;" /> 
+
+   <img src="imgs\image-20230510113000720.png" style="zoom:43%;" /> 
+
+6. Map - 了解
+
+7. JSON
+
+   Spring MVC可以使用**Jackson、GSON、Jsonb**三个框架作为Json的消息转换器
+
+   这里使用Jackson框架作为JSON转换器，需要引入Jackson的jar包
+
+   - jackson-core.jar、jackson-annotations.jar、jackson-databind.jar）
+
+   在Maven项目中，仅需要导入一个**jackson-databind**依赖即可
+
+## 2. @RequestParam注解
+
+- 只能在参数上使用
+
+1. `value属性`：请求参数名称
+2. `name属性`：请求参数名称，与value作用一致
+3. `required属性`：参数是否为必填项，默认是必填（参数值不能null）
+4. `defaultValue属性`：当参数为非必填项时，使用它设置默认值
+
+## 3. @RequestMapping注解
+
+- 可以在类和方法上使用
+
+1. `String[] value属性`：映射URI地址
+
+2. `String[] path属性`：映射URI地址
+
+3. `RequestMethod[] method属性`：设置请求方法
+
+4. `String[] produces属性`：设置响应头的`Content-Type`
+
+5. `String[] consumes属性`：限制请求参数的类型
+
+   ```java
+   @PostMapping(value = "/test", consumes = "application/json;charset=utf-8")
+   @ResponseBody
+   public String test(@RequestBody String str) {
+     System.out.println(str);
+     return "success";
+   }
+   ```
+
+## 4. 解决POST请求中文乱码问题
+
+- **Spring Web模块**中提供了`CharacterEncodingFilter`可以解决post请求的中文乱码问题
+
+  ```xml
+  <filter>
+    <filter-name>encodingFilter</filter-name>
+    <filter-class>
+      org.springframework.web.filter.CharacterEncodingFilter
+    </filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>utf-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>encodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  ```
+
+## 5. Spring容器和Spring MVC容器之间的关系
+
+<img src="imgs\两个容器的关系.png" style="zoom:50%; margin-left: 60px" />
+
+## 6. Spring整合MyBatis
+
+- [MyBatis官网](https://mybatis.org/mybatis-3/zh/)
+- [MyBatis-Spring 官网](https://mybatis.org/spring/zh/)
+
+### 6.1 Mybatis、MyBatis-Spring、Spring、JDK版本对应关系
+
+| MyBatis-Spring | MyBatis | Spring Framework | Spring Batch | Java     |
+| :------------- | :------ | :--------------- | :----------- | :------- |
+| **3.0**        | 3.5+    | 6.0+             | 5.0+         | Java 17+ |
+| **2.1**        | 3.5+    | 5.x              | 4.x          | Java 8+  |
+| **2.0**        | 3.5+    | 5.x              | 4.x          | Java 8+  |
+| **1.3**        | 3.4+    | 3.2.2+           | 2.1+         | Java 6+  |
+
+### 6.2 SqlSessionFactoryBean
+
+​		需要注意的是 `SqlSessionFactoryBean` 实现了 Spring 的 `FactoryBean` 接口（参见 Spring 官方文档：通过工厂 bean 自定义实例化逻辑](https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-extension-factorybean) ）。 这意味着由 Spring 最终创建的 bean **并不是** `SqlSessionFactoryBean` 本身，而是工厂类（`SqlSessionFactoryBean`）的 getObject() 方法的返回结果。这种情况下，Spring 将会在应用启动时为你创建 `SqlSessionFactory`，并使用 `sqlSessionFactory` 这个名字存储起来。
+
+### 6.3 Maven依赖
+
+​		**spring-jdbc、mysql、druid、mybatis、mybatis-spring、pagehelper**
+
+## 7. 使用SLF4J + Logback记录日志
+
+1. 为什么要记录日志？
+
+   方便查看线上代码的问题
+
+   记录用户的操作行为，方便审计用户行为
+
+2. 日志可以记录在哪里？
+
+   开发阶段一般输出到控制台
+
+   生产阶段一般输出文件、数据库（不一定是关系型数据库，例如：ELK）
+
+3. 常用的日志框架有哪些？
+
+   门面日志框架（接口规范）：Apache Commons Logging、SLF4J
+
+   具体输出日志的框架：Log4J、JUL(Java Util Logging)、Logback、Log4J2...
+
+4. 配置Slf4J + Logback
+
+   `slf4j-api.jar`、`logback-core.jar`、`logback-classic.jar`
+
+5. 日志级别
+
+   `DEBUG  <  INFO   <   WARN   <   ERROR`
+
+
+
+## 今天练习
+
+<img src="imgs\image-20230510181452121.png" alt="image-20230510181452121" style="zoom:50%;" /> 
+
+
+
+---
+
+
+
+## 代码补充：
+
+### springMVC参数接收类型
+
+### Fromcontroller.java
+
+```java
+package com.etoak.controller;
+
+import com.etoak.bean.Student;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 测试接收form表单参数
+ */
+@Controller
+@RequestMapping("/form")
+@CrossOrigin
+public class FormController {
+
+  /**
+   * 使用String类型和基本数据类型接收参数
+   */
+  @RequestMapping("/simple")
+  public String simple(@RequestParam String name,
+                       @RequestParam(required = false, defaultValue = "123") int id) {
+    System.out.println("name=" + name);
+    System.out.println("id=" + id);
+
+    return "hello";
+  }
+
+  /**
+   * 使用Java Bean接收表单参数
+   * 将form参数映射到Java Bean的属性
+   */
+  @PostMapping("/bean")
+  public String bean(Student student) {
+    System.out.println(student);
+    return "hello";
+  }
+
+  @RequestMapping(value = "/array", method = RequestMethod.POST)
+  public void array(String[] hobbies, HttpServletResponse response) throws IOException {
+    for (String hobby: hobbies) {
+      System.out.println(hobby);
+    }
+
+    response.setContentType("text/plain;charset=utf-8");
+    PrintWriter writer = response.getWriter();
+    writer.print("执行成功！");
+    writer.flush();
+    writer.close();
+  }
+
+  /**
+   * List接收表单参数
+   */
+  @RequestMapping(path = "/list", method = RequestMethod.POST,
+    produces = "text/plain;charset=utf-8")
+  @ResponseBody
+  public String testList(@RequestParam List<String> hobbies) {
+    hobbies.forEach(x -> System.out.println(x));
+    return "执行成功！";
+  }
+
+  /**
+   * 使用Map接收表单参数
+   */
+  @RequestMapping(value = "/map", method = {RequestMethod.GET,RequestMethod.POST},
+  produces = "text/plain;charset=utf-8")
+  @ResponseBody
+  public String testMap(@RequestParam Map<String, Object> map) {
+    System.out.println(map);
+    return "执行成功！";
+  }
+
+}
+```
+
+
+
+### db.properties
+
+```properties
+db.driver=com.mysql.cj.jdbc.Driver
+db.url=jdbc:mysql:///et2301?serverTimezone=UTC
+db.username=root
+db.password=etoak
+```
+
+
+
+### spring-root.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+  <context:component-scan base-package="com.etoak.**.service" />
+
+  <!-- 导入db.properties -->
+  <context:property-placeholder location="classpath:db.properties" />
+
+  <!-- 数据源 -->
+  <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+    <property name="driverClassName" value="${db.driver}" />
+    <property name="url" value="${db.url}" />
+    <property name="username" value="${db.username}" />
+    <property name="password" value="${db.password}" />
+  </bean>
+
+  <bean id="pageInterceptor" class="com.github.pagehelper.PageInterceptor">
+    <property name="properties">
+      <props>
+        <prop key="helperDialect">mysql</prop>
+      </props>
+    </property>
+  </bean>
+
+  <!-- SqlSessionFactoryBean -->
+  <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+    <property name="dataSource" ref="dataSource" />
+    <property name="typeAliasesPackage" value="com.etoak" />
+    <!-- Mapper映射文件位置 -->
+    <property name="mapperLocations" value="classpath:mapper/**/*.xml" />
+    <!-- plugins -->
+    <property name="plugins">
+      <array>
+        <ref bean="pageInterceptor" />
+      </array>
+    </property>
+  </bean>
+
+  <!-- MapperScannerConfigurer
+       扫描指定包中的接口, 为接口创建代理对象
+   -->
+  <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    <property name="basePackage" value="com.etoak.**.mapper" />
+  </bean>
+
+</beans>
+```
+
+
+
+### spring-mvc.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+  <!--
+     *: 精确一层包结构
+     **: 任意层级的包(0、1、2...)
+     com.etoak.controller
+     com.etoak.system.user.controller
+   -->
+  <context:component-scan base-package="com.etoak.**.controller" />
+
+  <!-- 处理器映射器、处理器适配器 -->
+  <mvc:annotation-driven></mvc:annotation-driven>
+
+  <!-- 视图解析器 -->
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/pages/" />
+    <property name="suffix" value=".jsp" />
+  </bean>
+
+</beans>
+```
+
+
+
+### webapp/WEB-INF/web.xml
+
+```xml
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+
+  <!-- 如果不指定, 父容器配置文件/WEB-INF/applicationContext.xml -->
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:spring-root.xml</param-value>
+  </context-param>
+
+  <!-- 加载父容器（Root容器） -->
+  <listener>
+    <listener-class>
+      org.springframework.web.context.ContextLoaderListener
+    </listener-class>
+  </listener>
+
+  <!-- CharacterEncodingFilter -->
+  <filter>
+    <filter-name>encodingFilter</filter-name>
+    <filter-class>
+      org.springframework.web.filter.CharacterEncodingFilter
+    </filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>utf-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>encodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!-- DispatcherServlet -->
+  <servlet>
+    <servlet-name>dispatcher</servlet-name>
+    <servlet-class>
+      org.springframework.web.servlet.DispatcherServlet
+    </servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>classpath:spring-mvc.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatcher</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+
+</web-app>
+
+```
 
 
 
 
 
+---
 
 
 
-
-
-
+# day05
 
 
 
