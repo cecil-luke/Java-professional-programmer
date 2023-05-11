@@ -1117,31 +1117,735 @@ db.password=etoak
 
 
 
-# day05
+# day05(动态代理、初识AOP)
+
+## REST风格的请求
+
+​	REST这个词是**Roy Thomas Fielding**在2000年的博士论文中提出的。
+
+​	**REST**全称**Representational State Transfer**  **表述性状态转移**；
+
+​	**`资源`**在网络中以某种**`表现形式`**进行**`状态转移`**
+
+1、**资源**
+
+​		**所谓"资源"，就是网络上的一个实体，或者说是网络上的一个具体信息。**它可以是一段文本、一张图片、一首歌曲、一种服务，总之就是一个具体的实在。可以用一个**URI（统一资源定位符）**指向它，每种资源对应一个特定的URI。要获取这个资源，访问它的URI就可以，因此URI就成了每一个资源的地址或独一无二的识别符。
+
+2、**表现层**
+
+​		"资源"是一种信息实体，它可以有多种外在表现形式。**我们把"资源"具体呈现出来的形式，叫做它的"表现层"（Representation）。**
+
+​		比如，文本可以用txt格式表现，也可以用HTML格式、XML格式、JSON格式表现，甚至可以采用二进制格式；图片可以用JPG格式表现，也可以用PNG格式表现。
+
+​	  **URI只代表资源的实体**，不代表它的形式。严格地说，有些网址最后的".html"后缀名是不必要的，因为这个后缀名表示格式，属于"表现层"范畴，而URI应该只代表"资源"的位置。**它的具体表现形式，应该在HTTP请求的头信息中用Accept和响应头的Content-Type字段指定，这两个字段才是对"表现层"的描述。**
+
+3、**状态转移**
+
+​		访问一个网站，就代表了客户端和服务器的一个互动过程。在这个过程中，肯定会涉及到数据和状态的变化。
+
+​		互联网通信协议HTTP协议，是一个无状态协议。这意味着，所有的状态都保存在服务器端。因此，**如果客户端想要操作服务器，必须通过某种手段，让服务器端发生"状态转化"（State Transfer）。而这种转化是建立在表现层之上的，所以就是"表现层状态转化"。**
+
+​		客户端用到的手段，只能是HTTP协议。具体来说，就是HTTP协议里面，四个表示操作方式的动词：**GET、POST、PUT、DELETE**。它们分别对应四种基本操作：**GET用来获取资源，POST用来新建资源（也可以用于更新资源），PUT用来更新资源，DELETE用来删除资源。**
+
+4、总结
+
+1. 使用URI表示资源
+
+2. 使用**响应头的Content-Type**和**请求头Accept**表示资源的表现层（表现形式：html、json、xml、text、jpg）
+
+3. 使用Http请求方法表示动作：
+
+   **GET用来获取资源，**
+
+   **POST用来新建资源（也可以用于更新资源），**
+
+   **PUT用来更新资源，**
+
+   **DELETE用来删除资源。**
+
+5、对比URI
+
+|          | 传统的URI                         | REST风格的URI       |
+| -------- | --------------------------------- | ------------------- |
+| 查询学生 | `get /student/getStudent?id=1`    | `get /student/1`    |
+| 添加学生 | `post /student/add `              | `post /student`     |
+| 更新学生 | `put /student/update`             | `put /student/1`    |
+| 删除学生 | `delete /student/deleteById?id=1` | `delete /student/1` |
+
+
+
+---
+
+
+
+## 今天内容
+
+1. REST风格的（RestFul）请求
+2. commons-fileupload上传文件
+3. Spring MVC处理静态资源
+4. Spring MVC后端校验
+5. 静态代理
+6. 动态代理
+7. Spring AOP
+
+
+## 1. REST风格的（RestFul）请求
+
+- 详细内容参考今天的`REST风格.pdf`
+
+## 2. commons-fileupload上传文件
+
+1. 引入Maven依赖
+
+   ```xml
+   <!-- commons-fileupload -->
+   <dependency>
+     <groupId>commons-fileupload</groupId>
+     <artifactId>commons-fileupload</artifactId>
+     <version>1.3.3</version>
+   </dependency>
+   ```
+
+   
+
+2. 配置`CommonsMultipartResolver`（id或name必须是`multipartResolver`）
+
+   
+
+3. 开发上传接口
+
+### 2.1 图片上传接口
+
+1. 请求地址：`http://localhost:8080/upload/image`
+
+2. **请求方法：`post`**
+
+3. 请求参数：`file`
+
+4. **请求参数类型：`multipart/form-data`**
+
+5. 响应结果：
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": "/pics/aaaaaaaaa.jpeg"
+   }
+   ```
+
+## 3. Spring MVC中访问静态资源 
+
+1. 访问**CLASSPATH下**的静态资源、
+
+   ```xml
+   <mvc:resources mapping="/res/**" location="classpath:public/" />
+   ```
+
+2. 访问 **<u>本地文件系统</u> 的静态资源**
+
+   ```xml
+   <mvc:resources mapping="/pics/**" location="file:d:/upload/et2301/" />
+   ```
+
+3. 访问项目**根目录下**的静态资源
+
+   ```xml
+   <!-- 
+   	 不让DispatcherServlet处理静态资源
+        将静态资源交给Servlet容器处理
+    -->
+   <mvc:default-servlet-handler />
+   ```
+
+## 4. Spring MVC后端校验
+
+​		**JSR-303(Java Specification Requests - 303)**是JAVA EE 6中的一项子规范，叫做Bean Validation，**Hibernate Validator**是Bean Validation 的参考实现 。Hibernate Validator 提供了 JSR 303 规范中所有内置约束的实现。
+
+1. 配置maven依赖
+
+   ```xml
+   <!-- JSR-303参考实现 hibernate-validator -->
+   <dependency>
+     <groupId>org.hibernate.validator</groupId>
+     <artifactId>hibernate-validator</artifactId>
+     <version>6.2.0.Final</version>
+   </dependency>
+   ```
+
+2. 校验规则
+
+   | 约束                        |                                                              |
+   | --------------------------- | ------------------------------------------------------------ |
+   | @AssertTrue                 | 用于boolean字段，该字段只能为true                            |
+   | @AssertFalse                | 用于boolean字段，该字段的值只能为false                       |
+   | @CreditCardNumber           | 对信用卡号进行一个大致的验证                                 |
+   | `@DecimalMax`               | `只能小于或等于该值（可以用在String上）`                     |
+   | @DecimalMin                 | 只能大于或等于该值（可以用在String上）                       |
+   | `@Max`                      | `该字段的值只能小于或等于该值`                               |
+   | @Min                        | 该字段的值只能大于或等于该值                                 |
+   | @Digits(integer=,fraction=) | 检查是否是一种数字的整数、分数,小数位数的数字                |
+   | @Email                      | 检查是否是一个有效的email地址                                |
+   | @Future                     | 检查该字段的日期是否是属于将来的日期                         |
+   | @Past                       | 检查该字段的日期是**在过去**                                 |
+   | `@Length(min=,max=)`        | 只能用于**字符串**，检查字段的长度是否在min和max之间         |
+   | @NotNull                    | 不能为null，可以用在除了基本数据类型之外的所有引用类型       |
+   | @NotBlank                   | 不能为空，检查时会将空格忽略，只能用在String类型上           |
+   | @NotEmpty                   | 不能为空，可用于**String、Collection、Map、数组**            |
+   | @Null                       | 检查该字段为空                                               |
+   | @Pattern(regex=, flag=)     | **被注释的元素**必须符合指定的**正则表达式**，只能用在**String类型**上 |
+   | @Range(min=,max=,message=)  | 被注释的元素必须在合适的范围内                               |
+   | @Size(min=, max=)           | 检查该字段的size是否在min和max之间，可以是字符串、数组、集合、Map等 |
+   | @URL(protocol=,host,port)   | 检查是否是一个有效的URL，如果提供了**protocol，host**等，则该URL还需满足提供的条件 |
+
+## 5. 静态代理
+
+1. 继承
+
+   问题：需要为每个目标对象创建一个**代理对象**
+
+2. 接口
+
+   1、定义一个接口
+
+   2、目标对象要实现这个接口
+
+   3、代理对象也实现相同的接口，并且需要持有一个接口类型的目标对象（动态传入的）
+
+
+
+## 6. 动态代理
+
+1. **JDK动态代理**
+
+   要求被代理的对象<u>必须</u>有**接口实现**
+
+   **缺点：不能代理没有接口实现的普通对象**
+
+   Proxy：创建代理对象
+
+   InvocationHandler接口：代理对象要执行的业务逻辑
+
+2. **CGLIB动态代理**
+
+   既可以代理**有接口**实现的类型，也可以代理**没有接口**实现的类型
+
+   代理方式：直接采用**继承**目标对象的方法创建代理对象
+
+   
+
+## 7. Spring AOP - Aspect Oriented Programming
+
+- **核心概念**
+
+  JointPoint：连接点，方法（ In Spring AOP, a join point always represents a method execution.）
+
+  Ponitcut：切入点，连接点的集合（约束一组连接点）
+
+  Advice：通知、增强，在连接点上执行的动作
+
+  Aspect：一组模块化的操作（在切入点约束的连接点上执行Advice）
+
+- **通知类型**
+
+  before advice：前置通知，在连接点执行前执行
+
+  after returning advice：后置通知，在连接点执行成功（执行完成）之后执行，例如提交事务
+
+  after throwing advice：后置通知，在连接点执行异常之后执行，例如回滚事务
+
+  after（finally）advice：后置通知，不管连接点执行是否成功，都会执行。例如关闭连接等
+
+  around advice：环绕通知，通知中功能最强大的通知，**它可以控制连接点的执行**
+
+  ​         在权限检查时，如果没有权限，那就不执行连接点
+
+## 今天的练习
+
+- 昨天的基础上增加后端校验
 
 
 
 
 
+---
+
+## 代码补充：
+
+
+
+## REST代码风格
+
+### UserController.java(以添加用户为例)
+
+```java
+package com.etoak.controller;
+
+import com.etoak.entity.User;
+import com.etoak.service.UserService;
+import com.etoak.util.ValidatorUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * 注解@RestController = @Controller + @ResponseBody
+ */
+@RestController
+@RequestMapping("/user")
+public class UserController {
+
+  private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
+  @Autowired
+  UserService userService;
+
+  @GetMapping("/getUser")
+  public User getUser(long id) {
+    log.info("id is {}", id);
+    return userService.getUser(id);
+  }
+
+  /**
+   * GET /user/{id}
+   * http://localhost:8080/user/1
+   */
+  @GetMapping("/{id}")
+  public User get(@PathVariable long id) {
+    return userService.getUser(id);
+  }
+
+  /**
+   * PUT /user/1
+   * 参数类型: json
+   */
+  @PutMapping("/{id}")
+  public String update(@PathVariable long id, @RequestBody User user) {
+    log.info("user id is {}, user param {}", id, user);
+    return "success";
+  }
+
+  @DeleteMapping("/{id}")
+  public String delete(@PathVariable long id) {
+    log.info("delete user id is {}", id);
+    return "success";
+  }
+
+  /**
+   * post /user
+   */
+  @PostMapping(produces = "text/plain;charset=utf-8")
+  public String add(@RequestBody User user) {
+    log.info("user param {}", user);
+
+    try {
+      ValidatorUtil.validate(user);
+    } catch (RuntimeException e) {
+      log.warn(e.getMessage(), e);
+      return e.getMessage();
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      return "系统异常";
+    }
+
+    userService.addUser(user);
+    return "success";
+  }
+}
+```
 
 
 
 
 
+---
 
 
 
 
 
+## 动态代理过程：
+
+### proxy-dynamic
+
+### 父模块pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.etoak.et2301.proxy</groupId>
+  <artifactId>proxy-dynamic</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0-SNAPSHOT</version>
+
+  <modules>
+    <module>jdk-proxy</module>
+    <module>cglib-proxy</module>
+  </modules>
+
+  <!-- 依赖管理器
+       管理依赖、声明依赖, 但是不导入依赖
+       需要由子模块自己决定要导入哪些依赖
+   -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>cglib</groupId>
+        <artifactId>cglib</artifactId>
+        <version>3.3.0</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>
+```
+
+
+
+### 子模块pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>proxy-dynamic</artifactId>
+    <groupId>com.etoak.et2301.proxy</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>cglib-proxy</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>cglib</groupId>
+      <artifactId>cglib</artifactId>
+    </dependency>
+  </dependencies>
+</project>
+```
+
+
+
+### Teacher.java
+
+```java
+package com.etoak;
+
+public class Teacher {
+
+  public void teach() {
+    System.out.println("老师讲课！");
+  }
+}
+```
+
+
+
+### MyInterceptor.java
+
+```java
+package com.etoak;
+
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+
+import java.lang.reflect.Method;
+
+public class MyInterceptor implements MethodInterceptor {
+
+  /**
+   * 代理对象的执行逻辑
+   *
+   * @param obj     代理对象
+   * @param method  目标方法
+   * @param args    方法参数
+   * @param proxy   执行父类方法的对象
+   */
+  @Override
+  public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+
+    System.out.println("上课前检查手机！");
+
+    // super.teach() |  super.method // 执行代理对象父类的方法
+    Object result = proxy.invokeSuper(obj, args);
+
+    System.out.println("放学后帮忙解决问题！");
+
+    return result;
+  }
+
+}
+
+```
+
+
+
+### Test.java
+
+```java
+package com.etoak;
+
+import net.sf.cglib.proxy.Enhancer;
+
+public class Test2 {
+
+  public static void main(String[] args) {
+    Enhancer enhancer = new Enhancer();
+
+    // 设置代理对象的父类
+    enhancer.setSuperclass(Teacher.class);
+
+    // 代理对象的执行逻辑
+    enhancer.setCallback(new MyInterceptor());
+
+    // 创建代理对象
+    Teacher proxy = (Teacher) enhancer.create();
+    proxy.teach();
+  }
+}
+```
+
+
+
+---
+
+
+
+## SpringMVC+Mybatis 文件上传(图片)
+
+### pom.xml(工具包)
+
+```xml
+    <!-- commons-fileupload -->
+    <dependency>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+      <version>1.3.3</version>
+    </dependency>
+
+    <!-- 工具包 -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.12.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-all</artifactId>
+      <version>5.8.0</version>
+    </dependency>
+```
+
+### spring-root.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+  <context:component-scan base-package="com.etoak.**.service" />
+
+  <!-- 导入db.properties -->
+  <context:property-placeholder location="classpath:db.properties" />
+
+  <!-- 数据源 -->
+  <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+    <property name="driverClassName" value="${db.driver}" />
+    <property name="url" value="${db.url}" />
+    <property name="username" value="${db.username}" />
+    <property name="password" value="${db.password}" />
+  </bean>
+
+  <bean id="pageInterceptor" class="com.github.pagehelper.PageInterceptor">
+    <property name="properties">
+      <props>
+        <prop key="helperDialect">mysql</prop>
+      </props>
+    </property>
+  </bean>
+
+  <!-- SqlSessionFactoryBean -->
+  <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+    <property name="dataSource" ref="dataSource" />
+    <property name="typeAliasesPackage" value="com.etoak" />
+    <!-- Mapper映射文件位置 -->
+    <property name="mapperLocations" value="classpath:mapper/**/*.xml" />
+    <!-- plugins -->
+    <property name="plugins">
+      <array>
+        <ref bean="pageInterceptor" />
+      </array>
+    </property>
+  </bean>
+
+  <!-- MapperScannerConfigurer
+       扫描指定包中的接口, 为接口创建代理对象
+   -->
+  <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    <property name="basePackage" value="com.etoak.**.mapper" />
+  </bean>
+
+</beans>
+```
+
+
+
+### spring-mvc.xml(配置请求地址和文件大小)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+  <!--
+     *: 精确一层包结构
+     **: 任意层级的包(0、1、2...)
+     com.etoak.controller
+     com.etoak.system.user.controller
+   -->
+  <context:component-scan base-package="com.etoak.**.controller" />
+
+  <!-- 处理器映射器、处理器适配器 -->
+  <mvc:annotation-driven></mvc:annotation-driven>
+
+  <!--
+     不让DispatcherServlet处理项目根目录下静态资源
+     将静态资源交给Servlet容器处理
+  -->
+  <mvc:default-servlet-handler default-servlet-name="default"/>
+
+  <!-- @RequestMapping("/res/**")
+       localhost:8080/res/css/test.css => src/main/resources/public/css/test.css
+   -->
+  <mvc:resources mapping="/res/**" location="classpath:public/" />
+
+  <!--
+     浏览器访问 http://localhost:8080/pics/6455518c209840dbab5c4a9a429a0233.jpg
+     就是访问 d:/upload/et2301/6455518c209840dbab5c4a9a429a0233.jpg
+  -->
+  <mvc:resources mapping="/pics/**" location="file:d:/upload/et2301/" />
+
+  <!-- 视图解析器 -->
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/pages/" />
+    <property name="suffix" value=".jsp" />
+  </bean>
+
+  <!-- CommonsMultipartResolver. id的值必须是multipartResolver -->
+  <bean id="multipartResolver"
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <!-- 最大上传限制1MB -->
+    <property name="maxUploadSize" value="1048576" />
+  </bean>
+
+</beans>
+```
+
+
+
+### UploadController.java文件上传
+
+```java
+package com.etoak.controller;
+
+import cn.hutool.core.util.IdUtil;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/upload")
+public class UploadController {
+
+  /** 上传目录 */
+  public static final String UPLOAD_DIR = "d:/upload/et2301";
+
+  /** 图片类型 */
+  public static final List<String> TYPE_LIST = Arrays.asList("image/jpeg", "image/png");
+
+  /**
+   * 图片上传接口
+   */
+  @PostMapping("/image")
+  public Object uploadImage(MultipartFile file) throws IOException {
+    // 返回结果
+    Map<String, Object> resultMap = new HashMap<>();
+
+    /* 1、验证文件是否为空 */
+    if (ObjectUtils.isEmpty(file) || file.isEmpty()) {
+      resultMap.put("code", 500);
+      resultMap.put("msg", "文件不能为空！");
+      return resultMap;
+    }
+
+    /* 2、验证图片类型 */
+    String contentType = file.getContentType();
+    if (!TYPE_LIST.contains(contentType)) {
+      resultMap.put("code", 500);
+      resultMap.put("msg", "仅支持jpg和png格式");
+      return resultMap;
+    }
+
+    /* 3、修改图片名称 */
+    String originalFilename = file.getOriginalFilename();
+    String extension = FilenameUtils.getExtension(originalFilename);//图片的扩展名
+    String filename = IdUtil.simpleUUID() + "." + extension;
+
+    /* 4、创建上传目录 */
+    File uploadDir = new File(UPLOAD_DIR);
+    if (!uploadDir.exists()) {
+      uploadDir.mkdirs();
+    }
+
+    // 目标文件
+    File destFile = new File(uploadDir, filename);
+
+    // 5、上传图片
+    file.transferTo(destFile);
+
+    // 6、返回结果
+    resultMap.put("code", 200);
+    resultMap.put("msg", "success");
+    resultMap.put("data", "/pics/" + filename);
+    return resultMap;
+  }
+}
+```
 
 
 
 
 
-
-
-
-
+---
 
 
 
