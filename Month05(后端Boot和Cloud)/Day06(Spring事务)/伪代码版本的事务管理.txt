@@ -1,0 +1,33 @@
+public class 事务管理 {
+
+  // service
+	@Pointcut("execution(* com.etoak.service..*.*(..))")
+
+	TheadLocal<SqlSession> sessionMap = new TheadLocal<>();
+
+	@Before
+	public void before() {
+	  SqlSession session = factory.openSession();
+	  sessionMap.set(session);
+	}
+
+  @AfterReturning
+  public void commit() {
+    SqlSession session = sessionMap.get()
+    session.commit();
+  }
+
+  @AfterThrowing
+  public void rollback() {
+    SqlSession session = sessionMap.get()
+    session.rollback();
+  }
+
+  @After
+  public void close() {
+      SqlSession session = sessionMap.get()
+      session.close();
+      sessionMap.remove()
+  }
+
+}
