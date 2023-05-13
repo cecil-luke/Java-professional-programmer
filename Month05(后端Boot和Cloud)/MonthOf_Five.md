@@ -2871,7 +2871,533 @@ public class UserServiceImpl implements UserService {
 
 ---
 
-# day07
+
+
+# day07(Spring Boot)
+
+## 上午内容springMVC
+
+### 使用拦截器验证登录
+
+​	前后端不分离的项目，可以使用HttpSession保存登录状态
+
+1. 登录页面、跳转到登录页面的请求
+2. 登录接口，验证用户名和密码
+3. 拦截器验证登录
+
+---
+
+#### 配置拦截器interceptor
+
+#### LoginInterceptor.java
+
+```java
+package com.etoak.interceptor;
+
+import com.etoak.entity.User;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+public class LoginInterceptor implements HandlerInterceptor {
+
+  @Override
+  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    HttpSession session = request.getSession();
+
+    // 从当前的Session中获取User对象
+    User user = (User) session.getAttribute("user");
+    if (ObjectUtils.isEmpty(user)) {
+      String contextPath = request.getContextPath();
+      response.sendRedirect(contextPath + "/toLogin");
+      return false;
+    }
+
+    return true;
+  }
+}
+```
+
+#### UserService.java
+
+```java
+  /**
+   * 登录业务
+   *
+   * @param user
+   * @return
+   */
+  User login(User user);
+```
+
+#### UserServiceImpl.java
+
+```java
+  @Override
+  public User login(User user) {
+    user.setPassword(MD5.create().digestHex(user.getPassword()));
+
+    return userMapper.getUser(user);
+  }
+```
+
+#### login.jsp
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" isELIgnored="false" %>
+<html>
+<head>
+  <title>登录</title>
+</head>
+<body>
+
+  <p>${error}</p>
+
+  <!-- http://localhost:8080/contextPath -->
+  <form action="${pageContext.request.contextPath}/login" method="post">
+    用户名：<input type="text" name="username"> <br/>
+    密 码：<input type="password" name="password"> <br/>
+          <input type="submit" value="登录">
+  </form>
+</body>
+</html>
+```
+
+
+
+---
+
+## 下午内容
+
+## Spring Boot主要内容
+
+1. Spring Boot介绍
+2. 开发Spring Boot入门程序
+3. Spring Boot**替换Servlet容器**
+4. Spring Boot整合默认数据源
+5. Spring Boot整合阿里巴巴Druid数据源
+6. Spring Boot整合MyBatis
+7. **编写Spring Boot Starter整合MyBatis**
+8. Spring Boot整合MyBatis-Plus
+9. Spring Boot配置Servlet和Filter
+10. Spring Boot开发配置拦截器
+11. Spring Boot处理静态资源
+12. Spring Boot整合Quartz、Spring Task（`Quartz课程`）
+13. Spring Boot整合`RabbitMQ`
+14. Spring Boot整合Redis（`Redis课程`）
+15. Spring Boot整合Dubbo（`Dubbo课程`）
+
+## 1. Spring Boot介绍（理解）
+
+### 1. Spring Boot是什么
+
+​		Spring Boot是Spring团队在2014年推出的全新框架，它出现的**目的**就是**简化Spring项目的开发过程**，可以让开发者使用少量代码快速创建Spring应用程序；
+
+### 2. Spring Boot的特点
+
+1. 可以创建独立的Spring应用程序
+2. 内置了Tomcat、Jetty和Undertow等<u>Web容器</u>（**不需要部署war包**）
+3. 提供了Starter依赖来简化Spring配置
+4. 尽可能自动配置Spring和第三方框架
+5. 提供了生产级别的功能：监控、健康检查和外部化配置
+6. 没有代码的生成、不需要XML配置
+
+## 2. 开发Spring Boot入门程序
+
+### 2.1 三种创建Spring Boot程序的方式
+
+1. **可以在`https://start.spring.io/`网站上创建**
+
+   <img src="imgs\image-20230320144246637.png" style="zoom:30%;" />  
+
+2. **使用IDEA提供的`Spring Initializr`工具创建**
+
+   <img src="imgs\image-20220725165037495.png" alt="image-20220725165037495" style="zoom: 43%;" /> 
+
+   <img src="imgs\image-20220725165124471.png" alt="image-20220725165124471" style="zoom:43%;" /> 
+
+   <img src="imgs\image-20220725165214372.png" alt="image-20220725165214372" style="zoom:43%;" /> 
+
+   
+
+3. **手动创建**
+
+   JDK 8+
+
+   IDE（IDEA、Eclipse）
+
+## 3. 修改Web容器端口号、contextPath和多环境配置
+
+1. 在src/main/resources下创建`application.properties`文件
+
+   ```properties
+   # http://localhost:9090/etoak/hello?name=zs
+   server.port=9090
+   server.servlet.context-path=/etoak
+   ```
+
+## 4. Spring Boot替换Servlet容器
+
+- 在pom.xml中排除`Tomcat`，新增`Jetty`依赖
+
+  ```xml
+  <dependencies>
+    <!-- 整合Spring MVC、tomcat、logback、jackson -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jetty</artifactId>
+    </dependency>
+  </dependencies>
+  ```
+
+##  5. Spring Boot自动配置默认数据源
+
+1. 自动配置数据源的starter：`spring-boot-starter-jdbc`
+2. Spring Boot 1.x 默认数据源：tomcat-jdbc
+3. Spring Boot 2.x 默认数据源：HikariCP => `HikariDataSource`
+
+## 6. Spring Boot整合MyBatis
+
+​		Spring官方没有提供与MyBatis整合的Starter，但是MyBatis官方自己实现了与Spring Boot整合（实现了MyBatis自动配置）。
+
+1. Starter：**mybatis-spring-boot-starter**(自动配置SqlSessionFactory)
+
+   前提：数据源必须配置了，并且有且只有一个
+
+2. 其它配置项：mapperLocations、typeAaliasesPackage
+
+3. 增加注解：`@MapperScan`
+
+
+
+---
+
+
+
+# 代码补充：
+
+## resources配置文件
+
+### application.properties
+
+```proper
+spring.profiles.active=prod
+
+```
+
+
+
+### application-dev.properties
+
+```proper
+# http://localhost:9090/etoak/hello?name=zs
+server.port=9090
+server.servlet.context-path=/etoak
+```
+
+
+
+### application-prod.properties
+
+```proper
+# http://localhost:8080/etoak/hello?name=zs
+server.port=8080
+server.servlet.context-path=/etoak
+
+```
+
+
+
+### 启动类Application.java
+
+```java
+package com.etoak;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+
+/**
+ * 注解@EnableAutoConfiguration: 启动Spring Boot自动配置
+ */
+@EnableAutoConfiguration
+@ComponentScan(basePackages = "com.etoak")
+public class HelloApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(HelloApplication.class, args);
+  }
+}
+```
+
+
+
+---
+
+
+
+## Spring Boot 整合 Mybatis
+
+### pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.etoak.et2301.boot</groupId>
+  <artifactId>boot-02-mybatis</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+
+  <dependencies>
+    <!-- spring-boot-starter-web -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- spring-boot-starter-jdbc 自动配置数据源 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <!-- mysql -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
+    <!-- mybatis-spring-boot-starter -->
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+
+    <!-- lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- spring-boot-starter-test 测试框架 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+
+
+### application.yml
+
+```yaml
+# server.port=8080
+# server.servlet.context-path=/etoak
+# yaml => Yet Another Markup Language
+server:
+  port: 8080
+  servlet:
+    context-path: /etoak
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql:///et2301?serverTimezone=UTC
+    username: root
+    password: etoak
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.etoak
+
+```
+
+### UserMapper.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etoak.mapper.UserMapper">
+
+  <sql id="base_sql">
+    select id,
+           username,
+           email,
+           age,
+           create_time as createTime
+      from sys_user
+  </sql>
+
+  <select id="selectById" parameterType="long" resultType="User">
+    <include refid="base_sql" />
+    where id = #{id}
+  </select>
+
+  <select id="selectList" parameterType="string" resultType="User">
+    <include refid="base_sql" />
+    <where>
+      <if test="username != null and username != ''">
+        AND username like concat('%', #{username}, '%')
+      </if>
+    </where>
+  </select>
+
+</mapper>
+```
+
+### UserMapper.interface
+
+```java
+package com.etoak.mapper;
+
+import com.etoak.entity.User;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+public interface UserMapper {
+
+  User selectById(long id);
+
+  List<User> selectList(@Param("username") String username);
+
+}
+```
+
+### User.java
+
+```java
+package com.etoak.entity;
+
+import lombok.Data;
+
+@Data
+public class User {
+
+  private Long id;
+
+  private String username;
+
+  private String password;
+
+  private String email;
+
+  private Integer age;
+
+  private Integer state;
+
+  private Long visitCount;
+
+  private Integer money;
+
+  private String createTime;
+
+}
+```
+
+### UserController.java
+
+```java
+package com.etoak.controller;
+
+import com.etoak.entity.User;
+import com.etoak.mapper.UserMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/user")
+public class UserController {
+
+  /**
+   * 正式开发中最好不要直接注入持久层的内容
+   */
+  @Autowired
+  UserMapper userMapper;
+
+  /**
+   * get /user/2
+   */
+  @GetMapping("/{id}")
+  public User getUser(@PathVariable long id) {
+    return userMapper.selectById(id);
+  }
+
+  /**
+   * get /user/list?username=z
+   */
+  @GetMapping("/list")
+  public List<User> getList(String username) {
+    return userMapper.selectList(username);
+  }
+
+}
+```
+
+### 启动类Boot02Application.java
+
+```java
+package com.etoak;
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+/**
+ * @SpringBootApplication
+ * 1、SpringBootConfiguration (@Configuration)
+ * 2、EnableAutoConfiguration
+ * 3、@ComponentScan(basePackages="启动类所在包")
+ */
+@SpringBootApplication
+@MapperScan(basePackages = "com.etoak.**.mapper")
+public class Boot02Application {
+
+  public static void main(String[] args) {
+    SpringApplication.run(Boot02Application.class, args);
+  }
+}
+```
+
+
+
+---
+
+
 
 
 
