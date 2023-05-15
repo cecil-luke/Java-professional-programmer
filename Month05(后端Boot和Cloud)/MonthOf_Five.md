@@ -3399,6 +3399,883 @@ public class Boot02Application {
 
 
 
+# day08(Spring Boot整合Mybatis+项目练习)
+
+
+
+## Spring工厂加载机制
+
+### 1. JDK SPI
+
+​		SPI全称Service Provider Interface，是Java提供的一套用来被第三方实现或者扩展的接口，它可以用来启用框架扩展组件和替换组件，**SPI的作用**就是为这些被扩展的API寻找服务实现，简单来说就是<u>可以使用SPI来解耦，实现插件的自由插拔</u>。
+
+### 2. Spring SPI
+
+​		**Spring框架从3.2版本开始提供了`SpringFactoriesLoader`工厂加载机制，类似于Java提供的SPI机制，Spring利用这种机制实现了Spring Bean的自动配置。**
+
+### 3. `SpringFactoriesLoader`工厂的加载机制的默认约定
+
+1. SpringFactoriesLoader是Spring框架内部的通用工厂加载机制（Spring3.2 之后提供的）
+
+2. 它负责加载classpath下的`META-INF/spring.factories`文件，并实例化文件中的类型
+
+3. **文件内容格式必须是Properties格式（k=v）**，
+
+   key必须是某个类型的全限定名称（包名+类名）
+
+   value可以是单个值，可以是使用逗号分隔的多个值
+
+   例如：`example.MyService=example.MyService1,example.MyService2`
+
+   key和value之间可以没有继承关系
+
+### 4. Spring Boot的自动配置
+
+1. Spring Boot自动配置主要是通过Spring工厂加载机制实现的；
+
+2. 启动类上的**@SpringBootApplication**注解包含了三个注解：**@SpringBootConfiguration、@EnableAutoConfiguration、@ComponentScan**，其中<u>最重要</u>的注解就是@EnableAutoConfiguration；
+
+3. @EnableAutoConfiguration注解导入一个`AutoConfigurationImportSelector`类型，这个类型实现了`ImportSelector接口`的`selectImports()方法`，在这个方法中使用Spring工厂加载机制加载classpath下`META-INF`文件夹下的`spring.factories`文件中以EnableAutoConfiguration为key的所有Value值（自动配置类），对**满足条件的类型**利用Java Config方式进行自动配置；
+
+   <img src="imgs\Spring Boot自动配置.png" style="zoom:90%; margin-left:0px" >
+
+### 5. Spring Boot 2.7.0 之后的自动配置实现方式
+
+1. Spring Boot 2.7.0之后增加了加载Classpath下`META-INF/spring`文件夹下的`org.springframework.boot.autoconfigure.AutoConfiguration.imports`文件中的类型 
+
+   <img src="imgs\Spring Boot 2.7.0 自动配置.png" style="zoom:40%; margin-left:0px" >
+
+
+
+---
+
+
+
+## 今天内容
+
+1. Spring Boot自动配置
+2. 编写MyBatis Starter
+3. 整合MyBatis-Plus
+4. 创建前端工程
+5. 创建后端工程
+6. 开发字典接口
+7. 开发省市区列表接口
+
+### 1. Spring Boot自动配置
+
+### 2. 编写MyBatis Starter
+
+1. 创建`etoak-mybatis-spring-boot-starter`，导入maven依赖
+
+   ```xml
+   <parent>
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-parent</artifactId>
+     <version>2.7.5</version>
+   </parent>
+   
+   <dependencies>
+     <!-- spring-boot-starter-jdbc -->
+     <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-jdbc</artifactId>
+     </dependency>
+   
+     <!-- mybatis -->
+     <dependency>
+       <groupId>org.mybatis</groupId>
+       <artifactId>mybatis</artifactId>
+       <version>3.5.10</version>
+     </dependency>
+   
+     <!-- mybatis-spring -->
+     <dependency>
+       <groupId>org.mybatis</groupId>
+       <artifactId>mybatis-spring</artifactId>
+       <version>2.1.0</version>
+     </dependency>
+   
+     <!-- configuration-processor -->
+     <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-configuration-processor</artifactId>
+       <optional>true</optional>
+     </dependency>
+   
+     <!-- autoconfigure-processor -->
+     <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-autoconfigure-processor</artifactId>
+       <optional>true</optional>
+     </dependency>
+   </dependencies>
+   ```
+
+2. 创建配置类：`com.etoak.configuration.MyBatisAutoConfiguration`
+
+3. 创建Properties配置类：`com.etoak.configuration.MyBatisProperties`
+
+4. 在src/main/resources下创建文件：
+
+   `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
+
+   并在文件中添加自动配置类类名：`com.etoak.configuration.MyBatisAutoConfiguration`
+
+5. 修改`MyBatisProperties`（配置mapperLocations、typeAliasesPackage）
+
+6. 修改`MyBatisAutoConfiguration`实现自动配置
+
+7. 将项目安装到本地Maven仓库    **clean + install**
+
+8. 在`boot-02-mybatis`中替换原来的**MyBatis**官方的Starter依赖
+
+### 3. 整合MyBatis-Plus
+
+1. 官网：https://www.baomidou.com/
+
+2. Spring Boot配置
+
+   mapperLocations默认配置：
+
+   `private String[] mapperLocations = new String[]{"classpath*:/mapper/**/*.xml"};`
+
+3. 使用MyBatis Plus编写SQL
+
+   1、单表的自动生成
+
+   2、条件构造器
+
+   3、手动编写SQL语句（Mapper映射文件中）
+
+4. 用到的注解
+
+   **@TableName**：表名称和实体类名称不一致时使用
+
+   **@TableId**：标记主键生成策略
+
+5. 接口、类：**BaseMapper、IService、ServiceImpl**
+
+   IService接口：通用 Service **CRUD** 封装IService接口
+
+   BaseMapper接口：通用 **CRUD** 封装BaseMapper接口
+
+### 创建前端工程：
+
+1. vue create car-app
+
+   选择Babel、VueRouter
+
+2. 安装axios、qs、element-ui          npm i axios -S...
+
+   <img src="imgs\image-20230515152224955.png" style="zoom:33%;" /> 
+
+### 创建后端工程
+
+
+
+### 字典接口
+
+1. 接口地址：http://localhost:8000/dict/list?type=level
+
+2. 请求方法：`GET`
+
+3. 请求参数
+
+   | 参数名 | 参数类型 | 是否必填 | 参数说明                                                     |
+   | :----: | :------: | :------: | ------------------------------------------------------------ |
+   |  type  |  String  |    是    | type：字典类型<br />type=level：获取级别列表<br />type=gearbox：获取变速箱列表<br />type=disp：获取变速箱列表 |
+
+4. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": [
+       {
+         "name": "自动",
+         "value": "1"
+       },
+       {
+         "name": "手动",
+         "value": "2"
+       }
+     ]
+   }
+   ```
+
+### 省市区级联列表接口
+
+1. 接口地址：http://localhost:8000/area/list
+
+2. 请求方法：`get`
+
+3. 请求参数：`无`
+
+4. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": [
+       {
+         "name": "山东省",
+         "id": "370000",
+         "children": [
+           {
+             "name": "济南市",
+             "id": "370100",
+             "children": [
+               {
+                 "name": "历下区",
+                 "id": "370102",
+                 "children": null
+               },
+               {
+                 "name": "天桥区",
+                 "id": "370105",
+                 "children": null
+               }
+             ]
+           },
+           {
+             "name": "青岛市",
+             "id": "370200",
+             "children": [
+               {
+                 "name": "市南区",
+                 "id": "370202",
+                 "children": null
+               },
+               {
+                 "name": "市北区",
+                 "id": "370203",
+                 "children": null
+               }
+             ]
+           }
+         ]
+       }
+     ]
+   }
+   ```
+
+
+
+
+---
+
+
+
+## 代码补充：
+
+### Spring Boot 整合 Mybatis （clean+install打包成Mybatis包）
+
+## etaok-mybatis-spring-boot-starter
+
+### pom.xml
+
+```xml
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+
+  <dependencies>
+    <!-- spring-boot-starter-jdbc -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <!-- mybatis -->
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis</artifactId>
+      <version>3.5.10</version>
+    </dependency>
+
+    <!-- mybatis-spring -->
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis-spring</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+
+    <!-- configuration-processor -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- autoconfigure-processor -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure-processor</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+```
+
+### resources
+
+### /META-INF/spring/
+
+### org.springframework.boot.autoconfigure.AutoConfiguration.imports
+
+```pro
+com.etoak.configuration.MyBatisAutoConfiguration
+```
+
+### MybatisProperties.java
+
+```java
+package com.etoak.configuration;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "etoak")
+public class MyBatisProperties {
+  //
+  private String mapperLocations;
+  //
+  private String typeAliasesPackage;
+
+  public String getMapperLocations() {
+    return mapperLocations;
+  }
+
+  public void setMapperLocations(String mapperLocations) {
+    this.mapperLocations = mapperLocations;
+  }
+
+  public String getTypeAliasesPackage() {
+    return typeAliasesPackage;
+  }
+
+  public void setTypeAliasesPackage(String typeAliasesPackage) {
+    this.typeAliasesPackage = typeAliasesPackage;
+  }
+}
+```
+
+
+
+### com.etoak.configuration.MybatisAutoConfiguration.java
+
+```java
+package com.etoak.configuration;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+
+@Configuration
+// Classpath下必须有SqlSessionFactory.class, SqlSessionFactoryBean.class
+@ConditionalOnClass({SqlSessionFactory.class, SqlSessionFactoryBean.class})
+// Spring容器必须只有一个DataSource
+@ConditionalOnSingleCandidate(DataSource.class)
+// 必须在数据源自动配置完成之后配置MyBatis(原因: SqlSessionFactory需要一个数据源)
+@AutoConfigureAfter(DataSourceAutoConfiguration.class)
+// 配置类
+@EnableConfigurationProperties(MyBatisProperties.class)
+public class MyBatisAutoConfiguration {
+
+  @Autowired
+  DataSource dataSource;
+
+  @Autowired
+  MyBatisProperties properties;
+
+  @Bean
+  public SqlSessionFactoryBean sqlSessionFactory() throws IOException {
+    System.out.println("自动配置MyBatis.");
+      
+    SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
+
+    // 数据源
+    factory.setDataSource(this.dataSource);
+
+    // Java Bean别名
+    factory.setTypeAliasesPackage(this.properties.getTypeAliasesPackage());
+
+    // mapperLocations
+    ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+    Resource[] resources = resolver.getResources(this.properties.getMapperLocations());
+    factory.setMapperLocations(resources);
+    return factory;
+  }
+
+}
+```
+
+
+
+---
+
+
+
+### boot-03-mybatis-plus
+
+### pom.xml
+
+```xml
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+
+  <dependencies>
+    <!-- spring-boot-starter-web -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- mybatis-plus-boot-starter -->
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-boot-starter</artifactId>
+      <version>3.4.3.1</version>
+    </dependency>
+
+    <!-- mysql -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
+    <!-- hutool-all -->
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-all</artifactId>
+      <version>5.8.0</version>
+    </dependency>
+
+    <!-- lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- spring-boot-starter-test -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+```
+
+### application.yml
+
+```yaml
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql:///et2301?serverTimezone=UTC
+    username: root
+    password: etoak
+
+mybatis-plus:
+  type-aliases-package: com.etoak
+  # mapperLocations默认配置
+  # mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    # 控制台输出sql(与MyBatis配置一致); 上线时应该删除这个配置
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+```
+
+### resources/mapper.UserMapper.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etoak.mapper.UserMapper">
+
+</mapper>
+```
+
+### entity/User.java
+
+```java
+package com.etoak.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
+/**
+ * sys_user => SysUser
+ * 当表名称和实体类名称不一致时, 需要使用@TableName注解
+ */
+@Data
+@TableName("sys_user")
+public class User {
+
+  /** 自增id */
+  @TableId(type = IdType.AUTO)
+  private Long id;
+
+  private String username;
+
+  private String password;
+
+  private String email;
+
+  private Integer age;
+
+  private Integer state;
+
+  private Long visitCount;
+
+  private Integer money;
+
+  private String createTime;
+
+
+}
+```
+
+
+
+### mapper/UserMapper.interface
+
+```interface
+package com.etoak.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.etoak.entity.User;
+
+public interface UserMapper extends BaseMapper<User> {
+
+}
+```
+
+
+
+### com.etoak.controller.UserController.java
+
+```java
+package com.etoak.controller;
+
+import com.etoak.entity.User;
+import com.etoak.mapper.UserMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/user")
+public class UserController {
+
+  @Autowired
+  UserMapper userMapper;
+
+  @GetMapping("/{id}")
+  public User getUser(@PathVariable long id) {
+    return userMapper.selectById(id);
+  }
+
+  @PostMapping
+  public String addUser(User user) {
+    userMapper.insert(user);
+    return "success";
+  }
+
+  @DeleteMapping("/{id}")
+  public String deleteUser(@PathVariable long id) {
+    userMapper.deleteById(id);
+    return "success";
+  }
+
+}
+```
+
+### Boot03Application.java
+
+```java
+package com.etoak;
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+@SpringBootApplication
+@MapperScan(basePackages = "com.etoak.**.mapper")
+@EnableTransactionManagement // 事务
+public class Boot03Application {
+
+  public static void main(String[] args) {
+    SpringApplication.run(Boot03Application.class, args);
+  }
+}
+```
+
+
+
+---
+
+---
+
+## Mybatis-plus代码生成器
+
+### pom.xml
+
+```xml
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-boot-starter</artifactId>
+      <version>3.4.3.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>druid-spring-boot-starter</artifactId>
+      <version>1.2.11</version>
+    </dependency>
+
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-all</artifactId>
+      <version>5.8.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- spring-boot-starter-test -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- mybatis plus代码生成器 -->
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-generator</artifactId>
+      <version>3.4.1</version>
+    </dependency>
+
+    <!-- Velocity模板引擎 -->
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity-engine-core</artifactId>
+      <version>2.3</version>
+    </dependency>
+
+  </dependencies>
+```
+
+### Bybatis plus代码生成器：MPGenerator.java
+
+```java
+package com.etoak;
+
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.core.enums.SqlLike;
+import com.baomidou.mybatisplus.generator.AutoGenerator;
+import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
+import com.baomidou.mybatisplus.generator.config.GlobalConfig;
+import com.baomidou.mybatisplus.generator.config.PackageConfig;
+import com.baomidou.mybatisplus.generator.config.StrategyConfig;
+import com.baomidou.mybatisplus.generator.config.po.LikeTable;
+import com.baomidou.mybatisplus.generator.config.rules.DateType;
+import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
+import org.junit.jupiter.api.Test;
+
+/**
+ * @Author Lushisan
+ * @Date 2023/5/15 16:32
+ * @Title: MPGenerator
+ * @Description:
+ * @Package com.etoak
+ */
+
+public class MPGenerator {
+    //@Test
+    public void generate() {
+        AutoGenerator generator = new AutoGenerator();
+
+        GlobalConfig globalConfig = new GlobalConfig();
+        globalConfig.setOutputDir(System.getProperty("user.dir") + "/src/main/java");
+        globalConfig.setAuthor("et2301");
+        globalConfig.setOpen(false);
+        // 重新生成时文件是否覆盖
+        globalConfig.setFileOverride(true);
+        // 去掉Service接口的首字母I
+        globalConfig.setServiceName("%sService");
+        // 主键策略
+        globalConfig.setIdType(IdType.AUTO);
+        // 定义生成的实体类中日期类型
+        globalConfig.setDateType(DateType.ONLY_DATE);
+        // mapper映射文件中生成 ResultMap
+        globalConfig.setBaseResultMap(true);
+        // mapper映射文件中生成 基本字段
+        globalConfig.setBaseColumnList(true);
+        generator.setGlobalConfig(globalConfig);
+
+        // 数据源配置
+        DataSourceConfig dataSourceConfig = new DataSourceConfig();
+        dataSourceConfig.setDriverName("com.mysql.cj.jdbc.Driver");
+        dataSourceConfig.setUrl("jdbc:mysql://localhost:3306/et2301?serverTimezone=UTC");
+        dataSourceConfig.setUsername("root");
+        dataSourceConfig.setPassword("etoak");
+        dataSourceConfig.setDbType(DbType.MYSQL);
+        generator.setDataSource(dataSourceConfig);
+
+        // 包配置
+        PackageConfig packageConfig = new PackageConfig();
+        packageConfig.setParent("com.etoak.system");
+        packageConfig.setController("controller");
+        packageConfig.setEntity("entity");
+        packageConfig.setService("service");
+        packageConfig.setMapper("mapper");
+        // Mapper映射文件
+        packageConfig.setXml("mapper");
+        generator.setPackageInfo(packageConfig);
+
+        // 策略配置
+        StrategyConfig strategy = new StrategyConfig();
+        // 数据库表映射到实体的命名
+        strategy.setNaming(NamingStrategy.underline_to_camel);
+        // 设置表前缀不生成
+        strategy.setTablePrefix("t_");
+        // 数据库表字段映射
+        strategy.setColumnNaming(NamingStrategy.underline_to_camel);
+        // restful api风格控制器
+        strategy.setRestControllerStyle(true);
+        // url中驼峰转连字符
+        strategy.setControllerMappingHyphenStyle(false);
+        // "t_%"
+        strategy.setLikeTable(new LikeTable("t_", SqlLike.RIGHT));
+        //
+        strategy.setInclude("t_area");
+
+        strategy.setEntityLombokModel(true);
+        generator.setStrategy(strategy);
+        generator.execute();
+    }
+}
+```
+
+
+
+### REST接口统一返回值：ResultVO.java
+
+```java
+package com.etoak.common.vo;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * @Author Lushisan
+ * @Date 2023/5/15 16:56
+ * @Title: ResultVO
+ * @Description:
+ * @Package com.etoak.common.vo
+ */
+
+/**
+ *  REST接口统一返回值
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ResultVO<T> {
+
+    public static final int SUCCESS_CODE = 200;
+
+    public static final String SUCCESS_MSG = "success";
+
+    public static final int FAILED_CODE = 500;
+
+    public static final String FAILED_MSG = "系统异常";
+
+    // 响应码
+    private Integer code;
+    // 响应消息
+    private String msg;
+    // 响应结果数据
+    private T data;
+
+    public static <T> ResultVO<T> success(T data) {
+        return new ResultVO<>(SUCCESS_CODE, SUCCESS_MSG, data);
+    }
+
+    public static <T> ResultVO failed() {
+        return failed(FAILED_MSG);
+    }
+
+    public static <T> ResultVO failed(String msg) {
+        return failed(FAILED_CODE, msg);
+    }
+
+    public static <T> ResultVO failed(int code, String msg) {
+        return new ResultVO<>(code, msg, null);
+    }
+}
+```
+
+
+
+---
+
+
+
+
+
+
+
+
+
 
 
 
