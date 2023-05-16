@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etoak.system.mapper.CarMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.etoak.system.entity.Car">
+        <id column="id" property="id" />
+        <result column="brand" property="brand" />
+        <result column="series" property="series" />
+        <result column="price" property="price" />
+        <result column="license_date" property="licenseDate" />
+        <result column="level" property="level" />
+        <result column="gearbox" property="gearbox" />
+        <result column="disp" property="disp" />
+        <result column="mileage" property="mileage" />
+        <result column="province" property="province" />
+        <result column="city" property="city" />
+        <result column="area" property="area" />
+        <result column="location" property="location" />
+        <result column="save_path" property="savePath" />
+        <result column="summary" property="summary" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, brand, series, price, license_date, level, gearbox, disp, mileage, province, city, area, location, save_path, summary, status, create_time, update_time
+    </sql>
+
+</mapper>

@@ -4270,13 +4270,132 @@ public class ResultVO<T> {
 
 
 
+# day09(项目：图片上传、车辆添加)
+
+## 今天内容
+
+1. 图片上传接口
+2. Spring Boot处理静态资源
+3. 车辆添加接口
+4. 全局异常处理
+5. 后端校验
+6. 前后端联调
+7. Spring Boot解决跨域
+8. 搭建前端页面框架
+9. 开发添加页面
+
+## 1. 图片上传接口
+
+Spring Boot默认使用`StandardServletMultipartResolver`进行文件上传
+
+默认文件的大小限制1MB
+
+```yaml
+spring:
+  servlet:
+    multipart:
+      max-file-size: 2MB
+```
+
+1. 接口地址：http://localhost:8000/upload/image
+
+2. 请求方法：`post`
+
+3. 请求参数类型：`multipart/form-data`
+
+4. 请求参数：`file`
+
+5. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": "/pics/xxxxxxxx.jpg"
+   }
+   ```
+
+## 2. Spring Boot处理静态资源
+
+Spring Boot默认处理的静态资源在Classpath下
+
+默认的自动配置是**WebMvcAutoConfiguration**
+
+1. `mapping="/webjar/**"`，`location="classpath:/META-INF/resources/webjars/"`
+
+2. `mapping="/**"`，location如下
+
+   ```
+   location="classpath:/META-INF/resources/"
+   location="classpath:/resources/"
+   location="classpath:/static/"
+   location="classpath:/public/"
+   ```
+
+3. 如何自定义**静态资源的请求路径**和**静态文件位置**
+
+   自己编写配置类，实现`WebMvcConfigurer`接口的`addResourceHandlers()方法`
+
+## 3. 车辆添加接口
+
+1. 接口地址：http://localhost:8000/car
+
+2. 请求方法：`post`
+
+3. 请求参数类型：`application/json`
+
+4. 请求参数：
+
+   
+
+5. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": ""
+   }
+   ```
+
+## 4. 全局异常处理
 
 
 
+## 5. 后端Java Bean校验
+
+1. 导入Maven依赖
+
+   ```
+   spring-boot-starter-validation
+   ```
+
+2. 创建ValidatorUtil
+
+3. 为Java Bean添加注解
+
+## 6. 前后端联调
+
+1. 创建开发环境用的配置环境变量的文件：`.env.development`
+
+   执行`vue-cli-service serve `命令时(开发者实际执行的命令：npm run serve)，使用`.env.development`文件
+
+2. 创建`request.js`
+
+3. 创建调用远程接口的api
+
+## 7. Spring Boot处理跨域
+
+- 跨域的原因：浏览器同源策略
+- 什么才是同源：当两个域的**协议**、**域名**和**端口号**一致时才是同源
 
 
 
+---
 
+
+
+# day10
 
 
 
