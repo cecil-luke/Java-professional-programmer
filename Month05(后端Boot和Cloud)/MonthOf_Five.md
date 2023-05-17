@@ -4395,7 +4395,151 @@ Spring Boot默认处理的静态资源在Classpath下
 
 
 
-# day10
+# day10(项目:分页查询_逻辑删除车辆及更新)
+
+## 今天内容
+
+1. 完成添加功能
+2. 开发查询接口、开发列表页面
+3. 开发逻辑删除接口、页面的删除功能
+4. 开发更新接口
+
+## 1. 完成添加功能
+
+​		图片上传成功和删除后的二次校验
+
+​		ElementUI日期选择器：禁用今天之后的日期
+
+## 2. 开发查询接口、开发列表页面
+
+1. 接口地址：http://localhost:8000/car
+
+2. 请求方法：`get`
+
+3. 请求参数
+
+   brand：品牌
+
+   series：车系
+
+   pageNumber：页码
+
+   pageSize：每页显示记录数
+
+4. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": {
+       "pageNumber": 1,
+       "pageSize": 10,
+       "rows": [
+         {
+           "id": 1,
+           "brand": "1",
+           "series": "xx",
+           "level": "1",
+           "levelName": "小型车",
+           "gearbox": "1",
+           "gearboxName": "自动",
+           "disp": "1",
+           "dispName": "1.5L"
+         }
+       ],
+       "total": 100
+     }
+   }
+   ```
+
+
+
+## 3. 开发逻辑删除接口
+
+​	逻辑删除：假删除，使用字段标记这条数据为删除状态
+
+​	物理删除：从表中删除了数据（从磁盘上的文件中删除了数据）
+
+1. 接口地址：http://localhost:8000/car
+
+2. 请求方法：`DELELTE`
+
+3. 请求参数
+
+   ```json
+   [1, 2, 3]
+   ```
+
+4. 请求参数类型：`application/json`
+
+5. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": ""
+   }
+   ```
+
+## 4. 开发更新接口
+
+1. 接口地址：http://localhost:8000/car/{id}
+
+2. 请求方法：`put`
+
+3. 请求参数：
+
+   ```json
+   {
+     "brand": "11",
+     "series": "123213"
+     ...
+   }
+   ```
+
+4. 请求参数类型：`application/json`
+
+5. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": ""
+   }
+   ```
+
+## 5. 今天练习：完成更新
+
+<img src="imgs\image-20230517175944788.png" alt="image-20230517175944788" style="zoom:50%;" /> 
+
+
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
