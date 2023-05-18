@@ -4521,13 +4521,182 @@ Spring Boot默认处理的静态资源在Classpath下
 
 
 
+# day11(项目_车辆展示-品牌列表-车系列表)
+
+## 今天内容
+
+1. 完成更新功能
+
+2. 开发车辆展示页面
+
+   开发品牌列表接口
+
+   开发车系列表接口
+
+   修改车辆列表接口：添加其它的参数
+
+   开发前端页面
+
+## 2. 开发车辆展示页面
+
+### 2.1 开发品牌列表接口
+
+1. 接口地址：http://localhost:8000/car/brand
+
+2. 请求方法：`get`
+
+3. 请求参数：`无`
+
+4. 响应结果：
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": [
+       "品牌1", "品牌2"
+     ]
+   }
+   ```
+
+### 2.2 开发车系列表接口
+
+1. 接口地址：http://localhost:8000/car/series?brand=xx
+
+2. 请求方法：`get`
+
+3. 请求参数：
+
+   brand：品牌，非必填项，不传默认返回10条车系
+
+4. 响应结果：
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": [
+       "车系1", "车系2"
+     ]
+   }
+   ```
+
+### 2.3 修改车辆列表接口：添加其它的参数
+
+1. 先增加：level、gearbox、disp三个参数
+2. 再增加：province、city、area三个参数
+
+<img src="imgs/qs解决数组参数问题.png">
+
+```js
+/* 查询接口 */
+/* get / car */
+export function getCarList(pageNubmer, pageSize, queryForm) {
+    return request({
+        url: `/car?pageNumber=${pageNubmer}&pageSize=${pageSize}`,
+        method: 'get',
+        params: queryForm,
+        paramsSerializer: {
+            // 序列化数据
+            // https://www.npmjs.com/package/qs
+            
+            //qs.stringify({ a: ['b', 'c'] }, { arrayFormat: 'indices' })
+            // 'a[0]=b&a[1]=c'
+            //qs.stringify({ a: ['b', 'c'] }, { arrayFormat: 'brackets' })
+            // 'a[]=b&a[]=c'
+            //qs.stringify({ a: ['b', 'c'] }, { arrayFormat: 'repeat' })
+            // 'a=b&a=c'
+            //qs.stringify({ a: ['b', 'c'] }, { arrayFormat: 'comma' })
+            // 'a=b,c'
+            
+            serialize: function (params) {
+                return qs.stringify(params, { arrayFormat: 'comma'})
+            }
+        }
+    })
+}
+```
+
+
+
+## 3. 验证码接口
+
+1. 接口地址：http://localhost:8000/getCode
+
+2. 请求方法：`get`
+
+3. 请求参数：`无`
+
+4. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": {
+       "uuid": "xxxxxxxxxxxxxx",
+       "code": "验证码图片的Base64编码"
+     } 
+   }
+   ```
+
+5. 导入Kaptcha
+
+6. 配置Kaptcha的Producer对象
+
+7. 编写Controller
+
+## 4. 登录接口
+
+1. 接口地址：http://localhost:8000/user/login
+
+2. 请求方法：`post`
+
+3. 请求参数类型：`x-www-form-urlencoded`
+
+4. 请求参数：
+
+   username
+
+   password
+
+   uuid：
+
+   code：
+
+5. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": "json web token"
+   }
+   ```
+
+6. 实现步骤
+
+   1、验证验证码
+
+   2、验证用户名
+
+   3、验证密码
+
+   4、创建token
 
 
 
 
 
+---
+
+## 
 
 
+
+
+
+# day12
 
 
 
