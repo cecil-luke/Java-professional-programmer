@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etoak.system.mapper.CarMapper">
+
+  <!-- 通用查询映射结果 -->
+  <resultMap id="BaseResultMap" type="com.etoak.system.entity.Car">
+    <id column="id" property="id"/>
+    <result column="brand" property="brand"/>
+    <result column="series" property="series"/>
+    <result column="price" property="price"/>
+    <result column="license_date" property="licenseDate"/>
+    <result column="level" property="level"/>
+    <result column="gearbox" property="gearbox"/>
+    <result column="disp" property="disp"/>
+    <result column="mileage" property="mileage"/>
+    <result column="province" property="province"/>
+    <result column="city" property="city"/>
+    <result column="area" property="area"/>
+    <result column="location" property="location"/>
+    <result column="save_path" property="savePath"/>
+    <result column="summary" property="summary"/>
+    <result column="status" property="status"/>
+    <result column="create_time" property="createTime"/>
+    <result column="update_time" property="updateTime"/>
+  </resultMap>
+
+  <!-- 通用查询结果列 -->
+  <sql id="Base_Column_List">
+        id, brand, series, price, license_date, level, gearbox, disp, mileage, province, city, area, location, save_path, summary, status, create_time, update_time
+    </sql>
+
+  <sql id="get_list_sql">
+        select t.id,
+               t.brand,
+               t.series,
+               t.price,
+               t.license_date,
+               t.level,
+               t2.name AS levelName,
+               t.gearbox,
+               t3.name AS gearboxName,
+               t.disp,
+               t4.name as dispName,
+               t.mileage,
+               t.province,
+               t.city,
+               t.area,
+               t.location,
+               t.save_path,
+               t.summary,
+               t.status,
+               t.create_time,
+               t.update_time
+          from t_car t
+          left join t_dict t2 on t.level = t2.value and t2.type = 'level'
+          LEFT JOIN t_dict t3 on t.gearbox = t3.value and t3.type = 'gearbox'
+          LEFT JOIN t_dict t4 on t.disp = t4.value and t4.type = 'disp'
+    </sql>
+
+  <select id="getList" parameterType="CarVO" resultType="CarDTO">
+    <include refid="get_list_sql"/>
+    <where>
+      <if test="brand != null and brand != ''">
+        AND t.brand = #{brand}
+      </if>
+      <if test="series != null and series != ''">
+        AND t.series = #{series}
+      </if>
+      <if test="level != null and level != ''">
+        AND t.level = #{level}
+      </if>
+      <if test="gearbox != null and gearbox != ''">
+        AND t.gearbox = #{gearbox}
+      </if>
+      <if test="disp != null and disp != ''">
+        AND t.disp = #{disp}
+      </if>
+      <if test="province != null">
+        AND t.province = #{province}
+      </if>
+      <if test="city != null">
+        AND t.city = #{city}
+      </if>
+      <if test="area != null">
+        AND t.area = #{area}
+      </if>
+
+      <if test="priceMapList != null and priceMapList.size() !=0 ">
+        AND
+        <foreach collection="priceMapList" item="item" separator="or"
+                 open="(" close=")">
+          t.price between #{item.min} and #{item.max}
+        </foreach>
+      </if>
+
+      <if test="leDate != null and leDate != ''">
+        <![CDATA[
+            and t.license_date <= #{leDate}
+        ]]>
+      </if>
+      <if test="geDate != null and geDate != ''">
+        and t.license_date >= #{geDate}
+      </if>
+      AND t.status = 1
+    </where>
+    order by t.update_time desc
+  </select>
+
+  <update id="updateStatus" parameterType="list">
+    update t_car
+    set status = 0
+    where id in
+    <foreach collection="idList" item="id" separator="," open="("
+             close=")">
+      #{id}
+    </foreach>
+  </update>
+
+  <select id="getBrand" resultType="String">
+    select distinct brand from t_car
+  </select>
+
+  <select id="getSeries" resultType="String" parameterType="String">
+    select distinct series from t_car
+    <where>
+      <if test="brand != null and brand != ''">
+        AND brand = #{brand}
+      </if>
+    </where>
+    <if test="brand == null or brand == ''">
+      limit 10
+    </if>
+  </select>
+
+</mapper>

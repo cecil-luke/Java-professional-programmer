@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etoak.system.mapper.AreaMapper">
+
+  <!-- 通用查询映射结果 -->
+  <resultMap id="BaseResultMap" type="com.etoak.system.entity.Area">
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <result column="parent_id" property="parentId"/>
+    <result column="type" property="type"/>
+  </resultMap>
+
+  <!-- 通用查询结果列 -->
+  <sql id="Base_Column_List">
+        id, name, parent_id, type
+  </sql>
+
+  <resultMap id="areaMap" type="AreaVO">
+    <result column="provinceId" property="id"/>
+    <result column="provinceName" property="name"/>
+
+    <collection property="children" ofType="AreaVO">
+      <result column="cityId" property="id"/>
+      <result column="cityName" property="name"/>
+
+      <collection property="children" ofType="AreaVO">
+        <result column="areaId" property="id"/>
+        <result column="areaName" property="name"/>
+      </collection>
+    </collection>
+  </resultMap>
+
+  <select id="getList" resultMap="areaMap">
+    select province.id    AS provinceId,
+           province.name  AS provinceName,
+           city.id        AS cityId,
+           city.name      AS cityName,
+           area.id        AS areaId,
+           area.name      AS areaName
+      from t_area province
+      left join t_area city on city.parent_id = province.id
+      left join t_area area on area.parent_id = city.id
+     where province.parent_id = 100000
+     order by province.id, city.id, area.id
+  </select>
+
+  <select id="getNameList" parameterType="list" resultType="String">
+    select name
+      from t_area
+     where id in
+     <foreach collection="idList" item="id" separator="," open="("
+              close=")">
+       #{id}
+     </foreach>
+  </select>
+
+</mapper>

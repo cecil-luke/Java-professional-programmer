@@ -4690,21 +4690,550 @@ export function getCarList(pageNubmer, pageSize, queryForm) {
 
 ---
 
-## 
 
 
 
 
+# day12(登录接口_JWT 路由守卫 拦截器)
 
-# day12
+## 今天内容
+
+1. 完成登录接口 - 返回JWT
+2. 开发登录页面
+3. 全局前置路由守卫
+4. AXIOS请求拦截器
+5. Spring MVC拦截器实现接口验证
+6. AXIOS响应拦截器
+
+## 1. 完成登录接口 - 返回JWT
+
+1. 引入Maven依赖
+
+   ```xml
+   <!-- Java Json Web Token   JDK1.8版本 -->
+   <dependency>
+     <groupId>io.jsonwebtoken</groupId>
+     <artifactId>jjwt</artifactId>
+     <version>0.9.1</version>
+   </dependency>
+   ```
+
+2. 创建JWT
+
+   ```java
+   public class JwtUtil {
+   
+     public static final String KEY = "et230111111111";
+   
+     /**
+      * 10分钟毫秒数
+      */
+     public static final long expire = 1000 * 60 * 10;
+   
+     /**
+      * 创建JWT
+      */
+     public static String createJwt(String username) {
+       Date issueDate = new Date();
+       return Jwts.builder()
+         .signWith(SignatureAlgorithm.HS256, KEY)
+         .setIssuedAt(issueDate) // 签发时间
+         .setExpiration(new Date(issueDate.getTime() + expire))
+         .setSubject(username)
+         .compact();
+     }
+   }
+   ```
+
+## 2. 开发登录页面
+
+1. 在views创建Login.vue
+2. 添加`/login`路由
+
+## 3. 开发全局前置路由守卫
+
+```js
+/**
+ * 全局前置路由守卫
+ * to: 将要进入的路由
+ * from: 从哪个路由来的
+ * next: 函数, 必须确保这个函数被调用
+ *   next()  进入to的路由
+ *   next(false) 中断当前的导航
+ *   next("/login") || next({path: '/login'}) || next({ name: 'login' })
+ */
+router.beforeEach((to, from, next) => {
+  const token = sessionStorage.getItem('token')
+
+  // 访问的是/login路由
+  if (to.name === 'login') {
+    if (token) {
+      Message.warning('您已登录！')
+      next('/')
+    } else {
+      next()
+    }
+  } else { // 访问的不是/login路由
+    if (token) { // 如果登录了, 则允许进入当前路由
+      next()
+    } else {
+      Message.error('您还未登录，请登录后操作！')
+      setTimeout(() => {
+        next('/login')
+      }, 500)
+    }
+  }
+})
+```
+
+## 4. axios请求拦截器
+
+```js
+/* axios请求拦截器 */
+request.interceptors.request.use(config => {
+  const { url } = config
+  if (white_list.indexOf(url) < 0) {
+    // 设置请求头
+    config.headers['Authorization'] = sessionStorage.getItem('token')
+  }
+
+  // 必须return config. 没有这句就发不出请求了
+  return config
+}, e => {
+  return Promise.reject(e)
+})
+```
 
 
 
+## 5. Spring MVC拦截器实现接口验证
 
 
 
+---
+
+# Quartz课程
+
+1. Quartz是什么
+2. Quartz能做什么
+3. Quartz的核心API
+4. 测试Quartz API
+5. Quartz的CRON表达式
+6. 整合Spring （MVC）单机版、集群版
+7. 整合Spring Boot单机版、集群版
+8. 在Spring Boot中使用`Spring Task`
+
+## 1. Quartz是什么
+
+1. Quartz是一个功能丰富的**任务调度框架**，几乎可以集成任何Java应用中（小到单体应用，大到大型电子商务系统）；
+2. Quartz可以用来创建成千上万的简单或复杂的调度任务；
+3. Quartz的任务被定义为标准的Java组件，几乎可以执行任何编程任务；
+4. Quartz包含许多企业级的功能，例如支持JTA事务和集群；
+
+## 2. Quartz可以做什么
+
+1. 定时发送邮件、短信
+2. 定时同步数据（同步其它系统的数据到自己的系统中）
+3. .....
+
+## 3. Quartz的核心API
+
+1. Job接口：创建一个任务，必须要实现Job接口
+
+2. JobDetail：描述Job任务，定义Job的ID（name、group）
+
+3. Trigger：任务执行规则（触发任务执行的规则 - 时间规则）
+
+   SimpleTrigger：定义任务何时执行、执行频次、何时停止等
+
+   CronTrigger：使用CRON表达式定义任务执行的时间规则
+
+4. Scheduler：调度器，使用Trigger定义的规则执行任务
+
+5. JobBuilder、TriggerBuilder、JobKey、TriggerKey....
+
+6. JobExecutionContext
+
+## 4. 测试Quartz API - SimpleTrigger
+
+- 每隔5秒钟打印一个Hello
+
+## 5. Cron表达式配置Quartz任务
+
+## 6. 整合Spring
+
+- Spring自己实现了与Quartz的整合（自己实现了FactoryBean），整合代码在spring-context-support模块
+
+  JobDetailFactoryBean、CronTriggerSchedulerFactoryBean、SchedulerFactoryBean
+
+- 单机版本
+
+  MethodInvokingJobDetailFactoryBean
+
+  特点：不需要任务对象实现任务接口
+
+- 定义邮件任务
+
+- 定义JobDetail、Trigger、Schedler，实现邮件下发
 
 
+
+# Quartz代码补充：
+
+# quartz-springboot
+
+## pom.xml 依赖
+
+```xml
+    <dependency>
+      <groupId>org.quartz-scheduler</groupId>
+      <artifactId>quartz</artifactId>
+      <version>2.3.2</version>
+    </dependency>
+```
+
+## HelloJob.java 任务
+
+```java
+package com.etoak.job;
+
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Quartz任务
+ */
+public class HelloJob implements Job {
+
+  @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    LocalDateTime now = LocalDateTime.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    String date = formatter.format(now);
+
+    System.out.println("Hello=>" + date);
+  }
+}
+```
+
+## SimpleTest.java 
+
+```java
+package com.etoak;
+
+import com.etoak.job.HelloJob;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+/**
+ * 测试SimpleTrigger
+ */
+public class SimpleTest {
+
+  public static void main(String[] args) throws SchedulerException {
+    // 创建JobDetail
+    JobDetail jobDetail = JobBuilder.newJob(HelloJob.class)
+      .withIdentity("hello", "hello")
+      .build();
+
+    // 创建Trigger
+    SimpleTrigger trigger = TriggerBuilder.newTrigger()
+      .withIdentity("hello", "hello")
+      .startNow() // 立即执行
+      .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+        .withIntervalInSeconds(5) // 每隔5s执行一次
+        .repeatForever()
+      ).build();
+
+    // 创建Scheduler 开启调度
+    Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
+    scheduler.scheduleJob(jobDetail, trigger);
+    scheduler.start();
+  }
+}
+```
+
+## CronTest.java
+
+```java
+package com.etoak;
+
+import com.etoak.job.HelloJob;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+public class CronTest {
+
+  public static void main(String[] args) throws SchedulerException {
+    JobDetail jobDetail = JobBuilder.newJob(HelloJob.class)
+      .withIdentity(JobKey.jobKey("hello", "hello"))
+      .build();
+
+    CronTrigger trigger = TriggerBuilder.newTrigger()
+      .withIdentity(TriggerKey.triggerKey("hello", "hello"))
+      .withSchedule(CronScheduleBuilder.cronSchedule("2/5 * * 19 5 ?"))
+      .build();
+
+    Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
+    scheduler.scheduleJob(jobDetail, trigger);
+    scheduler.start();
+  }
+}
+```
+
+
+
+# quartz-springmvc
+
+## pom.xml
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.etoak.et2301.quartz</groupId>
+  <artifactId>quartz-springmvc</artifactId>
+  <packaging>war</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>quartz-springmvc</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>4.0.1</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <version>5.3.21</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.14.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+      <version>5.3.21</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>5.3.21</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.24</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.quartz-scheduler</groupId>
+      <artifactId>quartz</artifactId>
+      <version>2.3.2</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>quartz-springmvc</finalName>
+  </build>
+</project>
+```
+
+## web.xml
+
+```xml
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:spring-root.xml</param-value>
+  </context-param>
+
+  <filter>
+    <filter-name>encodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>utf-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>encodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+
+  <servlet>
+    <servlet-name>dispatcher</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>classpath:spring-mvc.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatcher</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+</web-app>
+```
+
+## spring-mvc.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <context:component-scan base-package="com.etoak.**.controller" />
+
+    <mvc:default-servlet-handler />
+    <mvc:annotation-driven> </mvc:annotation-driven>
+</beans>
+```
+
+## spring-root.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.etoak.**.service" />
+
+    <!-- 导入其他容器配置 拥有其他容器配置里的属性 -->
+    <import resource="classpath:standalone.xml" />
+
+</beans>
+```
+
+## standalone.xml 配置Quartz 任务类
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="emailJob" class="com.etoak.job.EmailJob" />
+
+    <!-- emailJobDetail -->
+    <bean id="emailJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="name" value="emailJob" />
+        <property name="group" value="emailJob" />
+        <!-- 任务对象 -->
+        <property name="targetObject" ref="emailJob" />
+        <!-- 任务对象的方法 -->
+        <property name="targetMethod" value="send" />
+    </bean>
+
+    <!-- Trigger -->
+    <bean id="emailTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="name" value="emailTrigger" />
+        <property name="group" value="emailTrigger" />
+        <!-- 关联一个JobDetail -->
+        <property name="jobDetail" ref="emailJobDetail" />
+        <!-- 执行规则 -->
+        <property name="cronExpression" value="0/5 * * * * ?" />
+
+    </bean>
+
+    <!-- Scheduler -->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <array>
+                <ref bean="emailTrigger" />
+            </array>
+        </property>
+    </bean>
+</beans>
+```
+
+## EmailJob.java 模拟任务类
+
+```java
+package com.etoak.job;
+
+/**
+ * @Author Lushisan
+ * @Date 2023/5/19 19:45
+ * @Title: EmailJob
+ * @Description:
+ * @Package com.etoak.job
+ */
+public class EmailJob {
+
+    public void send() {
+        System.out.println("send Email ....");
+    }
+}
+```
+
+## HelloController.java 前端请求
+
+```java
+package com.etoak.job;
+
+/**
+ * @Author Lushisan
+ * @Date 2023/5/19 19:45
+ * @Title: EmailJob
+ * @Description:
+ * @Package com.etoak.job
+ */
+public class EmailJob {
+
+    public void send() {
+        System.out.println("send Email ....");
+    }
+}
+```
+
+
+
+---
+
+
+
+# 周一至周五车辆管理系统项目总结(重点和要点)
+
+前后端项目源码放至 **../day12(登录接口JWT_Quartz)(车辆项目总结)**
+
+项目结构
+
+<img src="imgs/xmjt.png">
+
+<img src="imgs/xmjt2.png">
+
+
+
+---
 
 
 
