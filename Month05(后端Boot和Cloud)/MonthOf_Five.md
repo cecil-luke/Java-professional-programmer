@@ -1,4 +1,4 @@
-# Day01(git预习)
+Day01(git预习)
 
 ## 1. Git介绍
 
@@ -5237,11 +5237,705 @@ public class EmailJob {
 
 
 
+# day13d(Quartz集群)
+
+## 今天内容
+
+1. Spring Boot配置单机版Quartz
+2. Quartz集群
+3. Spring MVC整合Quartz集群
+4. Spring Boot整合Quartz集群
+5. 解决集群任务不能使用Spring容器中的对象的问题
+6. 使用Spring Task创建定时任务
+
+## 1. Spring Boot配置单机版Quartz
+
+### job.EmailJob.java
+
+```java
+package com.etoak.job;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class EmailJob {
+
+  public void send() {
+    System.out.println("发送邮件!!");
+  }
+
+}
+```
+
+### config.QuartzConfig.java
+
+```java
+package com.etoak.config;
+
+import com.etoak.job.EmailJob;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
+import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+
+/**
+ * standalone.xml
+ * 任务对象
+ * JobDetail对象  -> MethodInvokingJobDetailFactoryBean
+ * CronTrigger对象 -> CronTriggerFactoryBean
+ * Scheduler对象   -> SchedulerFactoryBean
+ */
+@Configuration
+public class QuartzConfig {
+
+  @Autowired
+  EmailJob emailJob;
+
+  /** JobDetail */
+  @Bean
+  public MethodInvokingJobDetailFactoryBean emailJobDetail() {
+    MethodInvokingJobDetailFactoryBean factory = new MethodInvokingJobDetailFactoryBean();
+
+    // 属性: name、group、targetObject、targetMethod
+    factory.setName("emailJob");
+    factory.setGroup("emailJob");
+    factory.setTargetObject(emailJob);
+    factory.setTargetMethod("send");
+    return factory;
+  }
+
+  /** CronTrigger */
+  @Bean
+  public CronTriggerFactoryBean emailTrigger() {
+    CronTriggerFactoryBean factory = new CronTriggerFactoryBean();
+
+    // 属性: name、group、jobDetail、cronExpression
+    factory.setName("emailTrigger");
+    factory.setGroup("emailTrigger");
+    factory.setJobDetail(emailJobDetail().getObject());
+    factory.setCronExpression("*/5 * * * * ?");
+    return factory;
+  }
+
+  @Bean
+  public SchedulerFactoryBean scheduler() {
+    SchedulerFactoryBean factory = new SchedulerFactoryBean();
+    factory.setTriggers(emailTrigger().getObject());
+    return factory;
+  }
+
+}
+```
+
+### 启动类 QuartzApplication.java
+
+### 配置 application.proprotes
+
+---
 
 
 
+<img src="imgs/quartz表.png">
 
 
+
+## 2. Quartz集群
+
+- 集群可以解决**单点故障问题**，提高**服务的可用性**（保障服务的高可用）
+
+- Quartz集群之后，任务和调度器都会集群
+
+  当一个调度调度了集群中某个任务，那么其它的调度器就不会再调度这个任务。
+
+  如果某个调度器执行出现故障，其它的调度就可以接管它的任务。 
+
+- Quartz通过**JDBC方式**将**任务**和**调度器**等<u>存储到数据库中实现了集群</u>
+
+### 2.1 创建数据库和表
+
+- 数据库：et2301
+- 表：Quartz提供的
+
+### 2.2 配置集群配置信息
+
+- 配置集群名称、调度实例名称、线程池大小、表...
+
+### 2.3 创建任务对象
+
+- 必须实现Job接口或者**继承QuartzJobBean（Spring提供的，它实现了Job接口）**
+
+### 2.4 配置Spring Bean
+
+1. 数据源：将任务写入哪个数据库
+
+2. 事务管理器
+
+3. **JobDetail对象 => `JobDetailFactoryBean`**
+
+4. CronTrigger => `CronTriggerFactoryBean`
+
+5. Scheduler => `SchedulerFactoryBean`
+
+   数据源、事务管理器、集群配置信息、triggers
+
+## 3. 解决集群任务不能使用Spring容器中的对象的问题
+
+1. 将Spring容器对象设置到SchedulerContext
+
+   
+
+2. 自定义创建任务对象的JobFactory，将任务工厂对象创建任务重新注册到Spring容器中；
+
+   任务对象JobFactory创建的，Spring整合Quartz之后，默认的JobFactory是`AdaptableJobFactory`
+
+   1、创建工厂对象：继承`AdaptableJobFactory`
+
+   2、将工厂对象注入给`Scheduler`
+
+   3、在集群任务中直接注入Spring容器的对象即可
+
+## 使用Spring Task创建定时任务
+
+​		Spring Task是Spring框架自带的定时任务，代码在`spring-context`模块
+
+- 如何开启Spring Task
+
+  `<task:annotation-driven />`
+
+  `@EnableScheduling`
+
+- 创建Spring Task任务
+
+  在任何一个Spring对象中，使用`@Scheduled`注解注释一个公共的无参方法即可
+
+- Spring Task默认单线程执行，修改线程数
+
+  ```properties
+  spring.task.scheduling.pool.size=20
+  ```
+
+  ```yaml
+  spring:
+    task:
+      scheduling:
+        pool:
+          size: 50
+  ```
+
+  
+
+  ---
+
+
+
+# 代码补充：
+
+## quartz-api
+
+### com.etoak.job.HelloJob.java
+
+```java
+package com.etoak.job;
+
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Quartz任务
+ */
+public class HelloJob implements Job {
+
+  @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    LocalDateTime now = LocalDateTime.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    String date = formatter.format(now);
+
+    System.out.println("Hello=>" + date);
+  }
+}
+```
+
+### CronTest.java
+
+```java
+package com.etoak;
+
+import com.etoak.job.HelloJob;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+public class CronTest {
+
+  public static void main(String[] args) throws SchedulerException {
+    JobDetail jobDetail = JobBuilder.newJob(HelloJob.class)
+      .withIdentity(JobKey.jobKey("hello", "hello"))
+      .build();
+
+    CronTrigger trigger = TriggerBuilder.newTrigger()
+      .withIdentity(TriggerKey.triggerKey("hello", "hello"))
+      .withSchedule(CronScheduleBuilder.cronSchedule("2/5 * * 19 5 ?"))
+      .build();
+
+    Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
+    scheduler.scheduleJob(jobDetail, trigger);
+    scheduler.start();
+  }
+}
+```
+
+### SimpleTest.java
+
+```java
+package com.etoak;
+
+import com.etoak.job.HelloJob;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+/**
+ * 测试SimpleTrigger
+ */
+public class SimpleTest {
+
+  public static void main(String[] args) throws SchedulerException {
+    // 创建JobDetail
+    JobDetail jobDetail = JobBuilder.newJob(HelloJob.class)
+      .withIdentity("hello", "hello")
+      .build();
+
+    // 创建Trigger
+    SimpleTrigger trigger = TriggerBuilder.newTrigger()
+      .withIdentity("hello", "hello")
+      .startNow() // 立即执行
+      .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+        .withIntervalInSeconds(5) // 每隔5s执行一次
+        .repeatForever()
+      ).build();
+
+    // 创建Scheduler 开启调度
+    Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
+    scheduler.scheduleJob(jobDetail, trigger);
+    scheduler.start();
+  }
+}
+```
+
+---
+
+
+
+## quartz-boot-cluster
+
+### application.properties
+
+```properties
+server.port=8000
+
+# 数据源
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql:///et2301?serverTimezone=UTC
+spring.datasource.username=root
+spring.datasource.password=etoak
+spring.datasource.hikari.maximum-pool-size=60
+```
+
+### quartz.properties
+
+### pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.etoak.et2301.quartz</groupId>
+  <artifactId>quartz-boot-cluster</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-quartz</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
+  </dependencies>
+
+
+</project>
+```
+
+
+
+```properties
+#可以设置为任意，用在 JDBC JobStore中来唯一标识实例，但是所有集群节点中必须相同。
+org.quartz.scheduler.instanceName = et2301
+# 属性为 AUTO即可，基于主机名和时间戳来产生实例 ID 
+org.quartz.scheduler.instanceId = AUTO
+
+## 线程
+org.quartz.threadPool.class = org.quartz.simpl.SimpleThreadPool
+org.quartz.threadPool.threadCount = 30
+org.quartz.threadPool.threadPriority = 5
+org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread = true
+
+## 存储
+org.quartz.jobStore.misfireThreshold = 60000
+#JobStoreTX，将任务持久化到数据库中。因为集群中节点依赖于数据库来传播 Scheduler实例的状态，你只能在使用 JDBC JobStore 时应用 Quartz 集群。这意味着你必须使用 JobStoreTX 或是 JobStoreCMT 作为 Job 存储,不能在集群中使用 RAMJobStore。
+org.quartz.jobStore.class = org.springframework.scheduling.quartz.LocalDataSourceJobStore
+org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+org.quartz.jobStore.tablePrefix = QRTZ_
+org.quartz.jobStore.maxMisfiresToHandleAtATime=10
+#值 true，表示 Scheduler实例要参与到一个集群当中。这一属性会贯穿于调度框架的始终，用于修改集群环境中操作的默认行为。
+org.quartz.jobStore.isClustered = true
+#定义了Scheduler 实例检入到数据库中的频率(单位：毫秒)。Scheduler 检查是否其他的实例到了它们应当检入的时候未检入；这能指出一个失败的 Scheduler 实例，且当前 Scheduler 会以此来接管任何执行失败并可恢复的 Job。通过检入操作，Scheduler 也会更新自身的状态记录。clusterChedkinInterval 越小，Scheduler 节点检查失败的 Scheduler 实例就越频繁。默认值是 15000 (即15 秒)。
+org.quartz.jobStore.clusterCheckinInterval = 5000
+```
+
+
+
+### config.QuartzConfig.java
+
+```java
+package com.etoak.config;
+
+import com.etoak.factory.ClusterJobFactory;
+import com.etoak.job.OrderJob;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
+import org.springframework.scheduling.quartz.JobDetailFactoryBean;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+
+import javax.sql.DataSource;
+
+@Configuration
+public class QuartzConfig {
+
+  @Autowired
+  DataSource dataSource;
+
+  @Bean
+  public DataSourceTransactionManager transactionManager() {
+    return new DataSourceTransactionManager(dataSource);
+  }
+
+  @Bean
+  public JobDetailFactoryBean orderJobDetail() {
+    JobDetailFactoryBean factory = new JobDetailFactoryBean();
+    factory.setName("orderJob");
+    factory.setGroup("orderJob");
+
+    // Class对象   反射创建之后没有注册到Spring容器中, 所以默认情况下不能使用Spring容器中的对象
+    factory.setJobClass(OrderJob.class);
+    return factory;
+  }
+
+  @Bean
+  public CronTriggerFactoryBean orderTrigger() {
+    CronTriggerFactoryBean factory = new CronTriggerFactoryBean();
+    factory.setName("orderTrigger");
+    factory.setGroup("orderTrigger");
+    factory.setJobDetail(orderJobDetail().getObject());
+    factory.setCronExpression("0/5 * * * * ?");
+    return factory;
+  }
+
+  @Autowired
+  ClusterJobFactory clusterJobFactory;
+
+  @Bean
+  public SchedulerFactoryBean scheduler() {
+    SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
+    scheduler.setDataSource(dataSource);
+    scheduler.setTransactionManager(this.transactionManager());
+
+    // configLocation
+    ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+    Resource resource = resolver.getResource("classpath:quartz.properties");
+    scheduler.setConfigLocation(resource);
+
+    scheduler.setTriggers(this.orderTrigger().getObject());
+
+    // 将ApplicationContext以spring为key 设置到SchedulerContext中
+    scheduler.setApplicationContextSchedulerContextKey("spring");
+
+    // 设置创建集群任务的工厂
+    scheduler.setJobFactory(clusterJobFactory);
+    return scheduler;
+  }
+
+}
+```
+
+
+
+### controller.JobController.java
+
+```java
+package com.etoak.controller;
+
+import org.quartz.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping(path = "/job", produces = "text/plain;charset=utf-8")
+public class JobController {
+
+  @Autowired
+  Scheduler scheduler;
+
+  @RequestMapping("/pause")
+  public String pause(@RequestParam String name,
+                      @RequestParam String group) throws SchedulerException {
+    JobKey jobKey = JobKey.jobKey(name, group);
+    if (!scheduler.checkExists(jobKey)) {
+      return "任务不存在！";
+    }
+
+    scheduler.pauseJob(jobKey);
+    return "任务暂停了！";
+  }
+
+  @RequestMapping("/resume")
+  public String resume(@RequestParam String name,
+                       @RequestParam String group) throws SchedulerException {
+    TriggerKey triggerKey = TriggerKey.triggerKey(name, group);
+    if (!scheduler.checkExists(triggerKey)) {
+      return "任务不存在！";
+    }
+
+    // 获取状态
+    Trigger.TriggerState triggerState = scheduler.getTriggerState(triggerKey);
+
+    // 如果不是暂停状态
+    if (!triggerState.equals(Trigger.TriggerState.PAUSED)) {
+      return "任务不是暂停状态, 不需要恢复！";
+    }
+
+    scheduler.resumeTrigger(triggerKey);
+    return "任务恢复了！";
+  }
+
+}
+```
+
+### factory.ClusterJobFactory.java
+
+```java
+package com.etoak.factory;
+
+import org.quartz.spi.TriggerFiredBundle;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.scheduling.quartz.AdaptableJobFactory;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ClusterJobFactory extends AdaptableJobFactory {
+
+  /** 可以将程序运行期创建对象重新注册到Spring容器中 */
+  @Autowired
+  AutowireCapableBeanFactory ioc;
+
+  @Override
+  protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
+    // 集群任务对象
+    Object jobInstance = super.createJobInstance(bundle);
+
+    // 注册到Spring容器中
+    ioc.autowireBean(jobInstance);
+
+    return jobInstance;
+  }
+}
+```
+
+### job.OrderJob.java
+
+```java
+package com.etoak.job;
+
+import com.etoak.service.OrderService;
+import org.quartz.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.quartz.QuartzJobBean;
+
+public class OrderJob extends QuartzJobBean {
+
+  @Autowired
+  OrderService orderService;
+
+  @Override
+  protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+    orderService.cancel();
+  }
+
+  //@Override
+  //protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+  //  Scheduler scheduler = context.getScheduler();
+  //  try {
+  //    SchedulerContext schedulerContext = scheduler.getContext();
+  //
+  //    // get("spring")
+  //    ApplicationContext ioc = (ApplicationContext) schedulerContext.get("spring");
+  //
+  //    // 获取Spring容器中的对象
+  //    OrderService orderService = ioc.getBean(OrderService.class);
+  //    orderService.cancel();
+  //  } catch (SchedulerException e) {
+  //    e.printStackTrace();
+  //  }
+  //}
+}
+```
+
+
+
+### service.OrderService.java
+
+```java
+package com.etoak.service;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class OrderService {
+
+  public void cancel() {
+    System.out.println("到数据中更新(取消)订单状态");
+  }
+
+}
+```
+
+### 启动类 QuartzApplication.java
+
+```java
+package com.etoak;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class QuartzApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(QuartzApplication.class, args);
+  }
+
+}
+```
+
+
+
+---
+
+## spring-task-boot
+
+### application.yml
+
+```yaml
+server:
+  port: 8080
+spring:
+  task:
+    scheduling:
+      pool:
+        size: 50
+      thread-name-prefix: et2301-
+
+```
+
+### service.TaskService.java
+
+```java
+package com.etoak.service;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+@Service
+public class TaskService {
+
+  @Scheduled(cron = "0/5 * * * * ?")
+  public void sendEmail() {
+    System.out.println(Thread.currentThread().getName() + "发送邮件");
+  }
+
+  @Scheduled(cron = "0/5 * * * * ?")
+  public void sendSms() {
+    System.out.println(Thread.currentThread().getName() + "-----发送短信");
+  }
+}
+```
+
+### TaskApplication.java
+
+```java
+package com.etoak;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableScheduling // spring task
+public class TaskApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(TaskApplication.class, args);
+  }
+}
+```
+
+
+
+---
+
+# day14
 
 
 
