@@ -5935,7 +5935,1009 @@ public class TaskApplication {
 
 ---
 
-# day14
+# day14( Linux基础 )
+
+## 1. Linux简单介绍
+
+​		Linux是1991年由芬兰人**林纳斯·托瓦兹**（Linus Torvalds）在赫尔辛基大学上学时出于个人爱好而编写的；
+
+​		Linux是一个自由免费的，开放源代码的操作系统；
+
+​		Linux是一个**多用户**、**多任务**、**支持多线程**和**多cpu**的操作系统；
+
+## 2. 安装XShell
+
+​		SSH客户端：Putty、SecureCRT(收费)、XShell等
+
+​		XShell 是一个强大的安全终端模拟软件，它支持SSH1，SSH2，以及微软平台的Telnet协议。
+
+​		XShell 是一个非常好用的SSH客户端，可以作为 Telnet、Rlogin、SSH、SFTP 等协议的安全终端模拟软件，可以让你轻松管理远程主机。
+
+​		XShell特色功能包括**标签化管理远程会话、动态端口转发、自定义键盘映射、VB脚本支持、完全的 Unicode 支持**等。
+
+## 3. Linux的目录
+
+### 3.1 绝对路径和相对路径
+
+​		Linux中没有C盘、D盘等盘符；Linux的根目录是：**/**
+
+1. **绝对路径**
+
+   从根目录**`/`**开始写起的文件名或者目录名称，比如：`/opt/jdk1.8`
+
+2. **相对路径**
+
+   相对于当前路径的文件名或目录名的写法
+
+#### 3.1.1 特殊目录
+
+1. <font color="red" size="5">.</font>：表示当前目录，也可以用./表示
+2. <font color="red"  size="5">..</font>：表示上一级目录，也可以用../表示
+3. <font color="red"  size="5">~</font>：表示**用户主目录**，相当于与Windows的C:/users/lenovo
+4. <font color="red"  size="5">-</font>：**上一次所在目录**
+
+### 3.2 Centos的目录
+
+1. **/bin：binary二进制，存放二进制可执行的文件（比如cd）**
+
+2. **/boot：存放开机时用到的各种文件；**
+
+3. /dev：用于存放**设备文件**
+
+4. **/etc：存放<u>系统配置文件</u>，如用户密码等（在/etc/passwd文件中）**
+
+5. **/home：普通用户的用户主目录，相当于Windows的C:/Users目录**
+
+6. /lib：存放系统中的<u>运行程序所需要的函式库和其它模块</u>；
+
+7. /mnt：系统管理员安装临时文件系统的安装点；
+
+8. **/opt：可选应用程序包所放置的位置；**
+
+9. /proc：虚拟文件系统，它存的数据都在内存中，如系统核心、进程信息等；
+
+10. **/root：<u>超级管理员用户root</u>的用户目录；**
+
+11. /run：存放系统开机时所产生的各项信息；
+
+12. **/sbin：super binary，存放超级管理员root用户可以执行的二进制文件**
+
+13. /srv：service的缩写，网络服务所需要的的数据目录
+
+14. /sys：虚拟文件系统，存放与硬件相关的信息，与/proc类似
+
+15. /tmp：存放<u>临时文件</u>
+
+16. **/usr：用于<u>存放系统应用程序</u>，其中**
+
+    /usr/bin就是/bin
+
+    /usr/lib就是/lib
+
+    /usr/sbin就是/sbin
+
+    /usr/local：一般用于安装软件
+
+17. /var：主要针对常态性变动的文件，包括缓存以及某些软件运作所产生的文件
+
+
+## 4. 用户管理和用户组管理
+
+​		登录Linux系统需要账号和密码
+
+### 4.1 用户管理
+
+​		任何一个需要使用Linux系统资源的用户，都需要用于一个账号，每个账号都有唯一的用户名和密码，管理用户的文件：`/etc/passwd`
+
+#### 4.1.1 添加用户：`useradd`
+
+​		添加用户就是在系统中创建一个新用户，然后为新用户分配<u>用户名、用户组、主目录和登录Shell等资源</u>。**刚添加的账号是被锁定的，无法使用。**
+
+1. 添加用户
+
+   ```
+   [root@192 ~]# useradd etoak
+   ```
+
+   - 默认创建名称为etoak的用户和用户组
+
+   - 默认在/home下创建一个etoak的**用户目录**
+
+   - 在用户文件**/etc/passwd**中添加etoak用户这一行
+
+     
+
+2. 几个参数说明
+
+   ```
+   -d:指定用户的家目录
+   -u:指定用户的id
+   -g:指定用户组（可以是名称，也可以是用户组id）
+   ```
+
+<img src="imgs\image-20211026152109378.png" alt="image-20211026152109378" style="zoom:50%; margin-left:60px" />  
+
+
+
+#### 4.1.2 设置密码：`passwd`
+
+- 用法：passwd 用户名
+
+  <img src="imgs\image-20211026152307754.png" alt="image-20211026152307754" style="zoom:50%;" /> 
+
+#### 4.1.3 切换用户：`su`
+
+- **switch user**
+
+- su 用户名
+
+  - su - 用户名
+
+  - `su`和`su -`区别：
+
+    ```
+    su：只是切换了用户身份，但Shell环境仍然是切换之前的用户的Shell；
+    "su -"：同时切换了用户身份和Shell环境；
+    只有切换了Shell环境才不会出现PATH环境变量错误；
+    ```
+
+
+#### 4.1.4 其它相关命令
+
+- whoami：查看我是谁
+
+- id命令：查看用户的基本信息，包括用户id、组id等
+
+#### 4.1.5 修改用户：`usermod`
+
+​		修改用户账号就是根据实际情况更改用户的有关属性，如**用户id、主目录、用户组、登录Shell**等。
+
+- 几个参数说明
+
+  ```
+  -u:修改用户的id
+  -g:修改用户组（可以是名称，也可以是用户组id）
+  -l:修改用户名
+    usermod -l 新用户名 旧用户名
+    usermod -l et etoak
+  ```
+
+ 
+
+#### 4.1.6 删除用户：userdel
+
+​		如果一个用户的账号不再使用，可以从系统中删除。删除用户账号就是要将**/etc/passwd等系统文件中**的该用户记录删除，必要时还删除用户的主目录。
+
+- 参数说明
+
+  `-r：表示删除用户的同时删除用户的家目录`
+
+### 4.2 用户组管理
+
+​		每个用户都有一个用户组，系统可以对一个用户组中的所有用户进行集中管理。不同Linux 系统对用户组的规定有所不同，Linux下的用户一般属于**与它同名的用户组**，这个用户组在创建用户时同时创建。
+
+#### 4.2.1 添加用户组：`groupadd`
+
+- 参数说明
+
+  ```
+  -g:指定用户组id，与useradd的-u参数类似
+  ```
+
+#### 4.2.2 修改用户组：`groupmod`
+
+- 参数说明
+
+  ```
+  -g:修改用户组id
+  -n:修该用户组名；与usermod的-l参数类似
+  ```
+
+#### 4.2.3 删除用户组：`groupdel`
+
+- 删除刚刚创建的用户组
+  `[root@192 home]# groupdel et1`
+
+  
+
+- 删除已包含用户的用户组
+  `[root@192 home]# groupdel etoak`
+  `groupdel: cannot remove the primary group of user 'et'`
+
+  
+
+- 解决办法：先删除用户组下的用户，然后删除用户组
+  `[root@192 home]# userdel -r et`
+  `[root@192 home]# groupdel etoak`
+  `[root@192 home]# `
+
+## 5. 文件类型与权限问题
+
+![image-20210929085653533](imgs\image-20210929085653533.png)
+
+## 6. 修改文件权限、所属用户和组
+
+- 详见：`文件权限与修改文件拥有者.pdf文档`
+
+## 7. Linux常用命令
+
+### 7.1 pwd
+
+- `print working directory`：显示当前所在目录
+
+- 举例
+
+  ```bash
+  [root@localhost etoak]# pwd
+  /home/etoak
+  ```
+
+### 7.2. cd
+
+- change directory
+
+- cd 目录名
+
+- 举例
+
+  1、绝对路径方式进入/opt目录
+  <img src="G:\ET2301\Month 5\day14\5.Linux\imgs\image-20211026155544082.png" alt="image-20211026155544082" style="zoom:50%;" /> 
+
+  2、在/opt目录下以相对路径的方式进入/home
+
+  <img src="G:\ET2301\Month 5\day14\5.Linux\imgs\image-20211026155642230.png" alt="image-20211026155642230" style="zoom:50%;" /> 
+
+- 特殊用法举例
+
+  ```
+  1. 进入上一级目录
+  [root@192 home]# cd ..
+  [root@192 /]#
+  ```
+
+  ```
+  2. 返回上一次所在目录
+  [root@192 /]# cd -
+  /home
+  ```
+
+  ```
+  3. 直接进入用户根目录，切换到root用户的根目录
+  [root@192 home]# cd ~
+  [root@192 ~]# pwd
+  /root
+  ```
+
+
+
+### 7.3 ls
+
+- list：列出某个目录下的文件和目录
+
+- `ls [参数] [目录]`
+
+- 举例
+
+  1. 参数-l：详细列出某个目录的文件，使用**ls -l** 或者 **ll**.
+
+  2. 列出指定目录下的文件和目录，列出/home目录的下的文件和目录
+
+  3. 参数**-a**：列出目录下所有文件和目录(包括**隐藏文件**)
+
+     
+
+### 7.4 mkdir
+
+- make directory：创建目录
+
+- **创建单个目录**
+
+  <img src="imgs\image-20211026160301786.png" alt="image-20211026160301786" style="zoom:50%;" /> 
+
+- **创建多个目录**
+
+  <img src="imgs\image-20211026160340352.png" alt="image-20211026160340352" style="zoom:50%;" /> 
+
+- **递归创建子目录**：需要在创建目录的前边加一个 `-p参数`
+
+  <img src="imgs\image-20211026160445920.png" alt="image-20211026160445920" style="zoom:50%;" /> 
+
+### 7.5 rm
+
+- 用法：rm [OPTION]... 文件或目录
+
+  **-r**：recursion，递归删除
+
+  **-f**：force，强制删除
+
+  
+
+- 示例1：不使用任何参数，直接删除文件
+
+  ```
+  [root@192 etoak]# rm 1.txt 
+  rm: remove regular empty file ‘1.txt’? y
+  [root@192 etoak]# ls -l
+  total 4
+  lrwxrwxrwx. 1 root root  16 Apr  7 16:33 dat -> /home/etoak/data
+  drwxr-xr-x. 2 root root   6 Dec 28 16:14 data
+  -rw-r--r--. 1 root root 109 Dec 28 16:14 Hello.java
+  ```
+
+  
+
+- 示例2：**递归强制删除目录**
+
+  `[root@192 etoak]# rm -rf data2`
+
+  
+
+- 示例3：强制删除文件
+
+  `rm -f 文件名`
+
+### 7.6 mv
+
+1. **重命名**
+
+   把/home/et目录下的data2目录修改为data3
+
+   <img src="imgs\image-20211026160748918.png" alt="image-20211026160748918" style="zoom:50%;" /> 
+
+   把/home/et目录下的1.txt文件修改为2.txt
+
+   <img src="imgs\image-20211026160837602.png" alt="image-20211026160837602" style="zoom:50%;" /> 
+
+2. **移动文件或目录**
+
+   `mv 文件/目录 已存在的目录`
+
+### 7.7 文件相关命令
+
+#### 7.7.1 touch：创建文件
+
+1. 创建单个文件
+
+   `[root@192 etoak]# touch a.html`
+
+2. 创建多个文件
+
+   ```
+   [root@192 etoak]# touch a.txt b.txt
+   [root@192 etoak]# ls -l
+   total 4
+   -rw-r--r--. 1 root root   0 Apr  8 09:39 a.html
+   -rw-r--r--. 1 root root   0 Apr  8 09:39 a.txt
+   -rw-r--r--. 1 root root   0 Apr  8 09:39 b.txt
+   ```
+
+#### 7.7.2 输出重定向
+
+1. **>**
+
+   这个符号会**覆盖**之前的内容
+
+   覆盖输出
+
+2. **>>**
+
+   这个符号会将新内容**追加**到原内容之后
+
+   追加输出
+
+   
+
+#### 7.7.3 cat
+
+1. 查看文件内容
+
+   ```
+   [root@192 etoak]# cat a.txt 
+   1.txt
+   a
+   a.html
+   ```
+
+2. **合并**文件内容
+
+   ```
+   [root@192 etoak]# cat 1.txt a.txt > b.txt
+   [root@192 etoak]# ls -l
+   -rw-r--r--. 1 root root 498 Apr  8 09:44 1.txt
+   -rw-r--r--. 1 root root  60 Apr  8 09:45 a.txt
+   -rw-r--r--. 1 root root 558 Apr  8 09:46 b.txt
+   ```
+
+#### 7.7.4 head
+
+- 显示文件开头某个数量的文件内容，显示前多少行内容
+
+- 默认显示前10行
+
+- <u>显示b.txt的前3行内容</u>
+
+  ```
+  [root@192 etoak]# head -3 b.txt 
+  123123
+  123123qwd
+  1.txt
+  ```
+
+
+
+#### 7.7.5 tail
+
+1. 查看文件末尾某个数量的文件内容
+
+   - 直接使用`tail 文件名`，默认显示最后10行内容
+
+   - 指定显示最后多少行内容，使用`-n参数`
+
+     `tail -n 5 b.txt`
+
+     `tail -5 b.txt`
+
+   
+
+2. **动态查看(循环读取)文件内容，常用于查看线上日志**
+
+   使用`-f参数`，非常非常非常重要
+
+   **<font color="red">循环显示，但是显示最后5行</font>**
+
+   `tail -f -n 5 b.txt `
+
+   `tail -5f b.txt`
+
+
+
+#### 7.7.6 more
+
+- 查看文件内容
+
+  如果文件内容过大，会按百分比显示，与cat区分（cat会显示所有文件内容）
+
+  **按d：**向下查看文件内容
+
+  **按b：**向上查看文件内容
+
+  **按q**：退出
+
+
+
+#### 7.7.7 <font color="red">less</font>
+
+- 查看文件内容
+
+  less 文件名
+  **按d：**向下查看文件内容
+  **按b：**向上查看文件内容
+  **按q：**退出less命令
+
+  
+
+- 搜索文件内容
+
+  `/字符`内容：向下搜索"字符内容"
+  `?字符`内容：向上搜索"字符内容"
+  一般使用?的时候，<u>都需要到达文件末尾</u>，**按G**可以到达文件末尾
+
+  n：重复上一个搜锁操作，向前搜索
+  N：重复上一个搜索操作，向后搜索
+
+#### 7.7.8 wc
+
+1. 统计行数：`wc -l b.txt`
+
+   ```bash
+   [root@192 etoak]# wc -l b.txt 
+   34 b.txt
+   ```
+
+2. 统计单词数 - 了解：`wc -w b.txt`
+
+   ```bash
+   [root@192 etoak]# wc -w b.txt 
+   126 b.txt
+   ```
+
+3. 统计字节数 - 了解：`wc -c b.txt`
+
+
+### 7.8 free
+
+- 查看内存使用情况
+
+- `free -m`
+
+- `free -h`
+
+  <img src="imgs\image-20211026165818635.png" alt="image-20211026165818635" style="zoom:50%;" /> 
+
+- `free -g`：以GB的方式显示
+
+- 以1000来计算内存，而不是以1024计算，增加参数：`--si`
+
+  <img src="imgs\image-20211026165741391.png" alt="image-20211026165741391" style="zoom:50%;" /> 
+
+
+
+### 7.9 df
+
+- 显示文件系统磁盘的使用情况
+
+- `df -h`
+
+  <img src="imgs\image-20211026170123418.png" alt="image-20211026170123418" style="zoom:50%;" /> 
+
+
+
+### 7.10 du
+
+- 查看指定目录或文件大小
+
+- 参数-s：汇总大小
+
+- 参数-h：以可读性较高的方式显示
+
+- `du -h`：分别显示所有的文件大小，**最后显示汇总大小**
+
+  <img src="imgs\image-20211026170409033.png" alt="image-20211026170409033" style="zoom:50%;" /> 
+
+- `du -sh`：以较高可读性方式，仅显示**汇总大小**
+
+  <img src="imgs\image-20211026170323536.png" alt="image-20211026170323536" style="zoom:50%;" /> 
+
+### 7.11 top
+
+- 查看**进程资源使用率**，相当于windows中的任务管理器
+
+- 执行top
+
+  <img src="imgs\image-20211026170633758.png" alt="image-20211026170633758" style="zoom:50%;" /> 
+
+- 常用操作
+
+  1. 按**内存使用率降序排序**：输入top命令之后，按下**M**即可
+
+     <img src="imgs\image-20211026170712812.png" alt="image-20211026170712812" style="zoom:50%;" /> 
+
+  2. 按**CPU使用率降序排序**：输入top命令之后，按下**P**即可
+
+     <img src="imgs\image-20211026170749031.png" alt="image-20211026170749031" style="zoom:50%;" /> 
+
+  3. 查看**每个CPU使用情况**：输入top命令之后，按下`1`即可
+
+     <img src="imgs\image-20211026170903284.png" alt="image-20211026170903284" style="zoom:50%;" /> 
+
+
+
+### 7.12 uptime
+
+- 打印**系统总共运行了多长时间**和**系统的平均负载**
+
+  <img src="imgs\image-20211026171014825.png" alt="image-20211026171014825" style="zoom:50%;" /> 
+
+- 参数
+
+  -p：显示系统运行时长
+
+  -s：显示系统何时运行的
+
+   ```
+  [root@192 home]# uptime -p
+  up 1 hour, 50 minutes
+  [root@192 home]# uptime --pretty
+  up 1 hour, 51 minutes
+   ```
+
+### 7.13 find（查找文件、目录）
+
+- 用来在指定目录下查找文件、目录...
+
+- 语法：**find   查找目录 (选项)    查找内容**
+
+- 选项
+
+  **-name**：搜索文件名称
+
+  **-type**：搜索的文件类型
+
+  ```
+  -type f: 搜索文件
+  -type d: 搜索目录
+  -type l: 搜索软连接
+  ```
+
+  
+
+- 示例1：从根目录查找Hello.java文件
+
+  `find / -name "Hello.java"`
+
+- 示例2：从当前目录下查找以`.java`结尾的文件
+
+  `find ./ -name "*.java"`
+
+- 示例3：从/home目录下查找所有的**带java的文件**
+
+  `[root@192 ~]# find /home -type f -name "*java"`
+
+  <img src="imgs\image-20211026171515508.png" alt="image-20211026171515508" style="zoom:50%;" /> 
+
+- 示例4：从/home目录下下查找**所有带java的目录**
+
+  `[root@192 et1910]# find /home -type d -name "*java"`
+
+### 7.14 netstat
+
+- 打印Linux中网络系统的状态信息
+
+- 参数
+
+  ```
+  -t: 显示使用TCP协议端口的连接状况；
+  -p: 显示进程号和程序名称；
+  -l: 显示处于监听状态的连接；
+  -n: 使用IP和端口号显示，不使用域名与服务名；
+  
+  -u:显示udp连接
+  ```
+
+
+### 7.15 ps
+
+- 查看进程状态
+
+- 参数
+
+  ```
+  -e: 显示所有进程
+  -f: 显示UID, PPIP等字段
+  
+  -----------------------
+  UID     ：程序执行UID
+  PID     ：进程的ID 
+  PPID    ：父进程ID
+  C       ：CPU使用的资源百分比
+  STIME   ：启动时间
+  TTY     ：终端机位置
+  TIME    ：使用掉的CPU时间
+  CMD     ：执行指令
+  ```
+
+  <img src="imgs\image-20211026172147136.png" alt="image-20211026172147136" style="zoom:50%;" /> 
+
+  ```
+  a: 显示一个终端所有的进程。
+  u: 显示进程归属用户等
+  x: 显示没有关联控制终端的进程
+  ```
+
+  <img src="imgs\image-20211026172106905.png" alt="image-20211026172106905" style="zoom:50%;" /> 
+
+### 7.16 kill
+
+- 终止进程
+- `kill 进程号`
+- `kill -9 进程号`：**强制终止进程**
+
+### 7.17 cp：文件拷贝
+
+- cp 【参数】 源文件  目标文件（目录）
+
+- 拷贝文件
+
+- 拷贝目录
+
+  `-R\-r`：拷贝目录必须要使用的参数，同时可以递归拷贝
+
+### 7.18 scp：远程拷贝（走ssh协议）
+
+1. **拷贝文件到远程机器**
+
+   <img src="imgs\image-20211026172817724.png" alt="image-20211026172817724" style="zoom:50%;" /> 
+
+2. **递归拷贝目录远程机器**
+
+   `-r:以递归的方式拷贝`
+
+   <img src="imgs\image-20211026173048767.png" alt="image-20211026173048767" style="zoom:50%;" /> 
+
+3. **拷贝远程文件到本地**
+
+   `scp root@192.168.85.133:/home/et/hello.py ./` 
+
+4. **拷贝远程目录到本地**
+
+   <img src="imgs\image-20211026173231416.png" alt="image-20211026173231416" style="zoom:50%;" /> 
+
+### 7.19 tar
+
+- **压缩和解压**tar.gz文件
+
+- 解压
+
+  ```
+  -z:通过gzip指令处理备份文件
+  -x:提取文件
+  -v:显示解压过程
+  -f:指定解压文件
+  -C:指定解压目录
+  ```
+
+  `tar -zxvf 文件名 [-C /opt]`
+
+### 7.20 ln
+
+- 创建**软连接**（相当于windows的快捷方式）
+
+- -s：对源文件建立软连接
+
+  <img src="imgs\image-20211026173650114.png" alt="image-20211026173650114" style="zoom:50%;" /> 
+
+### 7.21 date
+
+- 显示时间
+
+  <img src="imgs\image-20211026173927857.png" alt="image-20211026173927857" style="zoom:50%;" /> 
+
+- 以"年-月-日 时:分:秒"显示时间
+
+  <img src="imgs\image-20211026173909017.png" alt="image-20211026173909017" style="zoom:50%;" /> 
+
+- 使用`date "+%F"`显示年月日
+
+  <img src="imgs\image-20211026173958070.png" alt="image-20211026173958070" style="zoom:50%;" /> 
+
+- 显示昨天的日期
+
+  <img src="imgs\image-20211026174131370.png" alt="image-20211026174131370" style="zoom:50%;" /> 
+
+
+- 显示上一个月的今天今天
+
+  <img src="imgs\image-20211026174224641.png" alt="image-20211026174224641" style="zoom:50%;" /> 
+
+
+### 7.22 clear
+
+- 清除屏幕内容：相当于windows中cls命令
+
+
+### 7.23  shutdown
+
+- 系统关机命令
+
+- shutdown -h now：立即关机
+
+- shutdown -h 17:00 "系统将在17:00关机"
+
+  ```
+  [root@192 ~]# shutdown -h 17:00 "系统将要关机"
+  Shutdown scheduled for Wed 2020-04-08 17:00:00 CST, use 'shutdown -c' to cancel.
+  
+  [root@192 ~]# shutdown -c
+  Broadcast message from root@192.168.189.130 (Wed 2020-04-08 16:32:36 CST):
+  The system shutdown has been cancelled at Wed 2020-04-08 16:33:36 CST!
+  ```
+
+
+
+### 5.24 reboot
+
+- 系统重启命令
+
+## 8. 安装vim编辑器
+
+`yum install -y vim`
+
+## 9. 安装JDK 配置JDK
+
+1. **解压jdk**
+
+   `tar -zxvf jdk-8u201-linux-x64.tar.gz` 
+
+2. 创建了一个软连接
+
+   `ln -s jdk1.8.0_102 java`
+
+3. 修改`/etc/profile`文件 在文件末尾添加这两行
+
+   ```bash
+   export JAVA_HOME=/usr/local/java
+   export PATH=$PATH:$JAVA_HOME/bin
+   ```
+
+4. source /etc/profile
+
+5. java -version
+
+
+
+---
+
+
+
+# 文件权限与修改问价拥有者()
+
+## 1. 文件权限
+
+- Linux系统对文件的权限有着严格的控制，如果要对某个文件执行某种操作（读、写、执行），必须具有对应的权限。
+- 修改文件权限 - **chmod命令**
+- 修改文件所属用户 - **chown命令**
+
+## 2. 修改文件权限 - chmod命令
+
+### 2.1 格式
+
+- `chmod [-cfvR] [--help] [--version] mode file...`
+
+### 2.2 常用参数说明
+
+- **-R**：以**递归的方式**对当前目录下的所有档案与子目录进行相同的权限变更
+
+- mode：`[ugoa...][[+-=][rwxX]...][,...]`
+
+  1. **[ugoa...]**
+
+     **u**：表示该文件的拥有者
+
+     **g**： 表示与该文件的拥有者属于同一个组(group)的用户
+
+     **o**：other，表示其他以外的人（不属于该用户和用户组）
+
+     **a**：表示所有（包含上面三者）。
+
+  2. **[+-=]**
+
+     +：表示增加权限
+
+     -：表示取消权限
+
+     =：表示唯一设定权限
+
+  3. **[rwxX]**
+
+     r：表示可以读
+
+     w：表示可以写入
+
+     x：表示可以执行
+
+     X：只有**当文件为目录**，或者其他类型的用户有可执行权限时，才将文件权限设置可执行
+
+  4. **[file...]**
+
+     文件列表（单个或者多个文件、目录）
+
+### 2.3 八进制语法
+
+- chmod命令可以使用八进制数来指定权限。
+
+- 文件或目录的权限位是由9个权限位来控制，每三位为一组，它们分别是
+
+  文件所属**用户**的读、写、执行，
+
+  **用户组**的读、写、执行
+
+  其**它用户**的读、写、执行。
+
+  | 数字 | 权限           | rwx  | 二进制  |
+  | :--- | :------------- | :--- | :------ |
+  | 7    | 读 + 写 + 执行 | rwx  | **111** |
+  | 6    | 读 + 写        | rw-  | 110     |
+  | 5    | 读 + 执行      | r-x  | 101     |
+  | 4    | 只读           | r--  | 100     |
+  | 3    | 写 + 执行      | -wx  | 011     |
+  | 2    | 只写           | -w-  | 010     |
+  | 1    | 只执行         | --x  | 001     |
+  | 0    | 无             | ---  | **000** |
+
+  
+
+### 2.4 举例
+
+1. 设置a.sh文件的**所属用户**对该文件有执行权限
+
+   ```bash
+   chmod u+x a.sh
+   ```
+
+2. 增加**其它用户**对a.sh文件的写入和执行权限
+
+   ```bash
+   chmod o+w,o+x a.sh
+   ```
+
+3. 设置**所有用户**对a.sh文件拥有执行权限
+
+   ```bash
+   chmod ugo+x a.sh
+   ```
+
+   ```bash
+   chmod a+x a.sh
+   ```
+
+4. 使用数字方式
+
+   ```bash
+   chmod 766 a.sh
+   ```
+
+  
+
+## 3. 更改文件拥有者 - chown命令
+
+​		Linux是多用户系统，每个的文件都有**拥有者**（所有者），如果我们想变更文件的拥有者（利用 chown 将文件拥有者加以改变），一般只有系统管理员(root)拥有此操作权限；
+
+### 3.1 格式
+
+- `chown [-cfhvR] [--help] [--version] user[:group] file...`
+
+### 3.2 常用参数说明
+
+- -R : 处理指定目录以及其子目录下的所有文件
+- user : 指定要修改的所属用户
+- group : 指定要修改的所属用户组
+- file...：文件或目录
+
+
+
+### 3.3 举例
+
+1. 将文件a.sh**所属用户和用户组**修改为etoak
+
+   ```bash
+   chown etoak:etoak a.sh
+   ```
+
+   
+
+2. 递归修改a目录所有文件或子目录的**所属用户和组**修改etoak
+
+   ```bash
+   chown -R etoak:etoak a
+   ```
+
+
+
+
+
+---
+
+
+
+# day15(RabbitMQ消息队列)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

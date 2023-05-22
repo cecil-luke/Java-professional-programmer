@@ -1,0 +1,8 @@
+vim /etc/profile
+
+在文件末尾增加两个变量
+
+export JAVA_HOME=/opt/java
+export PATH=$PATH:$JAVA_HOME/bin
+
+添加完成之后执行source /etc/profile即可
