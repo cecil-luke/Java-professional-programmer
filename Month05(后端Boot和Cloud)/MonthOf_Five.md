@@ -5345,7 +5345,7 @@ public class QuartzConfig {
 
 - 集群可以解决**单点故障问题**，提高**服务的可用性**（保障服务的高可用）
 
-- Quartz集群之后，任务和调度器都会集群
+- Quartz集群之后，**任务**和**调度器**都会集群
 
   当一个调度调度了集群中某个任务，那么其它的调度器就不会再调度这个任务。
 
@@ -6909,7 +6909,673 @@ public class TaskApplication {
 
 
 
-# day15(RabbitMQ消息队列)
+# day15(RabbitMQ消息队列day1)
+
+
+
+## CentOS 7 安装单机版 RabbitMQ
+
+```properties
+1、上传3个rpm包
+socat-1.7.3.2-2.el7.x86_64.rpm
+esl-erlang_23.2.3-1_centos_7_amd64.rpm
+rabbitmq-server-3.8.22-1.el7.noarch.rpm
+
+2、安装socat
+yum localinstall -y socat-1.7.3.2-2.el7.x86_64.rpm
+
+3、安装erlang
+yum localinstall -y esl-erlang_23.2.3-1_centos_7_amd64.rpm 
+
+4、安装RabbitMQ
+yum localinstall -y rabbitmq-server-3.8.22-1.el7.noarch.rpm
+
+5、启动RabbitMQ
+systemctl start rabbitmq-server
+
+
+6、启动web控制台
+rabbitmq-plugins enable rabbitmq_management
+
+
+访问浏览器：192.168.244.128:15672
+
+
+7、添加用户和密码（用户名et, 密码也是et）
+rabbitmqctl add_user et et
+
+8、设置角色(administrator)
+rabbitmqctl set_user_tags et administrator
+
+9、设置权限
+rabbitmqctl set_permissions et -p / ".*" ".*" ".*"
+```
+
+---
+
+
+
+## RabbitMQ课程内容
+
+1. 消息中间件
+
+2. 消息中间件使用场景
+
+3. 消息中间件的发展历史
+
+4. AMQP协议
+
+5. RabbitMQ
+
+   RabbitMQ概述
+
+   RabbitMQ支持的模式
+
+   RabbitMQ工作原理
+
+6. RabbitMQ简单队列模式
+
+7. RabbitMQ工作队列模式
+
+8. RabbitMQ消息确认机制
+
+9. RabbitMQ交换机
+
+10. 死信交换机
+
+11. 延迟交换机
+
+12. 案例
+
+    1、用户注册+邮件下发
+
+    2、自动取消超时订单
+
+## 1. 消息中间件
+
+1. **中间件概念：**
+
+   **中间件**是<u>一种独立的系统软件服务程序</u>，位于客户机服务器的操作系统之上，管理着计算资源和网络通信。
+
+   分布式应用系统可以借助这种软件<u>在不同的技术之间共享资源</u>。
+
+2. **消息中间件：**
+
+   支持在分布式系统之间**发送**和**接收**消息的软件。 
+
+## 2. 消息中间件使用场景
+
+1. 应用解耦
+2. 异步消息通信
+3. 流量削峰
+4. 日志处理（Kafka）
+
+## 3. 消息中间件的发展
+
+ <img src="imgs\1.消息中间件发展史-168494618412612.png" style="zoom:50%;margin-left:60px" /> 
+
+## 4. AMQP协议（Advanced Message Queue Protocol）
+
+- AMQP协议概念
+
+  |       概念       | 描述                                                         |
+  | :--------------: | ------------------------------------------------------------ |
+  |    **Broker**    | **接收**和**分发**消息的应用，RabbitMQ Server就是Message Broker。 |
+  | **Virtual Host** | 为了在一个单独的代理上实现多个隔离的环境（用户、用户组、交换机、队列 等），AMQP 提供了一个虚拟主机（virtual hosts）的概念，当多个不同的用户使用同一个RabbitMQ时，可以划分出多个vhost，每个用户在自己的vhost创建exchange、queue等。 |
+  |  **Connection**  | **生产者**、**消费者**和**Broker**之间的**TCP连接**。        |
+  |   **Channel**    | 是在Connection内部建立的**逻辑连接**，它作为轻量级的Connection，极大减少了操作系统建立TCP连接的开销。 |
+  |   **Exchange**   | 交换机，用于**接收消息**，根据分发规则，匹配Routing Key，分发消息到队列中去。 |
+  |    **Queue**     | 队列，消息最终被送到这里<u>等待消费者取走</u>。              |
+  |   **Binding**    | 用于描述**消息队列**与**交换机**之间的关系。一个绑定就是基于路由键将交换机和消息队列连接起来的路由规则。因此可以将交换器看成一个由绑定构成的路由表 |
+  | **Routing Key**  | 路由规则，可用来确定如何路由一个特定消息。                   |
+  |   **Message**    | 消息                                                         |
+  |  **Publisher**   | 消息发布者                                                   |
+  |   **Consumer**   | 消费者                                                       |
+
+
+## 5. RabbitMQ
+
+1. [官网](https://www.rabbitmq.com)
+
+   <img src="imgs\3.logo-168494618412613.jpg" style="zoom:30%; margin-left:20px" />
+
+### 5.1 RabbitMQ概述
+
+​		RabbitMQ拥有成千上万的用户，是最受欢迎的开源消息代理服务器之一；
+
+​		RabbitMQ是一个开源的AMQP（**高级消息队列协议**）实现，服务器端用Erlang语言编写，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、PHP、ActionScript、XMPP、STOMP等。**用于在分布式系统中存储、转发消息**。
+
+### 5.2 RabbitMQ支持的模式
+
+<img src="imgs\RabbitMQ6种模式-168494618412714.png" style="zoom:50%; margin-left:60px">
+
+### 5.3 RabbitMQ工作原理图
+
+<img src="imgs\RabbitMQ整体架构图-168494618412715.png" style="zoom:50%; margin-left:60px" /> 
+
+
+
+<img src="imgs\RabbitMQ整体架构图2-168494618412716.png" style="zoom:50%; margin-left:60px" />
+
+## 6. RabbitMQ简单模式
+
+<img src="imgs\4.simple-16546460498501-168494618412717.png" style="zoom:50%; float:left; margin-left:50px" />
+
+- P是**生产者**。
+- C是消费者。
+- 中间的红色区域是一个**队列**，表示消费者保留的**消息缓冲区**。
+
+## 7. RabbitMQ工作队列模式
+
+<img src="imgs\5.work-16461798076264-168494618412718.png" style="zoom:50%; margin-left:60px"/>
+
+​		在使用消息系统时，一般情况下生产者往队列里插入数据的速度是比较快的，但是消费者消费数据往往涉及到一些业务逻辑处理导致速度跟不上生产者生产数据。因此，如果一个队列只有一个消费者的话，很容易导致**大量的消息堆积在队列里**，这时，就可以使用**工作队列**，这样一个队列可以有多个消费者同时消费数据。
+
+​		当队列有多个消费者时，消息会被哪个消费者消费呢？这里主要有两种模式：
+
+1. **轮询分发**：一个消费者消费一条，按均分配；
+2. **公平分发**：根据消费者的消费能力进行公平分发，处理快的处理的多，处理慢的处理的少；按劳分配；
+
+### 7.1 轮询分发
+
+​		一个消费者消费一条，平均分配；
+
+### 7.2 公平分发
+
+​		根据消费者的**消费能力**进行公平分发，处理快的处理的多，处理慢的处理的少；
+
+1. 消费者需要手动确认消息
+2. 设置消费者每次取一条消息，**channel.basicQos(1);**
+
+## 8. 消费者确认模式（ACK 机制）
+
+1. 什么是消费者消息确认？
+
+   为了确保消息不会丢失，RabbitMQ 支持 [消息确认](https://www.rabbitmq.com/confirms.html)，消费者发回确认消息，告诉 RabbitMQ 特定消息已被接收、处理，并且 RabbitMQ可以自由删除它。
+
+2. RabbitMQ提供了两种确认模式
+
+   - **自动确认**
+
+   - **手动确认**
+
+### 8.1 自动确认
+
+​		自动确认表示消息**发送给消费者后立即确认**，但存在丢失消息的可能，<u>如果消费端消费逻辑抛出异常</u>，也就是消费端没有成功处理这条消息，那么就相当于<u>丢失了消息</u>；
+
+### 8.2 手动确认
+
+​		如果一个消费者在处理消息**出现了网络不稳定、服务器异常等现象**，那么就不会有ACK反馈，RabbitMQ会认为这个消息没有正常消费，此时，<u>RabbitMQ会将消息重新放入队列中</u>。
+
+​		开启手动确认后，如果队列有多个消费者，当出现异常情况后，RabbitMQ会立即将这个消息推送给另一个在线的消费者，这种机制保证了在消费方不会丢失消息。
+
+### 8.3 忘记确认消息
+
+​		**忘记进行消息确认**是一个简单的错误，但后果很严重，当客户端（消费者）退出时，<u>消息将被重新传送</u>（这可能看起来像随机重新传送）到RabbitMQ队列，RabbitMQ会消耗越来越多的内存，因为它无法释放任何未确认的消息，此时就会造成**内存泄漏**。
+
+## 9. RabbitMQ交换机
+
+​		RabbitMQ消息传递模型的**核心思想**是：**生产者从不直接向队列发送任何消息**。实际上，生产者经常甚至根本不知道消息是否会被传送到队列，相反，生产者只能将消息发送到交换机。交换机一方面接收来自生产者的消息，另一方面将它们推送到队列中。
+
+​		交换机必须确切地知道如何处理它收到的消息，它应该发送到特定队列中？还是应该发送到许多队列中？或者它应该被丢弃？**这由交换类型决定。**
+
+### 9.1 交换机类型
+
+​		交换机类型：`fanout`、`direct`、`topic`、`headers` 
+
+### 9.2 fanout交换机（发布-订阅模式）
+
+​		[教程地址](https://www.rabbitmq.com/tutorials/tutorial-three-java.html)
+
+<img src="imgs\6.Pub-Sub-16461798076263-168494618412719.png" style="zoom: 67%; margin-left:40px" />
+
+​		fanout交换非常简单，<u>它仅将收到的所有消息**广播**到所有队列</u>。
+
+​		fanout交换机**不设置路由键**，我们只需要将队列绑定到交换机上，生产者发送到fanout交换机的消息都会被转发到与该交换机绑定的所有队列上，很像子网广播，每台子网内的主机都能获得了一份消息。 
+
+#### 9.2.1 fanout交换机实例
+
+ <img src="imgs\image-20230301151644011-168494618412720.png" alt="image-20230301151644011" style="zoom:50%; margin-left:60px" /> 
+
+
+### 9.3 direct交换机（路由模式）
+
+<img src="imgs\direct-168494618412722.png" style="zoom:50%; margin-left:60px" />
+
+​		**交换机**和**队列**之间产生关联需要使用**binding**，可理解为交换机只向与其绑定的队列中发送消息，这里的绑定关系需要使用**Routing Key**；
+
+​		相对比fanout交换机，<u>direct交换机</u>在其基础上，多加了一层秘钥（Routing Key）。
+
+## 10. Topic交换机
+
+​		topic交换机是在direct交换机的基础上，支持了对routing key的通配符匹配（`*`号和`#`号），以满足更加复杂的消息分发场景。
+
+​		**`*`**：精确匹配一个词（一个字母也行、一个单词也行）
+
+​		**`#`**：匹配零个或多个词（多个字母也行、多个单词也行，都以逗号分割）
+
+**注：**
+
+- 如果队列绑定的路由键是`#`，那么这个队列可以接收所有数据，就类似于<u>fanout交换机</u>了
+- 如果队列绑定的路由键键当中没有`#`和`*`，那么是<u>direct交换机</u>了
+
+### 10.1 topic交换机实例
+
+<img src="imgs\topic-168494618412721.png" style="zoom:70%; margin-left: 60px" />
+
+## 11. headers交换机
+
+​		headers交换机与`fanout、direct、topic交换机`不同，它时通过匹配**AMQP消息的header**，而**不是路由键**。
+
+​		在实际开发中这种方式很少使用。 
+
+
+
+## 今天练习
+
+1. 创建模块：email-service
+
+   ```xml
+   <!-- common工程 -->
+   <!-- spring-boot-starter-web -->
+   <!-- spring-boot-starter-amqp -->
+   <!-- hutool -->
+   <!-- lombok -->
+   ```
+
+2. 创建`application.yml`
+
+   配置Tomcat端口号
+
+   配置RabbitMQ
+
+3. 编写启动类：com.etoak.EmailServiceApplication
+
+4. 编写`com.etoak.service.EmailService`
+
+   ```java
+   @RabbitListener(queues = "email.queue")
+   // 方法体 打印队列的消息
+   ```
+
+
+---
+
+### pom.xml
+
+```xml
+    <!-- common -->
+    <dependency>
+      <groupId>com.etoak.et2301.mq</groupId>
+      <artifactId>common</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- spring-boot-starter-web -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- spring-boot-starter-amqp -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+
+    <!-- hutool-all -->
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-all</artifactId>
+    </dependency>
+
+    <!-- lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Spring Boot自动配置Java Mail -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+```
+
+### application.yml
+
+配置Tomcat端口号
+
+配置RabbitMQ
+
+```yaml
+server:
+  port: 8081
+
+spring:
+  rabbitmq:
+    host: 192.168.244.128
+    port: 5672
+    virtual-host: /email
+    username: et
+    password: et
+
+  mail:
+    host: smtp.qq.com
+    username: 2548316766@qq.com
+    # 授权码
+    password: jqfcuqfgzgplecih
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+```
+
+### 启动类com.etoak.EmailServiceApplication
+
+```java
+package com.etoak;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class EmailServiceApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(EmailServiceApplication.class, args);
+  }
+}
+```
+
+### com.etoak.service.EmailService
+
+```java
+package com.etoak.service;
+
+import cn.hutool.json.JSONUtil;
+import com.etoak.common.Email;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+@Service
+public class EmailService {
+
+  /**
+   * 用于发送邮件的对象
+   */
+  @Autowired
+  JavaMailSender mailSender;
+
+  @Value("${spring.mail.username}")
+  private String senderMail;
+
+  @RabbitListener(queues = "email.queue")
+  public void send(String msg) {
+    Email email = JSONUtil.toBean(msg, Email.class);
+
+    // 创建邮件消息
+    SimpleMailMessage mailMessage = new SimpleMailMessage();
+    // 发件人
+    mailMessage.setFrom(senderMail);
+    // 收件人
+    mailMessage.setTo(email.getReceiver());
+    // 主题
+    mailMessage.setSubject(email.getSubject());
+    // 正文
+    mailMessage.setText(email.getContent());
+
+    System.out.println("开始下发邮件");
+    mailSender.send(mailMessage);
+    System.out.println("邮件发送结束");
+  }
+}
+```
+
+
+
+
+
+---
+
+
+
+# day16(RabbitMQ消息队列day2)
+
+
+
+## 今天内容
+
+1. 实现邮件下发
+2. Topic交换机
+3. 死信队列
+4. 延迟队列
+5. 使用延迟队列实现订单的自动取消
+
+## 1. 实现邮件下发
+
+1. 开通QQ邮箱邮件发送功能（第三方发送邮件的能力）
+
+   <img src="imgs\image-20230524092537297-168494914897335.png" alt="image-20230524092537297" style="zoom:33%;" /> 
+
+2. 在pom.xml中引入：`spring-boot-starter-mail`依赖
+
+3. 在application.yml中配置邮箱主机、授权码等
+
+   ```yaml
+   server:
+     port: 8081
+   
+   spring:
+     rabbitmq:
+       host: 192.168.244.128
+       port: 5672
+       virtual-host: /email
+       username: et
+       password: et
+   
+     mail:
+       host: smtp.qq.com
+       username: 2548316766@qq.com
+       # 授权码
+       password: jqfcuqfgzgplecih
+       properties:
+         mail:
+           smtp:
+             auth: true
+             starttls:
+               enable: true
+               required: true
+   ```
+
+## 2. Topic交换机
+
+​		topic交换机是在direct交换机的基础上，支持了对routing key的通配符匹配（`*`号和`#`号），以满足更加复杂的消息分发场景。
+
+​		**`*`**：精确匹配一个词（一个字母也行、一个单词也行）
+
+​		**`#`**：匹配零个或多个词（多个字母也行、多个单词也行，都以`.`分割）
+
+**注：**
+
+- 如果队列绑定的路由键是`#`，那么这个队列可以接收所有数据，就类似于fanout交换机了
+- 如果队列绑定的路由键键当中没有`#`和`*`，那么是direct交换机了
+
+### 2.1 topic交换机实例
+
+<img src="imgs\topic-168494914893934.png" style="zoom:70%;" > 
+
+## 3. 死信队列
+
+1. [死信队列官网](https://www.rabbitmq.com/dlx.html)
+
+2. 按照前边讲的内容：生产者（Producer）会将消息投递到交换机（Exchange），消费者（Consumer）从队列（Queue）中取出消息进行消费；
+
+   但有些时候由于特定的原因导致队列中的消息<u>无法被消费</u>，这样的消息如果没有后续的处理，就变成了"**死信**"。RabbitMQ可以配置**死信队列接收这些死信消息**，如果不配置死信队列，那么这条消息将会被丢弃。
+
+3. 死信出现的原因：
+
+   1. **消息被消费者拒绝（basicReject或basicNack，并且没有重新入队）**
+
+   2. **消息过期（The message expires due to [per-message TTL](https://www.rabbitmq.com/ttl.html)）**
+
+   3. **由于队列达到最大长度，队首的消息被丢弃**
+
+      **注意：队列满了之后，如果继续向队列中发送消息，那么队首的消息就会成为死信**
+
+### 3.1 消息的TTL（Time To Live） 和 队列的TTL
+
+1. [消息的TTL 和 队列的TTL官网](https://www.rabbitmq.com/ttl.html)
+
+2. 队列中消息的**TTL**：创建队列时统一设置队列上所有消息的过期时间
+
+   ```java
+   // 原生API设置队列上消息的过期时间
+   Map<String, Object> args = new HashMap<String, Object>();
+   args.put("x-message-ttl", 60000);
+   channel.queueDeclare("myqueue", false, false, false, args);
+   ```
+
+   ```java
+   // Spring Boot中设置队列上消息的过期时间
+   @Bean
+   public Queue normalQueue() {
+     // 设置死信交换机和死信routing key
+     Map<String, Object> args = new HashMap<>();
+     // 队列上的消息的过期时间
+     args.put("x-message-ttl", 1000 * 10);
+     return new Queue(NORMAL_QUEUE, true, false, false, args);
+   }
+   ```
+
+   
+
+3. 队列的过期时间：**创建队列时设置**
+
+   ```java
+   Map<String, Object> args = new HashMap<String, Object>();
+   // 80秒后队列直接被Broker删除, 队列中的消息也会被删除
+   args.put("x-expires", 1000 * 80);
+   channel.queueDeclare("myqueue", false, false, false, args);
+   ```
+
+   
+
+4. 消息的TTL：**发送消息时设置消息过期时间**
+
+   ```java
+   byte[] messageBody = "Hello, world!".getBytes();
+   AMQP.BasicProperties properties = new AMQP.BasicProperties（）
+     											.builder()
+                                     .expiration("60000")
+                                     .build();
+   channel.basicPublish("my-exchange", "routing-key", properties, messageBody);
+   ```
+
+   ```java
+   rabbitTemplate.convertAndSend(DeadLetterConfig.NORMAL_EXCHANGE,
+           DeadLetterConfig.NORMAL_KEY,
+           msg,
+           message -> {
+             // 设置消息的过期时间  单位是ms
+             String expire = String.valueOf(1000 * second);
+             message.getMessageProperties().setExpiration(expire);
+             return message;
+           }
+         );
+   ```
+
+
+### 3.2 死信队列 - 测试消息过期（消息的TTL到期）
+
+<img src="imgs\image-20220609170103834-168494914897336.png" style="zoom:50%; margin-left:30px" />
+
+## 4. 延迟队列
+
+​		延迟队列存储的消息一般都是`延时消息`，所谓`延时消息`是指当消息被发送以后，并不想让消费者立即消费消息，而是**等待指定时间后**，才允许消费者来消费这条消息；
+
+### 4.1 应用场景
+
+1. 用户下单后30分钟未支付，使用延迟队列功能**取消**超时的订单
+2. 注册一个网站，24小时（几天）内未登录，发送邮件或短信通知
+
+## 5. 使用死信队列实现延迟队列功能
+
+- 消息的过期时间确定：可以使用死信队列完成延迟队列功能
+- 缺点：消息的过期时间不固定时，<u>过期时间早的不一定先被处理掉</u>
+
+
+## 6. 安装延迟队列插件
+
+1. 插件安装目录：`/usr/lib/rabbitmq/lib/rabbitmq_server-3.8.22/plugins`
+
+2. 将`rabbitmq_delayed_message_exchange-3.8.0.ez`插件上传到插件安装目录
+
+3. 安装命令，在plugins目录下执行：
+
+   ```bash
+   [root@192 plugins]# rabbitmq-plugins enable rabbitmq_delayed_message_exchange
+   ```
+
+4. 安装完成之后，RabbitMQ的Web控制台**Exchanges选项卡**下会出现一个交换机 ，如下图所示
+
+   <img src="imgs\image-20220708165238654-168494914897337.png" style="zoom:50%;" /> 
+
+## 7. 配置延迟队列
+
+
+
+## 8. 使用延迟队列取消超时未支付的订单
+
+1. 创建表
+
+   ```sql
+   CREATE TABLE `t_order` (
+     `id` bigint NOT NULL AUTO_INCREMENT,
+     `order_no` varchar(128) NOT NULL COMMENT '订单编号',
+     `user_id` varchar(64)  NOT NULL COMMENT '用户id',
+     `shop_id` varchar(64) NOT NULL COMMENT '商铺id',
+     `order_status` int NOT NULL DEFAULT '0' COMMENT '订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单',
+     `pay_status` int NOT NULL DEFAULT '0' COMMENT '支付状态: 0:未支付，1:已支付，2:取消支付',
+     `cancel_reason` varchar(255) DEFAULT NULL COMMENT '取消原因',
+     `create_time` datetime NOT NULL COMMENT '创建时间',
+     `cancel_time` datetime DEFAULT NULL COMMENT '取消时间',
+     PRIMARY KEY (`id`),
+     UNIQUE KEY `idx_unique_order_no` (`order_no`) USING BTREE
+   ) ;
+   ```
+
+2. 创建工程
+
+   rabbitmq-order         pom
+
+   common                     ResultVO
+
+   entity                          实体类工程
+
+   mapper                       Mapper工程
+
+   order-service              订单服务（Spring Boot）
+
+   cancel-service             取消超时订单服务（Spring Boot）
+
+   
+
+---
+
+
+
+
+
+​		
 
 
 
@@ -6927,17 +7593,9 @@ public class TaskApplication {
 
 
 
+---
 
-
-
-
-
-
-
-
-
-
-
+# day17
 
 
 
