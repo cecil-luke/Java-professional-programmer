@@ -7573,29 +7573,524 @@ public class EmailService {
 
 
 
-
-
-​		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ---
 
-# day17
+# day17(Redis)
+
+## Redis（Remote Dictionary Server）
+
+1. NoSQL概述
+2. Redis概述、使用场景
+3. Redis安装（Windows、CentOS7）
+4. Redis多数据库特点
+5. Redis常用全局命令
+6. Redis常用数据类型
+7. 使用Jedis、spring-data-redis、Spring Boot连接单机版Redis
+8. 简单的点赞接口开发
+9. Redis持久化方式
+10. Redis事务
+11. Redis集群模式
+    - 主从模式
+    - 哨兵模式
+    - 分片集群模式（在CentOS7上安装）
+12. 使用Jedis、spring-data-redis、Spring Boot连接集群Redis
+13. 简单排行榜接口开发
+
+- Redis官网：https://redis.io
+- Redis中文网：http://www.redis.cn
+- Redis所属公司：Pivotal（Spring所在的公司）
+- Redis源码地址：https://github.com/antirez/redis
+
+## 1. NoSQL - Not Only SQL
+
+​	**MySQL**、**Oracle**、**DB2**：**关系型数据库**
+
+​		`结构化数据`：使用关系型数据库表示和存储，表现形式就是**二维行列结构**；
+
+​	**NoSQL**：**存储非结构化和半结构化数据**
+
+​		`非结构化数据`：没有固定存储结构，文件、图片、音视频等
+
+​		`半结构化数据`：可以认为是结构化数据的一种，只不过不是以二维行列形式存储，但是数据包含**相关标记**，比如JSON、XML；
+
+### 1.1 NoSQL数据库类型
+
+1. **键值对数据库**（Key-Value数据库）
+
+   代表数据库：Redis、Memcached
+
+2. **列式数据库**
+
+   代表数据库：谷歌的BigTable、Apache的HBase
+
+3. **文档数据库**
+
+   这种数据库存储半结构化数据：一般存储为**json格式**，这种数据库更接近关系型数据库；
+
+   代表数据库：`MongoDB`、`ElasticSearch（ES）`
+
+4. **图数据库**
+
+   并不是存储图片，而是存储数据间关系；
+
+   适合做社交网络、关系图谱；
+
+   代表数据库：`Neo4J`、`OrientDB`
+
+## 2. Redis概述
+
+1. Redis是一个`键值对类型`的**内存数据库**；
+2. Redis支持**字符串、哈希、列表、集合、有序集合**等数据结构；
+3. Redis具有内置的**数据复制、回收、事务和不同级别的磁盘上的持久性**；
+4. Redis是**纯内存操作**，具备很高的读写性能；读的速度能达到110000次/s，写的速度能达到81000次/s；
+5. Redis支持**主从模式的数据备份**，数据可扩展性高；
+6. Redis支持**集群**（Redis 3.0+）；
+
+### 2.1 Redis的使用场景
+
+1. **缓存**：缓存一些常用数据、缓存Session会话等
+2. **排行榜**
+3. **简单的消息队列**
+4. **好友关系**：点赞、好友推荐等
+5. ......
+
+## 3. 安装Redis
+
+​		Redis官方只提供了Linux的安装版本，不提供Windows的安装版本，但是微软使用Redis源码编译了一个Windows版的Redis安装包；
+
+​		Window64位下载地址：https://github.com/MicrosoftArchive/redis/releases
+
+​		其他开发者编译的Windows版本：https://github.com/tporadowski/redis/releases/
+
+### 3.1 Windows安装Redis
+
+1. 解压redis安装文件
+
+2. **启动redis服务**：双击`redis-server.exe`即可
+
+3. **或命令行方式启动redis服务**
+
+   <img src="imgs\Windows启动Redis.png" alt="Windows启动Redis" style="zoom:50%; margin-left:0px;" /> 
+
+   
+
+4. 启动redis客户端
+
+   `双击redis-cli.exe`
+
+### 3.2 Centos7 安装Redis 5.0.4
+
+1. 安装gcc-c++
+
+   `yum install -y gcc-c++`
+
+2. 上传安装包`redis-5.0.4.tar.gz`到`/opt`目录
+
+3. 解压`redis-5.0.4.tar.gz`到`/opt`目录
+
+   `tar -zxf redis-5.0.4.tar.gz [-C /opt]`
+
+4. 编译安装Redis
+
+   ```bash
+   # 软连接
+   [root@localhost opt]# ln -s redis-5.0.4 redis
+   [root@localhost opt]# cd redis
+   # 运行代码
+   [root@localhost redis]# make
+   [root@localhost redis]# cd src
+   # 安装
+   [root@localhost src]# make install
+   ```
+
+   > `CC Makefile.dep`
+   >
+   > `Hint: It's a good idea to run 'make test' ;)`
+   >
+   > `INSTALL install` 
+   >
+   > `INSTALL install` 
+   >
+   > `INSTALL install`
+   >
+   > `INSTALL install`
+   >
+   > `INSTALL install`
+
+5. 修改配置文件(`/opt/redis/redis.conf`)
+
+   1. bind 127.0.0.1               注释这一行（69行）
+
+   2. protected-mode  no     (将保护模式修改为no)（88行）
+
+   3. daemonize yes              (设置为守护进程，把no改为yes)（136行）
+
+      ```bash
+      sed -i '/^bind 127.0.0.1/s/bind 127.0.0.1/#bind 127.0.0.1/g' redis.conf
+      sed -i '/protected-mode/s/yes/no/g' redis.conf
+      sed -i '/daemonize/s/no/yes/g' redis.conf
+      ```
+
+6. 启动redis server
+
+   `cd /opt/redis`
+
+   `redis-server redis.conf`
+
+   
+
+7. 启动redis-cli客户端
+
+   **redis-cli**
+
+   `redis-cli [-h 127.0.0.1 -p 6379 -a 密码]`
+
+   > -h：host，连接主机，默认连接127.0.0.1
+   >
+   > -p：port，redis服务器端口号，默认连接端口是6379
+   >
+   > -a：auth，redis登录密码
+
+   
+
+8. 停止redis服务端
+
+   `redis-cli shutdown`
+
+## 4. Redis的多数据库特点
+
+- Redis默认支持`16个数据库`，数据库名称使用数字表示，下标从0开始（0-15）
+- 可以通过redis.conf中的`databases`配置
+
+### 4.1 Redis多数据库缺点
+
+1. 不支持自定义**数据库名称**。
+2. 不支持为每个数据库设置**访问密码**。
+3. 多个数据库之间**不是完全隔离的**，`flushall`命令会清空所有数据库的数据。 
+4. 不适用于存储**不同应用的数据**。
+5. **Redis集群**不支持多数据库。
+
+## 5. Redis常用的全局命令
+
+1. `keys *`：**查看所有的键**，支持通配符查询，如：`keys name*`，生产环境最好不要使用（它会<u>阻塞服务器</u>）。
+2. `exists key`：测试**是否存在**指定的key，存在返回1，不存在返回0
+3. **`expire key seconds`：设置key的过期时间，单位是秒**
+4. `ttl key`：查看**key的剩余有效时间**，`-1`代表**永不过期**，`-2`表示key**已经过期**
+5. `persist key`：取消key的过期时间
+6. `del key`：删除某个key
+7. `rename key newkey`：修改key的名称
+8. `flushall`：清空所有数据（<u>会跨库清空数据</u>）
+9. `info [section]`：查看数据信息，info Server，info CPU、info Replication
+
+## 6. Redis常用的五个数据类型
+
+### 6.1 string类型
+
+​		**string类型**是redis中最基本的类型，并且是**二进制的安全的**，可以存储序列化的对象、二进制图片、一个简单的字符串、数值等。string类型的键允许存储的数据**最大容量是512MB**。
+
+### 6.2 hash类型
+
+​        hash是一个string类型的**field和value的映射表**，适合存储**对象**，将一个对象存储在hash类型中会占用**更少的内存**，而且可以方便的操作对象。
+
+### 6.3 list类型
+
+​        list是一个**链表结构**，类似JDK的LinkedList、Queue，list类型的每个子元素都是<u>string类型</u>的**双向链表**；
+
+### 6.4 set类型
+
+​       set是string类型的**无序且不重复的集合**。Set是通过hash table实现的，添加、删除和查找的复杂度都是**O(1)**，可以对set取`并集、交集、差集`，通过set的这些操作我们可以实现好友推荐功能。
+
+### 6.5 zset类型
+
+​        zset**有序集合**，类似SortedSet。
+
+## 7. Jedis连接单机版Redis
+
+## 8. spring data redis连接单机版Redis
+
+## 9. Spring Boot连接单机版Redis
+
+​	Spring Boot完成了**Lettuce的自动配置**，自动配置类：`RedisAutoConfiguration`
+
+<img src="imgs\image-20230525154536130.png" style="zoom:50%; margin-left:40px" /> 
+
+### 开发点赞接口
+
+1. 接口地址：http://localhost:8080/like/news?id=id&username=zs
+
+2. 请求方法：`get`、`post`
+
+3. 请求参数
+
+   id：新闻id
+
+   username：点赞用户名称
+
+4. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": {
+       "like": true, 
+       "count": 200
+     }
+   }
+   ```
+
+5. 怎么实现？用什么数据类型？
+
+   点赞、取消、获取点赞量
+
+   什么情况下能点赞？当前用户没有点过赞时
+
+   什么情况下能取消点赞？当前用户点过赞了
+
+   所以，在点赞和取消之前应该有一个判断 - 判断用户有没有点过赞
+
+   **hash类型：**
+
+   key：`news:newId`
+
+   value：`<username, 1>`
+
+   `hexists news:100 zs`
+
+   `hset news:100 zs 1`
+
+   `hdel news:100 zs`
+
+   `hlen news:100`
+
+   **set类型：**
+
+   key：`news:newId`
+
+   value：`username`
+
+   `sismember news:100 zs`
+
+   `sadd news:100 zs`
+
+   `srem news:100 zs`
+
+   `scard news:100`
+
+## 10. Redis的<u>持久化策略</u>
+
+​	Redis提供了两种持久化策略：`RDB` 和 `AOF`
+
+### 10.1 RDB持久化 - 默认持久化方式
+
+1. **快照文件名称设置**
+
+   通过`redis.conf`中的`dbfilename`设置
+
+   默认值：`dbfilename "dump.rdb"`
+
+2. **快照文件存放位置**
+
+   通过`redis.conf`中的`dir`设置
+
+   默认值：`dir ./` 表示在执行redis-server命令的目录下生成文件，当然可以修改
+
+3. **快照（RDB持久化）策略配置**
+
+   ```
+   save 900 1    900秒内有一个修改就执行持久化
+   save 300 10   300秒内有10个修改就执行持久化
+   save 60 10000 60秒内有一万个修改就执行持久化
+   ```
+
+   增加4秒内有一个可以被修改就触发RDB持久化
+
+
+
+#### 10.1.1 RDB持久化过程
+
+​		**RDB持久化**是Redis定期将内存中的`数据集`写入磁盘，操作过程：主进程创建一个子进程，先将数据集写入临时文件，写入成功后，再替换之前的文件，使用二进制压缩存储，整个过程`主进程`不进行任何IO操作，保证Redis的高效性。
+
+#### 10.1.2 RDB持久化的触发方式
+
+​	`自动触发`和`手动触发`
+
+1、**自动触发**（默认配置）：在redis.conf中配置
+
+​	1271:M 25 May 2023 16:55:45.410 * 1 changes in 5 seconds. Saving...
+​	1271:M 25 May 2023 16:55:45.418 * Background saving started by pid 1297
+​	**1297:C 25 May 2023 16:55:45.419 * DB saved on disk**
+​	1297:C 25 May 2023 16:55:45.419 * RDB: 4 MB of memory used by copy-on-write
+​	1271:M 25 May 2023 16:55:45.521 * Background saving terminated with success
+
+2、**手动触发**
+
+- **save**
+
+  执行此命令会阻塞Redis服务器，执行命令期间，Redis不能处理其它命令，直到RDB过程完成为止。
+
+  **执行日志如下**
+
+  1271:M 25 May 2023 16:59:40.310 * DB saved on disk
+
+- **bgsave**
+
+  ​	执行该命令时，Redis会在后台**异步**进行快照操作，做快照的同时还可以响应客户端请求；此时Redis主进程执行**fork**操作创建子进程，RDB持久化过程由子进程负责，完成后自动结束。阻塞只发生在fork阶段，一般时间很短。
+
+
+### 10.2 AOF持久化：默认没有开启这个持久化策略
+
+​		AOF持久化以`日志的形式`记录服务器所处理的每一个**写操作和删除操作**（以文本的方式记录，可以打开文件看到详细的操作记录）。
+
+1. **如何开启aof持久化**
+
+   使用`redis.conf`中的`appendonly yes`设置
+
+   默认设置：`appendonly no`表示不开启aof持久化
+
+   
+
+2. **aof文件名称设置**
+
+   使用`redis.conf`中的`appendfilename`设置
+
+   默认设置：`appendfilename "appendonly.aof"`
+
+   
+
+3. **aof文件存放位置**
+
+   通过`redis.conf`中的`dir`设置
+
+   默认值：`dir ./` 表示在执行redis-server命令的目录下**生成文件**
+
+#### 10.2.1 Redis支持三种同步AOF文件的策略
+
+​	通过redis.conf中的`appendfsync设置`
+
+1. `no`: 不进行同步，依靠Redis来进行同步. Faster. 
+
+2. `always`: always表示每次有写操作都进行同步. Slow, Safest. 
+
+3. `everysec`: 表示对写操作进行累积，每秒同步一次. Compromise.
+
+   默认是"everysec"，按照速度和安全折中这是最好的。
+
+## 11. Redis的事务
+
+​		Redis对事务的支持比较简单，它是一组命令的集合，命令被**顺序的执行**，Redis也可以放弃事务的执行，此时事务中所有的命令都不会执行。
+
+​		Redis的事务`没有隔离级别`的概念，因为事务提交前任何指令都不会被实际执行，也就不存在“事务内的查询要看到其它事务里的更新，在事务外查询不能看到”这种问题了。
+
+​		Redis的事务`不保证原子性`，也就是不保证所有指令同时成功或同时失败，只有决定是否开始执行全部指令的能力，**没有执行到一半进行回滚的能力**。
+
+​		`Redis集群不支持事务操作`；
+
+### 11.1 Redis事务的相关命令
+
+1. `multi`：**开启事务**
+2. `exec`：**执行事务**
+3. `discard`：**取消事务**
+4. `watch`：**监控键值**
+5. `unwatch`：**取消监控**
+
+### 11.2 Redis事务的基本过程   multi
+
+1. 发送一个事务的命令`multi`给redis； 
+2. 依次把要执行的命令发送给Redis，Redis接到这些命令，**并不会立即执行**，而是放到**等待执行的事务队列**里；
+3. 发送执行事务的命令`exec`给Redis；
+4. Redis会保证**一个事务内的命令依次执行**，而**不会被其它命令插入**； 
+
+### 11.3 Redis事务过程中的错误处理
+
+​	Redis的事务非常简单，当然会存在一些问题。
+
+​		Redis只能保证事务的每个命令连续执行，但是如果事务中的**一个命令失败了**，**并不回滚其他命令**，下面举例看错误处理；
+
+1. **如果是某个命令执行错误（使用方式错了），那么其它的命令仍然会正常执行，然后在执行后返回错误信息；**
+
+   <img src="imgs\16464405071501.png" style="zoom:40%;" />  
+
+   
+
+2. **如果任何一个命令的语法有错，redis会直接返回错误，所有的命令都不会执行**
+
+   <img src="imgs\16464405071512.png" style="zoom:40%;" /> 
+
+`注意`: **Redis不提供事务回滚的功能，开发者必须在事务执行出错后，<u>自行恢复数据库状态</u>；**
+
+### 11.4 Redis事务扩展 - 乐观锁
+
+​		Redis使用`watch`来提供乐观锁定；
+
+​		当`exec`被**调用后**，**所有的之前被监视的键**会被**取消监视**，不管事务是否被取消或执行。并且当客户端**连接丢失**的时候，所有键都会被取消监视。
+
+#### 11.4.1 乐观锁介绍
+
+​		乐观锁大多是基于**数据版本（version）**的**记录机制**实现的。
+
+​		什么是数据版本？
+
+​		**数据版本**就是为数据增加一个<u>版本标识version</u>，更新数据时，<u>对此版本号加 1</u>，当线程A要更新数据值时，在读取数据的同时也会读取version值，在提交更新时，若刚才读取到的version值**大于**当前数据库中的version值时才更新，否则更新失败。
+
+#### 11.4.2 乐观锁举例
+
+​	小明的账户有余额1000；
+
+1. 操作员A将小明的信息读出（此时 version=1），并准备从其帐户余额中扣除100（1000-100）； 剩余900
+2. 在操作员A操作的过程中，操作员B也读入小明的信息（此时 version=1），并准备从其帐户余额中扣除500（1000-500）； 剩余500
+3. A完成了修改工作后，将数据版本号加 1（此时 version=2），帐户扣除后余额为900，提交至数据库更新，此时由于提交数据版本大于数据库记录当前版本（2 > 1），数据被更新，数据库记录 version 更新为 2;
+4. 在A完成更新操作之后，B也完成了操作，她也将版本号加 1（version=2）并试图向数据库提交数据（此时小明的余额为500），但比对数据库记录版本时发现，B提交的数据版本号为 2，数据库记录当前版本也为 2，不满足**提交版本必须大于记录当前版本才能执行更新**的<u>乐观锁策略</u>，因此，B的提交被驳回；
+
+#### 11.4.3 Redis的乐观锁测试
+
+1. 设置balance为1000，并使用watch监控balance
+
+   <img src="imgs\16464405071516.png" style="zoom: 50%;" /> 
+
+   
+
+2. 第一个客户端开启事务，并将balance修改为900，但是没有执行事务
+
+   <img src="imgs\16464405071514.png" style="zoom: 50%;" /> 
+
+   
+
+3. 第二个客户端直接把balance修改为500
+
+   <img src="imgs\16464405071513.png" style="zoom: 50%;" /> 
+
+   
+
+4. 第一个客户端再次执行exec，结果没有修改成功
+
+   <img src="imgs\16464405071515.png" style="zoom: 50%;" /> 
+
+
+
+--------
+
+
+
+# day18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

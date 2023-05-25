@@ -1,0 +1,95 @@
+1. 死信出现的原因
+  消息被拒绝
+  消息过期
+  队列达到最大长度
+2. Quartz的核心API (至少五个)
+  job	接口
+  jobDetail	描述任务
+  Trigger	定义任务执行规则
+  scheduler	调度器
+  jobBuilder	创建JObDetail
+  TriggerBuilder	创建Trigger
+  jobExecutionContext	任务执行上下文
+3. 写出AMQP协议中的概念,10个
+ Broker 接收分发消息
+ connection TCP连接
+ channel  在connection内部建立的逻辑连接
+ Exchange 交换机
+ Queue 队列
+ Binding 将交换机和队列连接
+ Message 消息
+ Consumer 消费者
+ Publisher 消息发布者
+ Routing Key 路由规则
+4. MQ中的消费模式(两种)
+ 轮询分发: 一个消费者消费一条
+ 公平分发: 根据消费能力分发,处理快的处理的多,处理的慢的处理的少
+5. 5个常有starter依赖
+ spring-boot-starter-web  /jdbc  /tomcat  /amqp  /mail
+ spring-plus-boot-starter
+ mybaits-spring-boot-starter
+6. 你怎么理解SpringBoot的?
+ 是Spring团队在2014年推出的全新框架(不是新的MVC框架)
+ 目的是简化Spring项目的开发过程,
+ 简化Spring配置流程,使用少量代码快速创建Spring应用程序
+a: 可以创建独立的Spring应用程序
+b: 内置了Tomcat,Jetty,等Servlet容器
+c: 可以自动配置Spring和第三方框架
+d: 提供了生产级别的功能: 监控,健康检查,外部化配置
+e: 不需要配置xml配置
+7. 分别写出Spring Boot加载API,文件存放位置,文件内容格式?
+ SpringfactoriesLoader
+ classpath:META-INF/spring.factories
+8. Spring Boot 中存放静态资源的位置分别是?
+ classpath:/META-INF/resources/webjars
+ classpath:/MEAT-INF/resources/
+ classpath:/resources/
+ classpath:/static/
+ classpath:/public/
+9. MQ消息传递的模型的核心是什么?交换机类型有哪些?
+ 生产者从不向队列发任何消息
+ fanout,  direct,  topic,  header
+10.写出hello.jar,运行Redis,运行RabbitMQ,修改a.sh文件用户和用户组为etoak,并赋予etoak用户执行a.sh的权限的命令
+ java -jar hello.jar
+ redis-server reids.conf
+ systemctl start rabbitmq-server
+ chown etoak:etoak a.sh
+ chmod u+x a.sh
+11. 写出Redis的持久化策略,及配置文件的名称
+ RDB  dump.rdb
+ AOF appendonly.aof
+12. 写出Redis常用的数据类型?
+ string   hash   list   set  zset  
+13. 什么是消息中间件
+ 中间件是一种独立的系统软件服务程序,位于服务器的操作系统之上,管理着计算资源和网络通信,分布式应用系统可以借助这种软件在不同的技术之间共享资源
+消息中间件:  支持在分布式系统之间发送和接收消息的软件
+14. 消息中间件的使用场景
+ 应用解耦
+ 异步通信
+ 流量削峰
+ 日志处理
+15. 什么是消息确认
+为了确保消息不会丢失，RabbitMQ 支持 消息确认，消费者发回确认消息，
+告诉 RabbitMQ 特定消息已被接收、处理，并且 RabbitMQ可以自由删除它。
+. RabbitMQ提供了两种确认模式
+自动确认
+手动确认
+16 Redis事务的相关命令
+ multi ：开启事务
+ exec ：执行事务
+ discard ：取消事务
+ watch ：监控键值
+ unwatch ：取消监控
+17使用spring-data-redis连接Redis集群
+  单机版本配置
+   RedisStandaloneConfiguration
+   JedisConnectionFactory
+   StringRedisTemplate
+
+ 集群版本配置
+   `Set<RedisNode>`
+   RedisClusterConfiguration
+   JedisPoolConfig
+   JedisConnectionFact
+
+18.队列
