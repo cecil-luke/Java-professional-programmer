@@ -26,7 +26,7 @@
  公平分发: 根据消费能力分发,处理快的处理的多,处理的慢的处理的少
 5. 5个常有starter依赖
  spring-boot-starter-web  /jdbc  /tomcat  /amqp  /mail
- spring-plus-boot-starter
+ mybatis-plus-boot-starter
  mybaits-spring-boot-starter
 6. 你怎么理解SpringBoot的?
  是Spring团队在2014年推出的全新框架(不是新的MVC框架)
@@ -93,3 +93,7 @@ e: 不需要配置xml配置
    JedisConnectionFact
 
 18.队列
+
+=============================
+
+

@@ -8072,17 +8072,791 @@ public class EmailService {
 
 
 
-# day18
+# day18(上午Redis、下午Dubbo)
+
+## 上午内容：
+
+## 1. Redis集群模式
+
+​	Redis集群模式：`主从模式`、`哨兵模式`、`分片集群模式`
+
+### 1.1 Redis的主从模式
+
+​		Redis的**主从模式**，使用**异步复制**，<u>从节点</u>异步从<u>主节点</u>复制数据，**主节点**提供<u>读写服务</u>，**从节点**只提供<u>读服务</u>（这个是默认配置，可以通过修改配置文件`replica-read-only`控制）。
+
+   主节点可以有多个从节点。
+
+​	**配置**一个从节点只需要在<u>redis.conf文件</u>中指定：
+
+​	`replicaof master-ip master-port`
+
+#### 1.1.1 主从复制配置
+
+​	一主一从、一主多从、一主一从一从...
+
+#### 1.1.2 主从复制基本过程
+
+1. **Slave**启动时，向Master发送**SYNC命令**，以实现<u>全量复制</u>。 
+2. **Mater(主库)**接到SYN请求，会在后台**保存快照**（也就是进行**RDB持久化**），`并将快照期间接收到命令缓存起来`。
+3. 快照完成后，Master(主库)会将<u>快照文件和所有的缓存的命令</u>发送给Slave(从库)。 
+4. Slave(从库)接收后，会<u>载入</u>快照文件并执行缓存的命令，从而完成<u>复制的初始化</u>。 
+5. <u>在数据库使用阶段</u>，Master(主库)会**自动**把每次收到的**写命令**<u>同步</u>到从服务器。
+
+#### 1.1.3 主从模式配置
+
+1. **主节点配置**
+
+   ```
+   bind 127.0.0.1      # 注释掉
+   protected-mode no   # 关闭保护模式(将yes改为no)
+   daemonize yes       # 守护进程模式开启（将no改为yes）
+   logfile "/opt/redis/redis.log"
+   ```
+
+2. **从节点配置**
+
+   ```
+   bind 127.0.0.1       # 注释掉
+   protected-mode no    # 关闭保护模式
+   daemonize yes        # 守护进程模式开启
+   replicaof 主节点ip 主节点端口号 # replicaof 192.168.1.128 6379
+   ```
+
+### 1.2 Redis哨兵模式
+
+1. 主从方式有个问题，就是`Master(主库)`挂了之后，**无法重新选举**新的节点作为主节点进行写操作，导致服务不可用。
+
+2. Redis提供了`哨兵工具`来实现监控Redis系统的运行情况，能够实现如下功能：
+
+   > 1、监控主从数据库运行是否正常。
+   >
+   > 2、当主数据库出现故障时，自动将从数据库转换为主数据库。
+
+#### 1.2.1 哨兵配置
+
+- 配置`/opt/redis/sentinel.conf文件`
+
+  ```
+  daemonize yes     # 改为yes
+  logfile  /opt/redis/sentinel.log
+  sentinel monitor mymaster 192.168.85.128 6379 1
+  sentinel down-after-milliseconds mymaster 5000   # 改为5s，默认30s
+  ```
+
+- **启动哨兵**：`redis-sentinel /opt/redis/sentinel.conf`
+
+- **进入哨兵**：`redis-cli -h 192.168.1.128 -p 26379`
+
+- **查看哨兵信息**：`redis-cli -h 192.168.1.128 -p 26379 info Sentinel`
+
+### 1.3. Redis分片集群
+
+目前比较流行的**Redis集群方案**
+
+|       系统        |    贡献者     | 编程语言 |
+| :---------------: | :-----------: | :------: |
+|     Twemproxy     |    Twitter    |    C     |
+| **Redis Cluster** | **Redis官方** |  **C**   |
+|       Codis       |    豌豆荚     |  Go、C   |
+
+- **Redis集群**是一个提供在<u>多个Redis节点间</u>共享数据的<u>程序集</u>。
+- Redis集群并`不支持处理多个key的命令(比如mset、mget、sdiff、sinter、sunion等)`，因为这需要在不同的节点间<u>移动数据</u>，从而达不到像Redis那样的性能，在高负载的情况下可能会导致不可预料的错误。
+- Redis集群通过**分区**来提供一定程度的可用性，在实际环境中当某个节点<u>宕机</u>或者<u>不可达</u>的情况下继续处理命令。
+
+#### 1.3.1 Redis 集群的优势 
+
+- 自动分割数据到不同的节点上。
+- 整个集群的<u>部分节点失败</u>或者<u>不可达</u>的情况下能够继续处理命令。
+
+### 1.3.2 Redis 集群的数据分片
+
+​	Redis集群引入了**哈希槽**的概念。 
+
+​	Redis 集群有`16384个哈希槽` (2^14)，每个key通过`CRC16校验`后对16384**取模**来决定放置哪个槽。集群的每个节点负责一部分hash槽。
+
+>  举个例子：比如当前集群有3个主节点，那么：
+>
+>  节点 A 包含 0 到 5500号哈希槽。
+>
+>  节点 B 包含5501 到 11000 号哈希槽。
+>
+>  节点 C 包含11001 到 16383号哈希槽。 
+
+​	**这种结构很容易添加或者删除节点**：比如我们想新添加个节点D, 我们需要将节点 A、B、 C中的部分槽移动到D上。如果我想移除节点A，需要将A中的槽移到B和C节点上。然后将<u>没有任何槽的A节点从集群中移除</u>即可。由于从一个节点将哈希槽**移动**到另一个节点并不会停止服务，所以无论**添加删除**或者**改变**某个节点的哈希槽的数量都不会造成集群**不可用**的状态。
+
+#### 1.3.3 Redis集群安装
+
+​	**安装节点数：**必须有3个或3个以上的主节点，所以，采用3主3从方式安装；
+
+​	**安装方式：**在一台机器上安装6个节点（3主3从）
+
+​	**安装步骤：**
+
+1. 在/opt目录下创建`cluster`目录
+
+2. 在/opt/cluster下创建6个目录，分别是6001....6006
+
+3. 拷贝一个新的redis.conf文件到/opt/cluster/6001目录下
+
+4. 修改redis.conf
+
+   ```
+   1. bind 本机的ip地址    # 绑定ip（69行）
+   2. protected-mode no  # 关闭保护模式（88行）
+   3. port 600*          # 端口号为6001 - 6006（92行）
+   4. daemoinze yes      # 开启守护进程模式（136行）
+   5. pidfile "/var/run/redis_600*.pid"  (158行)
+   6. logfile /opt/cluster/600*/redis.log  (171行)
+   7. dir /opt/cluster/600*  # 持久化文件的默认保存位置、集群配置文件(263行)
+   8. cluster-enabled yes   # 启动集群模式（去掉注释 838行）
+   9. cluster-config-file nodes-600*.conf # 集群自动生成的文件，自动写到dir目录
+   ```
+
+5. 按顺序启动每一个节点
+
+   ```
+   redis-server /opt/cluster/6001/redis.conf
+   redis-server /opt/cluster/6002/redis.conf
+   redis-server /opt/cluster/6003/redis.conf
+   redis-server /opt/cluster/6004/redis.conf
+   redis-server /opt/cluster/6005/redis.conf
+   redis-server /opt/cluster/6006/redis.conf
+   ```
+
+   
+
+6. 使用`redis-cli`命令创**建集群**（只需要执行一次）
+
+   `redis-cli --cluster create 192.168.136.129:6001 192.168.136.129:6002 192.168.136.129:6003 192.168.136.129:6004 192.168.136.129:6005 192.168.136.129:6006 --cluster-replicas 1`
+
+   **注意**：这个创建集群的命令只需要执行一次，下次启动时，只需要执行`第五步`的命令即可
+
+7. 登录集群
+
+   `redis-cli -c -h 192.168.85.128 -p 6001` 
+
+   > `-c`: 以集群的方式连接redis 
+   >
+   > `-h`: 连接的主机（host） 
+   >
+   > `-p`: 端口号（port）
+
+    计算key的hash槽的槽号：`cluster keyslot key的名称`
+
+## 2. 使用spring-data-redis连接Redis集群
+
+1. 单机版配置
+
+   RedisStandaloneConfiguration => ip和port
+
+   JedisConnectionFactory
+
+   StringRedisTemplate
+
+2. 集群版本配置
+
+   `Set<RedisNode>`
+
+   RedisClusterConfiguration
+
+   JedisPoolConfig
+
+   JedisConnectionFactory
+
+   StringRedisTemplate
+
+## 3. 使用ZSET开发排行榜接口
+
+### 3.1 添加英雄接口
+
+1. 接口地址：http://localhost:8080/hero/{name}
+
+2. 请求方法：`POST、GET`
+
+3. 请求参数：name
+
+4. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": ""
+   }
+   ```
+
+### 3.2 查询所有英雄的排行、或者是TOP3
+
+1. 接口地址：http://localhost:8080/hero/index?start=0&end=2
+
+2. 请求方法：`get`
+
+3. 请求参数
+
+   start：起始下标，非必填，默认0
+
+   end：结束下标，非必填，默认-1
+
+4. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": [
+       {
+         "name": "吕布",
+         "power": 900
+       },
+        {
+         "name": "赵云",
+         "power": 800
+       }
+     ]
+   }
+   ```
+
+### 3.3 查询武力值在500 - 1000之间的英雄排行
+
+1. 接口地址：http://localhost:8080/hero/power?min=500&max=1000
+
+2. 请求方法：`get`
+
+3. 请求参数
+
+   min：最小武力值，非必填，默认500
+
+   max：最大武力值，非必填，默认1000
+
+4. 响应结果
+
+   ```json
+   {
+     "code": 200,
+     "msg": "success",
+     "data": [
+       {
+         "name": "吕布",
+         "power": 900
+       },
+        {
+         "name": "赵云",
+         "power": 800
+       }
+     ]
+   }
+   ```
+
+   
+
+---
+
+## 下午内容：
+
+# Dubbo课程
+
+1. Dubbo发展背景
+
+2. Dubbo概述
+3. RPC
+4. Zookeeper、Dubbo控制台的安装
+5. Dubbo入门例子
+6. Dubbo详细讲解
+7. Dubbo整合Spring
+8. Dubbo整合Spring Boot
+
+****
+
+​	Dubbo发音：`|ˈdʌbəʊ|`
+
+​	Dubbo官方网站：`http://dubbo.apache.org`
+
+​	Dubbo是阿里巴巴开发的，已经贡献给Apache，并且成为Apache顶级开源项目
+
+<img src="imgs\0.dubbo称为Apache顶级开源项目-16850993555171.png" alt="0.dubbo称为Apache顶级开源项目" style="zoom:30%; margin-left: 60px" />   
+
+## 1. Dubbo
+
+### 1.1 Dubbo是什么
+
+**第一版网站首页介绍：**
+
+​        Apache Dubbo™ 是一款高性能**`Java RPC框架`**。
+
+​        Apache Dubbo |ˈdʌbəʊ| 是一款高性能、轻量级的开源Java RPC框架，它提供了三大核心能力：`面向接口的远程方法调用`，`智能容错和负载均衡`，以及`服务自动注册和发现`。
+
+**第二版网站首页介绍：**
+
+​		Apache Dubbo 是一款高性能、轻量级的开源**`服务框架`**。
+
+​		Apache Dubbo |ˈdʌbəʊ| 提供了六大核心能力：**面向接口代理的高性能RPC调用，智能容错和负载均衡，服务自动注册和发现，高度可扩展能力，运行期流量调度，可视化的服务治理与运维**。
+
+**第三版网站首页介绍：**
+
+​		Apache Dubbo 是**`一款微服务框架`**，为大规模微服务实践提供高性能 **RPC 通信、流量治理、可观测性**等解决方案，涵盖 Java、Golang 等多种语言 SDK 实现。
+
+**第四版网站首页介绍：**
+
+​		Apache Dubbo 是一款**易用、高性能的 WEB 和 RPC 框架**，同时为构建企业级微服务提供**服务发现、流量治理、可观测、认证鉴权等能力、工具与最佳实践**。
+
+### 1.2 Dubbo作者
+
+<img src="imgs\4.Dubbo的作者-16850993555192.png" alt="4.Dubbo的作者" style="zoom:100%; margin-left: 200px" /> 
+
+<center>从左至右：刘超，梁飞，闾刚，陈雷，刘昊旻，李鼎</center>
+
+### 1.3 Dubbo的发展历程
+
+   2008年阿里内部开始使用；
+​   2009年初，发布1.0版本；
+​   2010年初，发布2.0版本；
+​   2011年10月27日，阿里将Dubbo开源，版本号为2.0.7；
+​   2012年3月，发布2.1.0版本；
+​   **2014年10月，发布2.3.11版本，之后版本停滞；**
+​   2017年9月，阿里重启维护，重点升级了依赖的JDK版本，发布2.5.4/2.5.5版本；
+​   2017年10月，发布2.5.6版本；
+​   2017年11月，发布2.5.7版本，后期集成了Spring Boot；
+​   **2014年10月的时候，当当网Fork了Dubbo源代码，在此基础上增加了REST协议，发布版本号2.8.0，命名为`DubboX`;  ​**    
+
+​	网易考拉在Dubbo基础上开发了DubboK；
+
+## 2. Dubbo的发展背景
+
+​        随着互联网的发展，网站应用的规模不断扩大，常规的垂直应用架构已无法应对，分布式服务架构以及流动计算架构势在必行，亟需一个治理系统确保架构有条不紊的演进。
+
+![1.系统发展图](imgs\1.系统发展图-16850993555193.jpg)
+
+### 2.1 单一应用架构
+
+​         当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本。此时，用于简化增删改查工作量的**数据访问框架(ORM)**是关键。
+
+1. 优点
+   - 架构简单，易于开发、部署、测试。
+   - 对于小型项目来说，所有模块一起部署，维护方便。
+2. 缺点
+   - 对于大型项目来说，所有模块耦合在一起，不容易开发和维护。
+   - 无法针对某个具体模块来提升性能。
+
+### 2.2 垂直应用架构
+
+​        当访问量逐渐增大，单一应用增加机器带来的加速度越来越小，提升效率的方法之一是将应用**拆成**`互不相干的几个应用`，以提升效率。
+
+​		电商交易系统、用户系统、权限系统、商品系统、订单系统、物流系统、支付系统....
+
+​		**特点**：<u>系统独立部署</u>，可以针对不同模块进行优化，方便水平扩展；
+
+​		**问题**：系统之间无法做到完全独立，公共模块无法复用，系统之间通信比较麻烦；
+
+### 2.3 分布式服务架构
+
+​        当垂直应用越来越多，应用之间交互不可避免，这时将核心业务抽取出来，`作为独立的服务`，逐渐形成稳定的服务中心，使前端应用能更快速的响应多变的市场需求。
+
+​       此时，用于提高业务复用及整合的**分布式服务框架（RPC）**是关键。
+
+  **分布式架构的难点**：
+
+1. 各个系统如何进行远程调用
+2. 如何进行业务拆分
+
+### 2.4 流动计算架构
+
+​        当服务越来越多，容量的评估，小服务资源的浪费等问题逐渐显现，此时需增加一个**调度中心**基于<u>访问压力实时管理集群容量</u>，提高集群利用率。此时，用于提高机器利用率的**资源调度和治理中心**（**SOA** - Service Oriented Architecture）是关键。
+
+### 2.5 微服务架构
+
+​		微服务是一种架构风格，**是一种提倡将大型应用程序开发为小服务集合的架构方式**，每个服务都是围绕着各自的业务能力进行构建，拥有独立的进程，服务之间可以通过轻量级的通信机制（如HTTP方式）进行通信，只有一个较小的中心化管理，并可以进行自动化部署、可以使用不同的语言和数据存储机制来实现，微服务可以在不影响客户使用的情况下对应用程序<u>进行频繁更新</u>。
+
+## 3. RPC
+
+​        RPC（Remote Procedure Call）- 远程过程调用，它是一种通过网络从**远程计算机**的程序上请求服务，而不需要了解底层的网络技术协议。RPC协议假定某些传输协议的存在，如TCP/IP或UDP，为通信程序之间携带信息数据。
+
+​        通俗的说，RPC可以让我们像调用本地方法一样调用远程计算机提供的服务；
+
+### 3.1 RPC的简单原理
+
+<img src="imgs\3.RPC原理图-16850993555194.png" alt="3.RPC原理图" style="zoom:60%;" /> 
+
+1. **客户端以本地调用的方式调用远程服务**
+2. client stub接收到调用后，将**方法名、参数、参数类型**等组装成能够进行网络传输的消息；
+3. client stub查找服务地址，找到之后，将消息发送到服务端；
+4. server stub收到消息之后，对收到的消息进行解码；
+5. server stub根据解码结果，使用**反射的方式**调用本地服务；
+6. 服务端执行完成之后将结果返回给Server stub；
+7. server stub将<u>返回结果</u>打包成消息并发送给客户端；
+8. client stub收到消息后，对结果进行解码；
+
+## 4. Dubbo架构
+
+1. **架构中的角色**
+
+   Provider：服务提供者
+
+   Consumer：服务消费者
+
+   Registry：服务注册和发现的中心
+
+   Monitor：监控中心，用于统计服务调用情况
+
+   Container：Dubbo容器
+
+   <img src="imgs\2.Dubbo架构图-16850993555225.png" alt="2.Dubbo架构图" style="zoom:50%;" />  
+
+2. **调用关系**
+
+   0、**容器**负责<u>启动、加载、运行</u>服务提供者、消费者；
+
+   1、服务提供者在启动时，向注册中心注册自己提供的服务；
+
+   2、服务消费者在启动时，向注册中心订阅自己需要的服务；
+
+   3、注册中心返回服务提供者的地址列表给消费者；
+
+   ​	  如果有服务变更(服务的上线或下线)，注册中心会基于**长连接的方式**推送变更给消费者；
+
+   4、服务消费者从地址列表中，基于`软件负载均衡算法`，选择一个服务提供者进行调用，如果调用失败，可以重试其它提供者；
+
+   5、服务消费者和提供者，在内存中累计调用时间和调用次数，每分钟向监控中心发送一次统计数据；
+
+## 4. 安装单机Zookeeper
+
+### 4.1 Windows版本
+
+1. 解压zookeeper-3.4.12.zip到当前目录
+
+2. 在zookeeper-3.4.12目录下创建`data`目录
+
+   <img src="imgs\image-20211007170713742-16466136470911-16850993555239.png" alt="image-20211007170713742" style="zoom:60%;" /> 
+
+   
+
+3. 将`zookeeper-3.4.12/conf`目录下的`zoo_sample.cfg`文件重命名为`zoo.cfg`
+
+   <img src="imgs\image-20211007170754187-16466136470912-16850993555226.png" alt="image-20211007170754187" style="zoom:60%;" /> 
+
+   
+
+4. 修改`zoo.cfg`文件中的`dataDir`选项
+
+   <img src="imgs\image-20211007170906783-16466136470913-16850993555227.png" alt="image-20211007170906783" style="zoom:50%;" /> 
+
+   
+
+5. 启动Zookeeper服务端
+
+   双击`zookeeper-3.4.12/bin/zkServer.cmd`
+
+   Linux、Mac OS：`./zkServer.sh start`
+
+   
+
+6. 启动Zookeeper的客户端
+
+   双击`zookeeper-3.4.12/bin/zkCli.cmd`
+
+   
+
+7. **注意**：zookeeper的端口号默认是**2181**
+
+### 4.2 Linux版本
+
+1. 将zookeeper-3.4.12.tar.gz上传到centos的/opt目录下
+
+2. 解压zookeeper-3.4.12.tar.gz到当前文件夹下(即/opt)
+
+   `tar -zxf zookeeper-3.4.12.tar.gz -C /opt`
+
+3. 进入zookeeper-3.4.12，创建一个data目录
+
+   ```bash
+   cd zookeeper-3.4.12
+   mkdir data
+   ```
+
+4. 进入zookeeper-3.4.12/conf目录，将zoo_sample.cfg修改zoo.cfg
+
+   ```bash
+   cd conf
+   mv zoo_sample.cfg zoo.cfg
+   ```
+
+5. 编辑zoo.cfg文件
+
+   ```bash
+   # 将dataDir修改为../data
+   dataDir=../data
+   ```
+
+6. 启动ZK server
+
+   ```bash
+   cd bin
+   ./zkServer.sh start
+   ```
+
+7. 启动ZK客户端
+
+   ```bash
+   ./zkCli.sh
+   ```
+
+## 5. Dubbo控制台安装
+
+1. Dubbo控制台**主要用于服务治理**，可以设置负载均衡策略、权重调节、服务降级策略、访问控制等
+2. 可以通过控制台查看所有服务（提供者、消费者）
+3. 在dubbo-admin.jar所在目录执行 `java -jar dubbo-admin.jar [-Dserver.port=9090] `即可
+4. Dubbo控制台默认访问地址：`http://localhost:7001`
+5. Dubbo<u>默认</u>的用户名/密码：root/root
+
+## 6. 搭建Dubbo工程 - Hello World
+
+​		[快速开始](https://cn.dubbo.apache.org/zh/docsv2.7/user/quick-start/)
+
+1. dubbo-hello                   父工程
+2. dubbo-interface             服务接口工程：HelloService
+3. hello-provider                HelloService服务提供者（实现服务接口）
+4. hello-consumer             HelloService服务消费者
+
+## 7. Dubbo详解
+
+### 7.1 Dubbo的注册中心有哪些
+
+1. Multicast注册中心
+
+   Multicast注册中心不需要启动任何中心节点，只要广播地址一样，就可以互相发现。
+
+2. **Zookeeper注册中心**
+
+   [Zookeeper](http://zookeeper.apache.org/) 是 Apache Hadoop 的子项目，是一个树型的目录服务，`支持变更推送`，适合作为 Dubbo 服务的注册中心，工业强度较高，可用于生产环境，并推荐使用。
+
+3. Redis注册中心
+
+4. Simple注册中心（开发者自己开发Dubbo服务）
+
+5. **Nacos注册中心**
+
+### 7.2 Dubbo支持的协议
+
+​		`dubbo`、rmi、hessian、http、webservice、`rest`、thrift、memcached、redis、grpc
+
+​		推荐使用 dubbo 协议
+
+### 7.3 Dubbo服务在ZK中的存储结构
+
+<img src="imgs\zookeeper-16850993555228.png" style="zoom:50%; margin-left:60px" />  
+
+### 7.4 启动时检查
+
+​		Dubbo**默认情况下会在启动时检查依赖的服务是否可用**，不可用时会抛出异常，**阻止 Spring 初始化完成**，以便上线时，能及早发现问题，默认 `check="true"`。
+
+#### 7.4.1 关闭单个服务的启动检查 - 消费方的接口配置
+
+​		可以通过<dubbo:reference `check="false"`> 关闭检查，比如，测试时，有些服务不关心，或者出现了循环依赖，必须有一方先启动；
+
+```xml
+<dubbo:reference id="helloService" 
+  interface="com.etoak.service.HelloService" 
+  check="false">
+</dubbo:reference>
+```
+
+#### 7.4.2 关闭所有服务的启动检查 - 消费方的全局配置
+
+```xml
+<dubbo:consumer check="false" />
+```
+
+#### 7.4.3 关闭注册中心的启动检查
+
+```xml
+<dubbo:registry check="false" address="zookeeper://127.0.0.1:2181" />
+```
+
+### 7.5. Dubbo配置加载流程
+
+​		[文档地址](https://dubbo.apache.org/zh/docsv2.7/user/configuration/configuration-load-process/)
+
+​		此篇文档主要讲在**应用启动阶段，Dubbo框架如何将所需要的配置采集起来**（包括应用配置、注册中心配置、服务配置等），以完成服务的暴露和引用流程。
+
+​		Dubbo可以在哪里进行配置，如果在多个配置文件配置相同的配置项，Dubbo启动时会使用哪一个配置项。
+
+#### 7.5.1 配置来源
+
+- JVM System Properties，-D参数
+
+- Externalized Configuration，外部化配置（将配置项配置在应用外部）
+
+- ServiceConfig、ReferenceConfig等编程接口采集的配置、**Spring配置**
+
+- 本地配置文件`dubbo.properties`(写在src/main/resources)，配置在classpath根目录
+
+
+#### 7.5.2 配置加载的优先级
+
+​	`jvm参数 > 外部配置 > Spring配置、编程配置 > dubbo.properties`
+
+### 7.6. 不同粒度配置的覆盖关系 - Spring配置为例
+
+- **方法级优先，接口级次之，全局配置再次之。**
+- **如果级别一样**，则<u>消费方优先，提供方次之。</u>
+
+1. 配置级别
+
+   > 方法级配置：`<dubbo:method />`
+   >
+   > 接口级配置：`<dubbo:service />` 、`<dubbo:reference />`
+   >
+   > 全局级配置：`<dubbo:consumer />` 、`<dubbo:provider />`
+
+<img src="imgs\5.dubbo不同粒度覆盖关系-168509935552310.jpg" alt="不同粒度配置的覆盖关系" style="zoom:70%; margin-left:60px" />
+
+### 7.7. 直连提供者
+
+​		在开发及测试环境下，经常需要**绕过注册中心**，只测试指定服务提供者，这时候需要点对点直连；
+
+​		**点对点直连方式**，以服务接口为单位，忽略注册中心的提供者列表，A 接口配置点对点，不影响 B 接口从注册中心获取列表。
+
+- **消费方直连提供者配置方式**
+
+  ```xml
+    <dubbo:reference id="helloService"
+        url="dubbo://127.0.0.1:20880"
+        interface="com.etoak.service.HelloService">
+    </dubbo:reference>
+  ```
+
+### 7.8. 本地存根
+
+​		提供方有些时候想在客户端也执行部分逻辑，比如：做 ThreadLocal 缓存，提前验证参数，调用失败后伪造容错数据等等。
+
+1. 在接口旁开发一个Stub实现类，类名：`服务名Stub`，例如HelloServiceStub
+
+2. **配置Stub - （两种配置方式）**
+
+   1、**本地存根名称**是`服务名Stub`，例如：`HelloServiceStub`
+
+   ```xml
+   <dubbo:service ref="helloService"
+                  retries="1"
+                  stub="true"
+                  interface="com.etoak.service.HelloService">
+     <dubbo:method name="hello" timeout="2500"  />
+   </dubbo:service>
+   ```
+
+   
+
+   2、本地存根名称不是`服务名Stub`，例如：`HelloServiceXxxx`，<u>stub配置方式</u>必须是`包名+类名`
+
+   ```xml
+   <dubbo:service ref="helloService"
+                  retries="1"
+                  stub="com.etoak.service.HelloServiceXxxx"
+                  interface="com.etoak.service.HelloService">
+     <dubbo:method name="hello" timeout="2500"  />
+   </dubbo:service>
+   ```
+
+### 7.9. 服务分组
+
+​	使用服务分组区分<u>服务接口</u>的不同实现，当一个接口有多种实现时，可以用 **group** 区分。
+
+1. **提供方配置**
+
+   ```xml
+   <!-- 第一个服务实现 -->
+   <dubbo:service ref="helloService" 
+                  group="hello"
+                  interface="com.etoak.service.HelloService">
+   </dubbo:service>
+   <bean id="helloService" class="com.etoak.service.impl.HelloServiceImpl" />
+   
+   <!-- 第二个服务实现 -->
+   <dubbo:service ref="service2" 
+                  group="hello2" 
+                  interface="com.etoak.service.HelloService" />
+   <bean id="service2" class="com.etoak.service.impl.HelloServiceImpl2" />
+   ```
+
+2. **消费方配置**
+
+   ```xml
+   <dubbo:reference id="helloService"
+                    group="hello2"
+                    interface="com.etoak.service.HelloService">
+   </dubbo:reference>
+   ```
+
+### 7.10. 服务多版本 - 服务升级
+
+​		当一个接口实现出现**不兼容**需要升级时，可以用<u>版本号过渡</u>，<u>版本号不同的服务</u>相互间不引用。
+
+​		可以按照以下的步骤进行版本迁移：
+
+1. 在低压力时间段，先升级一半提供者为新版本
+2. 再将所有消费者升级为新版本
+3. 然后将剩下的一半提供者升级为新版本
+
+- **提供方配置**
+
+  ```xml
+  <dubbo:service ref="helloService" version="2.0"
+                 interface="com.etoak.service.HelloService">
+  </dubbo:service>
+  ```
+
+- **消费方配置**
+
+  ```xml
+  <dubbo:reference id="helloService" retries="1"
+                   version="2.0"
+                   interface="com.etoak.service.HelloService">
+  </dubbo:reference>
+  ```
+
+### 7.11. 负载均衡
+
+​	Dubbo 提供了多种均衡策略，默认为 `random` 随机调用。
+
+**1. Random LoadBalance**
+        **随机**，按<u>权重</u>设置随机概率。
+        在一个截面上碰撞的概率高，但调用量越大分布越均匀，而且按概率使用权重后也比较均匀，有利于动态调整提供者权重。
+
+**2. RoundRobin LoadBalance**
+        **轮询**，按`公约后的权重`设置轮询比率。
+        存在慢的提供者累积请求的问题，比如：第二台机器很慢，但没挂，当请求调到第二台时就卡在那，久而久之，所有请求都卡在调到第二台上。
+
+**3. LeastActive LoadBalance**
+        最少活跃调用数，相同活跃数的、随机，`活跃数指调用前后计数差`。
+        使慢的提供者收到更少请求，因为<u>越慢的提供者</u>的调用前后<u>计数差</u>会越大。
+
+**4. ConsistentHash LoadBalance**
+        一致性 Hash，`相同参数的请求总是发到同一提供者`。
+        当某一台提供者宕机时，原本发往该提供者的请求，基于虚拟节点，平摊到其它提供者，不会引起剧烈变动。
+        算法参见：http://en.wikipedia.org/wiki/Consistent_hashing
+        默认只对第一个参数 Hash，如果要修改，请配置 <dubbo:parameter key="hash.arguments" value="0,1" />
+        默认用 160 份虚拟节点，如果要修改，请配置 <dubbo:parameter key="hash.nodes" value="320" />
+
+### 7.12. 服务降级
+
+​		可以通过`服务降级`功能临时屏蔽某个出错的非关键服务，并定义降级后的返回策略。
+
+- `mock=force:return+null` 表示消费方对该服务的方法调用都直接返回 null 值，不发起远程调用。用来屏蔽不重要服务不可用时对调用方的影响。
+
+- 还可以改为 `mock=fail:return+null` 表示消费方对该服务的方法调用失败后，再返回 null 值，不抛异常。用来容忍不重要服务不稳定时对调用方的影响。
+
+  <img src="imgs\image-20230306164308999-168509935552311.png" alt="image-20230306164308999" style="zoom:40%;" />  
 
 
 
 
 
+---
 
 
 
 
 
+# day19()
 
 
 
