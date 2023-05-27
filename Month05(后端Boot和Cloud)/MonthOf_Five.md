@@ -7571,6 +7571,732 @@ public class EmailService {
 
 ---
 
+## 代码补充：
+
+## [rabbitmq-boot]
+
+### pom.xml
+
+```xml
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+
+  <dependencies>
+    <!-- spring-boot-starter-web -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- spring-boot-starter-amqp -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+
+    <!-- hutool-all -->
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-all</artifactId>
+      <version>5.8.0</version>
+    </dependency>
+
+    <!-- lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+```
+
+### application.properties
+
+```properties
+server.port=8080
+
+spring.rabbitmq.host=192.168.136.131
+spring.rabbitmq.port=5672
+spring.rabbitmq.virtual-host=/
+spring.rabbitmq.username=et
+spring.rabbitmq.password=et
+```
+
+### com.etoak.config
+
+### DelayedQueueConfig.java 配置延迟队列
+
+```java
+package com.etoak.config;
+
+import cn.hutool.core.lang.hash.Hash;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.CustomExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 配置延迟队列
+ */
+@Configuration
+public class DelayedQueueConfig {
+
+  public static final String EXCHANGE = "x.delayed";
+
+  public static final String QUEUE = "queue.delayed";
+
+  public static final String KEY = "delay";
+
+  @Bean
+  public CustomExchange delayedExchange() {
+    Map<String, Object> args = new HashMap<>();
+
+    // 使用直接交换机模拟
+    args.put("x-delayed-type", "direct");
+
+    return new CustomExchange(EXCHANGE,
+      "x-delayed-message",
+      true,
+      false, args);
+  }
+
+  @Bean
+  public Queue delayedQueue() {
+    return new Queue(QUEUE);
+  }
+
+  @Bean
+  public Binding delayedBinding(Queue delayedQueue, CustomExchange delayedExchange) {
+    return BindingBuilder.bind(delayedQueue)
+      .to(delayedExchange)
+      .with(KEY).noargs();
+  }
+
+}
+```
+
+### DirectConfig.java 直接交换机
+
+```java
+package com.etoak.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * 路由模式: 直接交换机
+ */
+@Configuration
+public class DirectConfig {
+
+  public static final String EXCHANGE = "color";
+
+  public static final String Q_1 = "Q1";
+
+  public static final String Q_2 = "Q2";
+
+  public static final String ORANGE = "orange";
+
+  public static final String BLACK = "black";
+
+  public static final String GREEN = "green";
+
+  @Bean
+  public DirectExchange colorExchange() {
+    return new DirectExchange(EXCHANGE);
+  }
+
+  @Bean
+  public Queue q1() {
+    return new Queue(Q_1);
+  }
+
+  @Bean
+  public Queue q2() {
+    return new Queue(Q_2);
+  }
+
+  @Bean
+  public Binding orangeBinding(Queue q1, DirectExchange colorExchange) {
+    return BindingBuilder.bind(q1)
+      .to(colorExchange)
+      .with(ORANGE); // routing key
+  }
+
+  @Bean
+  public Binding blackBinding(Queue q2, DirectExchange colorExchange) {
+    return BindingBuilder.bind(q2).to(colorExchange).with(BLACK);
+  }
+
+  @Bean
+  public Binding greenBinding(Queue q2, DirectExchange colorExchange) {
+    return BindingBuilder.bind(q2).to(colorExchange).with(GREEN);
+  }
+
+}
+```
+
+### FanoutConfig.java
+
+```java
+package com.etoak.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Fanout交换机 - 实现发布、订阅模式
+ */
+@Configuration
+public class FanoutConfig {
+
+  public static final String EXCHANGE = "etoak";
+
+  public static final String QUEUE_ET2301 = "et2301";
+
+  public static final String QUEUE_ET2302 = "et2302";
+
+  @Bean
+  public FanoutExchange fanoutExchange() {
+    // channel.exchangeDeclare("etoak", "fanout", true, false, null);
+    return new FanoutExchange(EXCHANGE);
+  }
+
+  @Bean
+  public Queue et2301Queue() {
+    return new Queue(QUEUE_ET2301);
+  }
+
+  @Bean
+  public Queue et2302Queue() {
+    return new Queue(QUEUE_ET2302);
+  }
+
+  @Bean
+  public Binding et2301Binding(FanoutExchange fanoutExchange, Queue et2301Queue) {
+    return BindingBuilder.bind(et2301Queue).to(fanoutExchange);
+  }
+
+  @Bean
+  public Binding et2302Binding(FanoutExchange fanoutExchange, Queue et2302Queue) {
+    return BindingBuilder.bind(et2302Queue).to(fanoutExchange);
+  }
+
+}
+```
+
+### TopicConfig.java
+
+```java
+package com.etoak.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class TopicConfig {
+
+  public static final String EXCHANGE = "et.topic";
+
+  public static final String Q_3 = "Q3";
+
+  public static final String Q_4 = "Q4";
+
+  /**
+   * 一个*表示精准匹配一个词
+   */
+  public static final String ORANGE = "*.orange.*";
+
+  public static final String RABBIT = "*.*.rabbit";
+
+  public static final String LAZY = "lazy.#";
+
+  @Bean
+  public TopicExchange topicExchange() {
+    return new TopicExchange(EXCHANGE);
+  }
+
+  @Bean
+  public Queue q3() {
+    return new Queue(Q_3);
+  }
+
+  @Bean
+  public Queue q4() {
+    return new Queue(Q_4);
+  }
+
+  @Bean
+  public Binding topicOrangeBinding(Queue q3, TopicExchange topicExchange) {
+    return BindingBuilder.bind(q3)
+      .to(topicExchange)
+      .with(ORANGE);
+  }
+
+  @Bean
+  public Binding rabbitBinding(Queue q4, TopicExchange topicExchange) {
+    return BindingBuilder.bind(q4).to(topicExchange).with(RABBIT);
+  }
+
+  @Bean
+  public Binding lazyBinding(Queue q4, TopicExchange topicExchange) {
+    return BindingBuilder.bind(q4).to(topicExchange).with(LAZY);
+  }
+}
+```
+
+### com.etoak.consumer
+
+### ConsumerService.java
+
+```java
+package com.etoak.consumer;
+
+import cn.hutool.core.date.DateUtil;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ConsumerService {
+
+  // @RabbitListener(queues = "queue.delayed")
+  public void consume(Message message) {
+    System.out.println("queue.delayed=>" + new String(message.getBody()) + "-" + DateUtil.now());
+  }
+
+  @RabbitListener(queues = "et2302")
+  public void consumeET2302(String msg) {
+    System.out.println("et2302=>" + msg);
+  }
+
+}
+```
+
+### com.etoak.controller
+
+### DelayedController.java
+
+```java
+package com.etoak.controller;
+
+import cn.hutool.core.date.DateUtil;
+import com.etoak.config.DelayedQueueConfig;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/delay")
+public class DelayedController {
+
+  @Autowired
+  RabbitTemplate rabbitTemplate;
+
+  @RequestMapping("/send")
+  public String send(int second,
+                     @RequestParam String msg) {
+    rabbitTemplate.convertAndSend(DelayedQueueConfig.EXCHANGE,
+      DelayedQueueConfig.KEY,
+      msg,
+      message -> {
+        // 设置延迟时间, 单位ms
+        message.getMessageProperties().setDelay(second * 1000);
+        return message;
+      });
+
+    System.out.println(msg + "-发送时间-" + DateUtil.now());
+
+    return "success";
+  }
+
+}
+```
+
+### DirectController.java
+
+```java
+package com.etoak.controller;
+
+import com.etoak.config.DirectConfig;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/direct")
+public class DirectController {
+
+  @Autowired
+  RabbitTemplate rabbitTemplate;
+
+  @RequestMapping("/send")
+  public String send(@RequestParam String key, @RequestParam String msg) {
+    rabbitTemplate.convertAndSend(DirectConfig.EXCHANGE, key, msg);
+    return "success";
+  }
+
+}
+```
+
+### FanoutController.java
+
+```java
+package com.etoak.controller;
+
+import com.etoak.config.FanoutConfig;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/fanout")
+public class FanoutController {
+
+  @Autowired
+  RabbitTemplate rabbitTemplate;
+
+  @RequestMapping("/send")
+  public String send(@RequestParam String msg) {
+    rabbitTemplate.convertAndSend(FanoutConfig.EXCHANGE, "", msg);
+    return "success";
+  }
+
+}
+```
+
+### TopicController.java
+
+```java
+package com.etoak.controller;
+
+import com.etoak.config.TopicConfig;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/topic")
+public class TopicController {
+
+  @Autowired
+  RabbitTemplate rabbitTemplate;
+
+  @RequestMapping("/send")
+  public String send() {
+    // key=an.orange.rabbit 匹配 *.orange.* 和 *.*.rabbit
+    rabbitTemplate.convertAndSend(TopicConfig.EXCHANGE, "an.orange.rabbit", "橙色的兔子！");
+
+    // key=big.white.rabbit 匹配 *.*.rabbit
+    rabbitTemplate.convertAndSend(TopicConfig.EXCHANGE, "big.white.rabbit", "大白兔！");
+
+    // lazy.orange.bear
+    rabbitTemplate.convertAndSend(TopicConfig.EXCHANGE, "lazy.orange.bear", "懒熊！");
+
+    return "success";
+  }
+
+}
+```
+
+### RabbitApplication.java
+
+```java
+package com.etoak;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class RabbitApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(RabbitApplication.class, args);
+  }
+}
+```
+
+## [rabbitmq-dead-letter] 死信队列
+
+### pom.xml
+
+```xml
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-all</artifactId>
+      <version>5.8.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+```
+
+### application.yml
+
+```yaml
+server:
+  port: 8080
+
+spring:
+  rabbitmq:
+    host: 192.168.136.131
+    port: 5672
+    virtual-host: /
+    username: et
+    password: et
+    listener:
+      simple:
+        # 手动签收消息
+        acknowledge-mode: manual
+```
+
+### com.etoak.config
+
+### DeadLetterConfig.java
+
+```java
+package com.etoak.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+public class DeadLetterConfig {
+
+  public static final String NORMAL_EXCHANGE = "x.normal";
+
+  public static final String NORMAL_QUEUE = "queue.normal";
+
+  public static final String NORMAL_KEY = "normal";
+
+  public static final String DEAD_EXCHANGE = "x.dead";
+
+  public static final String DEAD_QUEUE = "queue.dead";
+
+  public static final String DEAD_KEY = "dead";
+
+  @Bean
+  public DirectExchange normalExchange() {
+    return new DirectExchange(NORMAL_EXCHANGE);
+  }
+
+  @Bean
+  public Queue normalQueue() {
+    // 队列参数
+    Map<String, Object> args = new HashMap<>();
+
+    // 配置死信交换机
+    args.put("x-dead-letter-exchange", DEAD_EXCHANGE);
+
+    // 配置死信routing key
+    args.put("x-dead-letter-routing-key", DEAD_KEY);
+
+    // 队列上消息的过期时间  单位ms
+    // args.put("x-message-ttl", 10000);
+
+    // 设置队列长度  最多容纳两个消息
+    // args.put("x-max-length", 2);
+
+    // channel.queueDeclare("hello", true, false, false, null);
+    return new Queue(NORMAL_QUEUE,
+      true,
+      false,
+      false, args);
+  }
+
+  @Bean
+  public Binding normalBinding(Queue normalQueue, DirectExchange normalExchange) {
+    return BindingBuilder.bind(normalQueue)
+      .to(normalExchange)
+      .with(NORMAL_KEY);
+  }
+
+  @Bean
+  public DirectExchange deadExchange() {
+    return new DirectExchange(DEAD_EXCHANGE);
+  }
+
+  @Bean
+  public Queue deadQueue() {
+    return new Queue(DEAD_QUEUE);
+  }
+
+  @Bean
+  public Binding deadBinding(Queue deadQueue, DirectExchange deadExchange) {
+    return BindingBuilder.bind(deadQueue)
+      .to(deadExchange)
+      .with(DEAD_KEY);
+  }
+
+}
+```
+
+### com.etoak.consumer
+
+### ConsumerService.java
+
+```java
+package com.etoak.consumer;
+
+import cn.hutool.core.date.DateUtil;
+import com.rabbitmq.client.Channel;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+
+@Service
+public class ConsumerService {
+
+  @RabbitListener(queues = "queue.dead")
+  public void consumeDead(Channel channel, Message message) throws IOException {
+    String msg = new String(message.getBody());
+    System.out.println(msg + "=" + DateUtil.now());
+
+    channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+  }
+
+
+  // @RabbitListener(queues = "queue.normal")
+  public void consume(Channel channel, Message message) throws IOException {
+    String msg = new String(message.getBody());
+    System.out.println("普通队列->" + msg);
+
+    long deliveryTag = message.getMessageProperties().getDeliveryTag();
+    System.out.println("deliveryTag=" + deliveryTag);
+    if (deliveryTag % 2 == 0) {
+      // 拒绝消息
+      channel.basicReject(deliveryTag, false);
+    } else {
+      // 确认消息
+      channel.basicAck(deliveryTag, false);
+    }
+  }
+
+}
+```
+
+### com.etoak.controller
+
+### TestController.java
+
+```java
+package com.etoak.controller;
+
+import cn.hutool.core.date.DateUtil;
+import com.etoak.config.DeadLetterConfig;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class TestController {
+
+  @Autowired
+  RabbitTemplate rabbitTemplate;
+
+  @RequestMapping("/send")
+  public String send(@RequestParam String msg) {
+    rabbitTemplate.convertAndSend(DeadLetterConfig.NORMAL_EXCHANGE,
+      DeadLetterConfig.NORMAL_KEY,
+      msg);
+    return "success";
+  }
+
+  @RequestMapping("/send/{second}/{msg}")
+  public String send(@PathVariable int second, @PathVariable String msg) {
+    rabbitTemplate.convertAndSend(DeadLetterConfig.NORMAL_EXCHANGE,
+      DeadLetterConfig.NORMAL_KEY,
+      msg,
+      message -> {
+        String expire = String.valueOf(second * 1000);
+        message.getMessageProperties().setExpiration(expire);
+        return message;
+      });
+    System.out.println(msg + "-发送时间-" + DateUtil.now());
+    return "success";
+  }
+
+}
+```
+
+### RabbitApplication.java
+
+```java
+package com.etoak;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class RabbitApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(RabbitApplication.class, args);
+  }
+}
+```
+
 
 
 ---
@@ -8351,6 +9077,623 @@ public class EmailService {
 
 ---
 
+## 代码补充：
+
+## [redis-boot]_redis集群(点赞+英雄排行)
+
+### pom.xml
+
+```xml
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- spring-boot-starter-data-redis -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+```
+
+### application.properties
+
+```propert
+server.port=8080
+
+# 单机版本配置
+# spring.redis.host=192.168.136.131
+# spring.redis.port=6379
+spring.redis.cluster.nodes[0]=192.168.136.129:6001
+spring.redis.cluster.nodes[1]=192.168.136.129:6002
+spring.redis.cluster.nodes[2]=192.168.136.129:6003
+spring.redis.cluster.nodes[3]=192.168.136.129:6004
+spring.redis.cluster.nodes[4]=192.168.136.129:6005
+spring.redis.cluster.nodes[5]=192.168.136.129:6006
+spring.redis.lettuce.pool.max-active=50
+
+# spring:
+#   redis:
+#     cluster:
+#       nodes:
+#         - 192.168.136.129:6001
+#         - 192.168.136.129:6002
+#         - 192.168.136.129:6003
+#         - 192.168.136.129:6004
+#         - 192.168.136.129:6005
+#         - 192.168.136.129:6006
+```
+
+### RedisApplication.java启动类
+
+```java
+@SpringBootApplication
+public class RedisApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(RedisApplication.class, args);
+  }
+
+}
+```
+
+### ResultVO.java
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ResultVO<T> {
+
+  /** 默认成功响应码 */
+  public static final int SUCCESS_CODE = 200;
+
+  /** 默认失败响应码 */
+  public static final String SUCCESS_MESSAGE = "success";
+
+  public static final int FAILED_CODE = 500;
+
+  public static final String FAILED_MESSAGE = "系统异常！";
+
+  private Integer code;
+
+  private String message;
+
+  private T data;
+
+  public static <T> ResultVO<T> success(T data) {
+    return new ResultVO<>(SUCCESS_CODE, SUCCESS_MESSAGE, data);
+  }
+
+  public static <T> ResultVO<T> failed() {
+    return failed(FAILED_MESSAGE);
+  }
+
+  public static <T> ResultVO<T> failed(String message) {
+    return failed(FAILED_CODE, message);
+  }
+
+  public static <T> ResultVO<T> failed(int code, String message) {
+    return new ResultVO<>(code, message, null);
+  }
+
+}
+```
+
+
+
+### --点赞接口--
+
+### LikeVO.java(后端传前端)
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class LikeVO {
+
+  /**
+   * 是否是点赞
+   */
+  private Boolean like;
+
+  /**
+   * 点赞量
+   */
+  private Long count;
+}
+```
+
+### LikeService.interface
+
+```java
+package com.etoak.service;
+
+public interface LikeService {
+
+  /**
+   * 点赞、取消点赞
+   *
+   * @param key
+   * @param username
+   * @return
+   */
+  boolean like(String key, String username);
+
+  /**
+   * 获取点赞量
+   *
+   * @param key
+   * @return
+   */
+  long getCount(String key);
+
+}
+```
+
+### LikeServiceImpl.java
+
+```java
+@Service
+public class LikeServiceImpl implements LikeService {
+
+  @Autowired
+  StringRedisTemplate stringRedisTemplate;
+
+  @Override
+  public boolean like(String key, String username) {
+    // hexists
+    if (stringRedisTemplate.opsForHash().hasKey(key, username)) {
+      // 取消
+      stringRedisTemplate.opsForHash().delete(key, username);
+      return false;
+    }
+
+    // 点赞
+    stringRedisTemplate.opsForHash().put(key, username, "1");
+    return true;
+  }
+
+  @Override
+  public long getCount(String key) {
+    // hlen
+    return stringRedisTemplate.opsForHash().size(key);
+  }
+}
+```
+
+### LikeController.java
+
+```java
+@RestController
+@RequestMapping("/like")
+public class LikeController {
+
+  public static final String PREFIX = "news:";
+
+  @Autowired
+  LikeService likeService;
+
+  @RequestMapping("/news")
+  public ResultVO like(@RequestParam String id,
+                       @RequestParam String username) {
+    String key = PREFIX + id;
+
+    boolean like = likeService.like(key, username);
+    long count = likeService.getCount(key);
+
+    return ResultVO.success(new LikeVO(like, count));
+  }
+
+}
+```
+
+
+
+### --排行接口--
+
+### HeroVO.java
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class HeroVO {
+
+  private String name;
+
+  private Double power;
+}
+```
+
+### HeroService.interface
+
+```java
+package com.etoak.service;
+
+import com.etoak.vo.HeroVO;
+
+import java.util.List;
+
+public interface HeroService {
+
+  /**
+   * 添加英雄
+   */
+  void addHero(String key, String name, double power);
+
+  /**
+   * 根据索引值获取英雄排行
+   */
+  List<HeroVO> getByIndex(String key, long start, long end);
+
+  /**
+   * 根据武力值获取英雄排行
+   */
+  List<HeroVO> getByPower(String key, double min, double max);
+
+}
+```
+
+### HeroServiceImpl.java
+
+```java
+package com.etoak.service.impl;
+
+import com.etoak.service.HeroService;
+import com.etoak.vo.HeroVO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+public class HeroServiceImpl implements HeroService {
+
+  @Autowired
+  StringRedisTemplate stringRedisTemplate;
+
+  @Override
+  public void addHero(String key, String name, double power) {
+    stringRedisTemplate.opsForZSet().add(key, name, power);
+  }
+
+  @Override
+  public List<HeroVO> getByIndex(String key, long start, long end) {
+    return stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, start, end)
+      .stream().map(x -> new HeroVO(x.getValue(), x.getScore()))
+      .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<HeroVO> getByPower(String key, double min, double max) {
+    return stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(key, min, max)
+      .stream().map(x -> new HeroVO(x.getValue(), x.getScore()))
+      .collect(Collectors.toList());
+  }
+
+}
+```
+
+### HeroController.java
+
+```java
+@RestController
+@RequestMapping("/hero")
+public class HeroController {
+
+  public static final String KEY = "rank:hero";
+
+  Random random = new Random();
+
+  @Autowired
+  HeroService heroService;
+
+  /**
+   * 添加接口
+   */
+  @RequestMapping("/{name}")
+  public ResultVO addHero(@PathVariable String name) {
+    int power = random.nextInt(1000) + 1;
+    heroService.addHero(KEY, name, power);
+    return ResultVO.success("");
+  }
+
+  /**
+   * 根据索引获取英雄排行
+   */
+  @RequestMapping("/index")
+  public ResultVO getByIndex(
+    @RequestParam(required = false, defaultValue = "0") long start,
+    @RequestParam(required = false, defaultValue = "-1") long end) {
+    List<HeroVO> heroVOList = heroService.getByIndex(KEY, start, end);
+    return ResultVO.success(heroVOList);
+  }
+
+  @RequestMapping("/power")
+  public ResultVO getByPower(
+    @RequestParam(required = false, defaultValue = "500") double min,
+    @RequestParam(required = false, defaultValue = "1000") double max) {
+    return ResultVO.success(heroService.getByPower(KEY, min, max));
+  }
+
+}
+```
+
+
+
+---
+
+## [redis-spring-data-redis]__xml配置redis集群
+
+### standalone.xml 单机版redis
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- RedisStandaloneConfiguration -->
+  <bean id="standaloneConfiguration"
+    class="org.springframework.data.redis.connection.RedisStandaloneConfiguration">
+    <constructor-arg name="hostName" value="192.168.136.131" />
+    <constructor-arg name="port" value="6379" />
+  </bean>
+
+  <!-- JedisConnectionFactory -->
+  <bean id="connectionFactory"
+    class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+    <constructor-arg name="standaloneConfig" ref="standaloneConfiguration" />
+  </bean>
+
+  <!-- StringRedisTemplate -->
+  <bean class="org.springframework.data.redis.core.StringRedisTemplate">
+    <property name="connectionFactory" ref="connectionFactory" />
+  </bean>
+</beans>
+```
+
+### cluster.xml 集群版redis
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="node6001" class="org.springframework.data.redis.connection.RedisNode">
+    <constructor-arg name="host" value="192.168.136.129" />
+    <constructor-arg name="port" value="6001" />
+  </bean>
+
+  <bean id="node6002" class="org.springframework.data.redis.connection.RedisNode">
+    <constructor-arg name="host" value="192.168.136.129" />
+    <constructor-arg name="port" value="6002" />
+  </bean>
+
+  <bean id="node6003" class="org.springframework.data.redis.connection.RedisNode">
+    <constructor-arg name="host" value="192.168.136.129" />
+    <constructor-arg name="port" value="6003" />
+  </bean>
+
+  <bean id="node6004" class="org.springframework.data.redis.connection.RedisNode">
+    <constructor-arg name="host" value="192.168.136.129" />
+    <constructor-arg name="port" value="6004" />
+  </bean>
+
+  <bean id="node6005" class="org.springframework.data.redis.connection.RedisNode">
+    <constructor-arg name="host" value="192.168.136.129" />
+    <constructor-arg name="port" value="6005" />
+  </bean>
+
+  <bean id="node6006" class="org.springframework.data.redis.connection.RedisNode">
+    <constructor-arg name="host" value="192.168.136.129" />
+    <constructor-arg name="port" value="6006" />
+  </bean>
+
+  <bean id="clusterConfiguration" class="org.springframework.data.redis.connection.RedisClusterConfiguration">
+    <!-- setClusterNodes -->
+    <property name="clusterNodes">
+      <set>
+        <ref bean="node6001" />
+        <ref bean="node6002" />
+        <ref bean="node6003" />
+        <ref bean="node6004" />
+        <ref bean="node6005" />
+        <ref bean="node6006" />
+      </set>
+    </property>
+  </bean>
+
+  <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+    <property name="maxTotal" value="50" />
+  </bean>
+
+  <bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+    <constructor-arg name="clusterConfig" ref="clusterConfiguration" />
+    <constructor-arg name="poolConfig" ref="poolConfig" />
+  </bean>
+
+  <bean class="org.springframework.data.redis.core.StringRedisTemplate">
+    <constructor-arg name="connectionFactory" ref="connectionFactory" />
+  </bean>
+
+</beans>
+```
+
+### redis测试
+
+### StandaloneTest.java
+
+```java
+public class StandaloneTest {
+
+  public static void main(String[] args) {
+    ApplicationContext ioc =
+      // new ClassPathXmlApplicationContext("standalone.xml");
+      // new AnnotationConfigApplicationContext(ClusterConfig.class);	//配置类方式配置redis集群
+      new ClassPathXmlApplicationContext("cluster.xml");  //xml方式配置redis集群
+
+    StringRedisTemplate template = ioc.getBean(StringRedisTemplate.class);
+
+    // testString(template);
+    testHash(template);
+    // testSet(template);
+  }
+
+  private static void testSet(StringRedisTemplate template) {
+    // sadd
+    template.getConnectionFactory().getConnection().flushAll();
+    template.opsForSet().add("set", "1", "2", "3", "4");
+    template.opsForSet().add("set2", "3", "4", "5", "6");
+
+    // smembers key
+    template.opsForSet().members("set").forEach(System.out::println);
+    System.out.println("=========");
+
+    // sdiff
+    template.opsForSet().difference("set", "set2")
+      .forEach(System.out::println);
+    System.out.println("============");
+
+    // sinter
+    template.opsForSet().intersect("set", "set2")
+      .forEach(System.out::println);
+    System.out.println("=============");
+
+    // sunion
+    template.opsForSet().union("set", "set2")
+      .forEach(System.out::println);
+  }
+
+  private static void testHash(StringRedisTemplate template) {
+    // hset
+    template.opsForHash().put("user:2", "id", "2");
+
+    // hmset
+    Map<String, String> userMap = new HashMap<>();
+    userMap.put("name", "li4");
+    userMap.put("age", "22");
+    template.opsForHash().putAll("user:2", userMap);
+
+    // hkeys
+    template.opsForHash().keys("user:2").forEach(System.out::println);
+    System.out.println("=============");
+
+    // hvals
+    template.opsForHash().values("user:2").forEach(System.out::println);
+    System.out.println("=============");
+
+    // hgetall
+    template.opsForHash().entries("user:2")
+      .forEach((k, v) -> System.out.println(k + "==" + v));
+  }
+
+  private static void testString(StringRedisTemplate template) {
+    template.opsForValue().set("name", "Spring Data");
+
+    // mset
+    Map<String, String> map = new HashMap<>();
+    map.put("id", "222");
+    map.put("age", "10");
+    template.opsForValue().multiSet(map);
+
+    // msetnx
+    // template.opsForValue().multiSetIfAbsent();
+
+    // setnx
+    // template.opsForValue().setIfAbsent()
+
+    // set k v xx = 当key存在赋值
+    // template.opsForValue().setIfPresent()
+
+    // mget
+    template.opsForValue().multiGet(Arrays.asList("id", "name"))
+      .forEach(System.out::println);
+  }
+}
+```
+
+### ClusterConfig.java  集群redis用配置类的方式配置
+
+```java
+@Configuration
+public class ClusterConfig {
+
+  @Bean
+  public RedisClusterConfiguration clusterConfiguration() {
+    Set<RedisNode> nodes = new HashSet<>();
+    for (int port = 6001; port <= 6006; port++) {
+      nodes.add(new RedisNode("192.168.136.129", port));
+    }
+
+    RedisClusterConfiguration configuration = new RedisClusterConfiguration();
+    configuration.setClusterNodes(nodes);
+    return configuration;
+  }
+
+  /**
+   * 连接池配置
+   */
+  @Bean
+  public JedisPoolConfig poolConfig() {
+    JedisPoolConfig config = new JedisPoolConfig();
+    config.setMaxTotal(50);
+    return config;
+  }
+
+  /**
+   * JedisConnectionFactory
+   */
+  @Bean
+  public JedisConnectionFactory connectionFactory(RedisClusterConfiguration clusterConfiguration,
+                                                  JedisPoolConfig poolConfig) {
+    return new JedisConnectionFactory(clusterConfiguration, poolConfig);
+  }
+
+  /**
+   * StringRedisTemplate
+   */
+  @Bean
+  public StringRedisTemplate stringRedisTemplate(JedisConnectionFactory connectionFactory) {
+    return new StringRedisTemplate(connectionFactory);
+  }
+
+}
+```
+
+
+
+
+
+
+
+
+
+---
+
+
+
 ## 下午内容：
 
 # Dubbo课程
@@ -8468,7 +9811,7 @@ public class EmailService {
 
 ## 3. RPC
 
-​        RPC（Remote Procedure Call）- 远程过程调用，它是一种通过网络从**远程计算机**的程序上请求服务，而不需要了解底层的网络技术协议。RPC协议假定某些传输协议的存在，如TCP/IP或UDP，为通信程序之间携带信息数据。
+​        RPC（Remote Procedure Call）- **远程过程调用**，它是一种通过网络从**远程计算机**的程序上请求服务，而不需要了解底层的网络技术协议。RPC协议假定某些传输协议的存在，如TCP/IP或UDP，为通信程序之间携带信息数据。
 
 ​        通俗的说，RPC可以让我们像调用本地方法一样调用远程计算机提供的服务；
 
@@ -8854,9 +10197,315 @@ public class EmailService {
 
 
 
+## 代码补充：
+
+## [dubobt-hello] 父工程
+
+### pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.etoak.et2301.dubbo</groupId>
+  <artifactId>dubbo-hello</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0-SNAPSHOT</version>
+  
+  <modules>
+    <module>dubbo-interface</module>
+    <module>dubbo-provider</module>
+    <module>dubbo-consumer</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Dubbo -->
+      <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>dubbo</artifactId>
+        <version>2.6.5</version>
+      </dependency>
+
+      <!-- zk客户端 - curator -->
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-framework</artifactId>
+        <version>2.13.0</version>
+      </dependency>
+        
+    </dependencies>
+  </dependencyManagement>
+
+</project>
+```
+
+## [dubbo-interface] 接口子模块
+
+### com.etoak.service.HelloService.interface
+
+```java
+package com.etoak.service;
+
+/**
+ * Dubbo服务
+ */
+public interface HelloService {
+
+  String hello(String name);
+
+}
+```
 
 
-# day19()
+
+## [dubbo-provider] 服务提供子模块
+
+### pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>dubbo-hello</artifactId>
+    <groupId>com.etoak.et2301.dubbo</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>dubbo-provider</artifactId>
+
+  <dependencies>
+      
+    <!-- dubbo-interface 获取接口方法-->
+    <dependency>
+      <artifactId>dubbo-interface</artifactId>
+      <groupId>com.etoak.et2301.dubbo</groupId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- Dubbo -->
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>dubbo</artifactId>
+    </dependency>
+
+    <!-- zk客户端 - curator -->
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-framework</artifactId>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+### resources / dubbo.properties
+
+```properties
+dubbo.protocol.port=20990
+```
+
+### provider.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://dubbo.apache.org/schema/dubbo http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+
+  <!-- 应用名称 -->
+  <dubbo:application name="hello-service" />
+
+  <!-- 注册中心 -->
+  <dubbo:registry check="false" address="zookeeper://127.0.0.1:2181" />
+
+  <!-- 发布服务的协议和端口号 -->
+  <dubbo:protocol name="dubbo" port="20880" />
+
+  <!-- 发布服务 -->
+  <dubbo:service ref="helloService"
+                 timeout="2500"
+                 retries="1"
+    interface="com.etoak.service.HelloService">
+    <!--<dubbo:method name="hello" timeout="2500" />-->
+  </dubbo:service>
+
+  <!-- 配置服务实现 -->
+  <bean id="helloService" class="com.etoak.service.impl.HelloServiceImpl" />
+
+  <dubbo:provider retries="0" />
+</beans>
+```
+
+### com.etoak.service.Provider.java
+
+```java
+package com.etoak;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.io.IOException;
+
+public class Provider {
+
+  public static void main(String[] args) throws IOException {
+    new ClassPathXmlApplicationContext("provider.xml");
+    System.out.println("服务启动了....");
+
+    System.in.read();
+  }
+}
+```
+
+### com.etoak.service.impl.HelloServiceImpl.java
+
+```java
+package com.etoak.service.impl;
+
+import com.etoak.service.HelloService;
+
+public class HelloServiceImpl implements HelloService {
+
+  @Override
+  public String hello(String name) {
+    System.out.println("hello方法执行了！");
+
+    // try {
+    //   Thread.sleep(3000);
+    // } catch (InterruptedException e) {
+    //   e.printStackTrace();
+    // }
+
+    return "Hello " + name;
+  }
+}
+```
+
+## [dubbo-consumer] 消费者接口子模块
+
+### pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>dubbo-hello</artifactId>
+    <groupId>com.etoak.et2301.dubbo</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>dubbo-consumer</artifactId>
+
+  <dependencies>
+    <!-- dubbo-interface -->
+    <dependency>
+      <artifactId>dubbo-interface</artifactId>
+      <groupId>com.etoak.et2301.dubbo</groupId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- Dubbo -->
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>dubbo</artifactId>
+    </dependency>
+
+    <!-- zk客户端 - curator -->
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-framework</artifactId>
+    </dependency>
+  </dependencies>
+</project>
+```
+
+### consumer.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+  <dubbo:application name="consumer" />
+
+  <dubbo:registry check="false" address="zookeeper://127.0.0.1:2181" />
+
+  <!-- 相当于创建代理对象   url="dubbo://127.0.0.1:20880" -->
+  <dubbo:reference id="helloSerice"
+                   timeout="4000"
+    interface="com.etoak.service.HelloService">
+  </dubbo:reference>
+
+  <!-- 消费方的全局配置 -->
+  <dubbo:consumer check="false" />
+
+</beans>
+```
+
+### Consumer.java
+
+```java
+package com.etoak;
+
+import com.etoak.service.HelloService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.io.IOException;
+
+public class Consumer {
+
+  public static void main(String[] args) throws IOException {
+    ApplicationContext ioc =
+      new ClassPathXmlApplicationContext("consumer.xml");
+
+    // 远程服务的代理对象
+    HelloService helloService = ioc.getBean(HelloService.class);
+
+    // 调用远程服务
+    String result = helloService.hello("Dubbo");
+
+    System.out.println(result);
+    System.in.read();
+  }
+}
+```
+
+
+
+
+
+---
+
+
+
+
+
+# day19(redis - Test of thrid weekend)
+
+
+
+
+
+
+
+---
+
+
+
+# day20(Spring Cloud)
 
 
 
