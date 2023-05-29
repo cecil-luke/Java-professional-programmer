@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql:///et2301?serverTimezone=UTC
+    username: root
+    password: etoak
+
+mybatis-plus:
+  type-aliases-package: com.etoak
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+dubbo:
+  application:
+    name: user-service
+
+  registry:
+    address: zookeeper://127.0.0.1:2181
+
+  protocol:
+    name: dubbo
+    port: 20880

@@ -10505,7 +10505,563 @@ public class Consumer {
 
 
 
-# day20(Spring Cloud)
+# day20(Dubbo整合mvc+boot__Spring Cloud)
+
+# 上午内容
+
+1. Spring MVC中使用Dubbo
+2. Spring Boot整合Dubbo
+
+## 1. Spring MVC中使用Dubbo
+
+- 创建工程，工程间依赖关系如下图
+
+  <img src="imgs\Dubbo-MVC.png" style="zoom:50%;" > 
+
+### 整合Spring MVC时出现的问题
+
+1. 整合出现的问题：找不到`Root WebApplicationContext`（找不到父容器）
+
+   <img src="imgs\image-20230529111525612-16853604785381.png" alt="image-20230529111525612" style="zoom:50%;" /> 
+
+2. 错误原因：**导入了Dubbo框架导致的**
+
+   为什么导入Dubbo框架就报错？为什么Dubbo启动不找Spring MVC容器呢？
+
+   <u>Dubbo不想与Spring MVC**强耦合**</u>
+
+解决：
+
+```xml
+<web-app>
+    <!-- root application -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:spring-root.xml</param-value>
+    </context-param>
+    
+    <listener>
+        <listener-class>
+            org.springframework.web.context.ContextLoaderListener
+        </listener-class>
+    </listener>
+</web-app>
+```
+
+
+
+## 2. Spring Boot整合Dubbo
+
+<img src="imgs\Dubbo-Boot.png" style="zoom:50%;" > 
+
+
+
+
+
+---
+
+**Dubbo**整合**mvc**、整合**boot**相关代码参见 **day20(Dubbo整合mvc_boot+Spring Cloud)** 文件夹
+
+---
+
+
+
+# 下午内容
+
+
+
+<center><font size="5"><b>Spring Cloud</b></font></center>
+
+- [Spring Cloud官网](https://spring.io/projects/spring-cloud)
+
+- [Spring Cloud中文网](https://www.springcloud.cc/)
+
+- [Spring Cloud、Spring Boot版本对应](https://start.spring.io/actuator/info)
+
+# 1-Spring Cloud
+
+## 1. Spring Cloud是什么
+
+​		Spring Cloud为开发人员提供了快速构建**分布式系统**中一些常见模式的工具，例如：**配置管理**、**服务发现**、**断路器**、智能路由、微代理、控制总线、一次性令牌、全局锁、主节点选举、分布式会话、集群状态。
+
+​		分布式系统的协调导致了`样板式`的模式，使用Spring Cloud，开发人员可以快速地创建支持这些模式的服务和应用程序。它们可以运行在任何分布式环境中，包括开发人员的笔记本电脑、裸机数据中心和云平台等。
+
+​		Spring Cloud是在2014年由Spring团队推出，**基于Spring Boot开发**，<u>提供了一套完整的微服务解决方案</u>，包括：服务注册与发现、配置中心、Api网关、断路器、全链路监控、控制总线、智能路由等，<u>并可以根据需要进行扩展和替换</u>，它的目标是使其成为Java领域的微服务架构落地标准；
+
+## 2. Spring Cloud版本号
+
+### 2.1 早期版本号命名规则
+
+​		早期Spring Cloud的版本号名称没有采用数字，而是采用**`伦敦地铁站`**作为版本号；
+
+### 2.2 Spring Cloud发行版本
+
+1. **Angel**：天使站（这个站名来源于大北方之路过去一家名为“天使”驿站，可以追溯到17世纪）。 
+2. **Brixton**：布里克斯顿站（位于伦敦南二区，是伦敦地铁Victoria line（浅蓝色线）南边的最后一站）。
+3. **Camden**：卡姆登镇（伦敦必逛的集市，它是伦敦北部重要的集市之一，临近摄政运河(Regent’s Canal)，1791年开始发展到现在） 
+4. **Dalston**：多斯顿王领地站
+5. **Edgware**：埃奇韦尔 
+6. **Finchley**：芬奇利
+7. **Greenwich**：格林威治（Finchley第一个次要版本）
+8. **Hoxton**: 霍克斯顿（Finchley第二个次要版本）
+9. **2020.0.x** - 代号**Ilford**：伊尔福德（<u>版本变化比较大</u>）
+10. **2021.0.x - 代号Jubilee**
+11. **2022.0.x - 代号Kilburn（2022.12.16发布，基于Spring Boot 3.0开发）**
+
+### 2.3 现行版本号命名规则 
+
+1. Spring Cloud目前最新版本是**2022.0.3**版本。
+
+2. Spring Cloud更改了发行版本号方案，后面将遵循**`YYYY.MINOR.MICRO`**模式，其中：
+
+- **`MINOR`**是一个递增数字，每年从 0 开始。
+
+- **`MICRO`**对应先前使用的后缀：如**`.0`**类似**`.RELEASE`**，而**`.2`**类似于**`.SR2`**。
+
+- 预发行后缀也将从使用**`.`**作为分隔符改为使用 **`-`**
+
+  例如：**`2020.0.0-M1`**和**`2020.0.0-RC2`**。另外，还将停止为快照添加前缀**`BUILD-`**，例如**`2020.0.4-SNAPSHOT`**。
+
+     <img src="imgs\image-20220810084943228-16853621698295.png" alt="image-20220810084943228" style="zoom:50%;" /> 
+
+- 发行代号将继续使用伦敦地铁站名称，当前的代号是Kilburn。
+
+## 3. Spring Cloud常用组件
+
+​		Spring Cloud将其它公司开发的比较成熟、经得起考验的服务框架组合起来，通过了Spring Boot风格进行封装，并屏蔽掉复杂的配置和实现原理，<u>最终呈现给开发者一套**简单易懂**、**易于部署**和**维护**的分布式系统开发工具包</u>。
+
+​		下图列举了Spring Cloud常用组件
+
+<img src="imgs\Spring Cloud常用组件-16853621698306.jpg" alt="SprungCloud组件" style="zoom:60%; margin-left:40px" />
+
+## 4. Spring Cloud版本号与Spring Boot版本对应
+
+| SpringCloud版本 | SpringBoot版本                      |
+| --------------- | ----------------------------------- |
+| Angel           | 1.2.x                               |
+| Brixton         | 1.3.x                               |
+| Camden          | 1.4.x                               |
+| Dalston         | 1.5.x                               |
+| Edgware         | 1.5.x                               |
+| Finchley        | 2.0.x                               |
+| Greenwich       | 2.1.x                               |
+| Hoxton          | 2.2.x - 2.3.x                       |
+| 2020.0.x        | 2.4.x、2.5.x                        |
+| 2021.0.x        | 2.6.1+、2.7.x                       |
+| **2022.0.x**    | Spring Boot >= 3.0.0 and < 3.1.0-M1 |
+
+## 5. Spring Cloud 2020.0.0 版本开始删除的Netflix组件
+
+- Spring Cloud 2020.0.x 版本变更说明：
+
+  [版本变更说明](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2020.0-Release-Notes#breaking-changes)
+
+<img src="imgs\删除Netflix组件-16853621698307.jpg" alt="删除Netflix组件" style="zoom:50%; margin-left: 30px;" /> 
+
+## 6. Spring Cloud Alibaba
+
+1. [Github地址](https://github.com/alibaba/spring-cloud-alibaba)
+
+2. [Github中文说明地址](https://github.com/alibaba/spring-cloud-alibaba/blob/master/README-zh.md)
+3. 2018年10月31日，<u>Spring Cloud Alibaba</u>入驻Spring Cloud官方孵化器，并在Maven中央库发布了第一个版本。
+4. Spring Cloud Alibaba **致力于提供微服务开发的一站式解决方案**。此项目包含开发分布式应用微服务的必需组件，方便开发者通过 <u>Spring Cloud 编程模型</u>轻松使用这些组件来开发**分布式应用服务**。
+5. 依托 Spring Cloud Alibaba，您只需要添加一些注解和少量配置，就可以将 Spring Cloud 应用接入阿里微服务解决方案，通过**阿里中间件**来迅速搭建分布式应用系统。
+
+### 6.1 主要功能
+
+- **服务限流降级**：默认支持 WebServlet、WebFlux, OpenFeign、RestTemplate、Spring Cloud Gateway, Zuul, Dubbo 和 RocketMQ 限流降级功能的接入，可以在运行时通过控制台实时修改限流降级规则，还支持查看限流降级 Metrics 监控。
+- **服务注册与发现**：适配 Spring Cloud 服务注册与发现标准，默认集成了 Ribbon 的支持。
+- **分布式配置管理**：支持分布式系统中的外部化配置，配置更改时自动刷新。
+- **消息驱动能力**：基于 Spring Cloud Stream 为微服务应用构建消息驱动能力。
+- **分布式事务**：使用 @GlobalTransactional 注解， 高效并且对业务零侵入地解决分布式事务问题。
+- **阿里云对象存储**：阿里云提供的海量、安全、低成本、高可靠的云存储服务。支持在任何应用、任何时间、任何地点存储和访问任意类型的数据。
+- **分布式任务调度**：提供秒级、精准、高可靠、高可用的定时（<u>基于 Cron 表达式</u>）任务调度服务。同时提供分布式的任务执行模型，如网格任务。网格任务支持海量子任务均匀分配到所有 Worker（schedulerx-client）上执行。
+- **阿里云短信服务**：覆盖全球的短信服务，友好、高效、智能的互联化通讯能力，帮助企业迅速搭建客户触达通道。
+
+### 6.2 主要组件
+
+- **Sentinel：把流量作为切入点，从流量控制、熔断降级、系统负载保护等多个维度保护服务的稳定性。**
+
+- **Nacos：一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。**
+
+- **RocketMQ**：一款开源的分布式消息系统，<u>基于高可用分布式集群技术</u>，提供低延时的、高可靠的消息发布与订阅服务。
+
+- **Dubbo**：Apache Dubbo™ 是一款高性能 Java RPC 框架。
+
+- **Seata**：**阿里巴巴开源产品**，一个<u>易于使用</u>的高性能微服务分布式事务解决方案。
+
+- **Alibaba Cloud OSS**: 阿里云对象存储服务（Object Storage Service，简称 OSS），是阿里云提供的海量、安全、低成本、高可靠的云存储服务。您可以在任何应用、任何时间、任何地点存储和访问任意类型的数据。
+
+- **Alibaba Cloud SchedulerX**: 阿里中间件团队开发的一款<u>分布式任务调度产品</u>，提供<u>秒级、精准、高可靠、高可用</u>的定时（基于 Cron 表达式）任务调度服务。
+
+- **Alibaba Cloud SMS**: 覆盖全球的短信服务，友好、高效、智能的互联化通讯能力，帮助企业迅速搭建客户触达通道。
+
+### 6.3 Spring Cloud Alibaba、Spring Cloud、Spring Boot版本对应关系
+
+[版本对应关系](https://github.com/alibaba/spring-cloud-alibaba/wiki/版本说明)
+
+| Spring Cloud Alibaba Version | Spring Cloud Version        | Spring Boot Version |
+| :--------------------------- | :-------------------------- | :------------------ |
+| `2021.0.5`.0                 | **Spring Cloud `2021.0.5`** | 2.6.13              |
+| `2021.0.4`.0                 | **Spring Cloud `2021.0.4`** | 2.6.11              |
+| `2021.0.1`.0                 | **Spring Cloud `2021.0.1`** | 2.6.x               |
+| 2021.1                       | Spring Cloud 2020.0.1       | 2.4.2               |
+| 2.2.9.RELEASE                | Spring Cloud Hoxton.SR12    | 2.3.12.RELEASE      |
+| 2.2.1.RELEASE                | Spring Cloud Hoxton.SR3     | 2.2.5.RELEASE       |
+| 2.2.0.RELEASE                | Spring Cloud Hoxton.RELEASE | 2.2.X.RELEASE       |
+| 2.1.4.RELEASE                | Spring Cloud Greenwich.SR6  | 2.1.13.RELEASE      |
+| 2.1.2.RELEASE                | Spring Cloud Greenwich      | 2.1.X.RELEASE       |
+| 2.0.4.RELEASE(停止维护)      | Spring Cloud Finchley       | 2.0.X.RELEASE       |
+| 1.5.1.RELEASE(停止维护)      | Spring Cloud Edgware        | 1.5.X.RELEASE       |
+
+
+
+---
+
+
+
+# 2-Nacos
+
+##   1. Nacos [nɑ:kəʊs] 概述
+
+​		一个**更易于**构建**云原生应用**的动态服务发现、配置管理和服务管理平台。
+
+### 1.2 相关网址
+
+1. 官网地址：https://nacos.io/zh-cn
+2. GitHub代码地址：https://github.com/alibaba/nacos
+
+### 1.2 Nacos全称
+
+1. 全称：`Dynamic Naming and Configuration Service`
+2. **Na指`Naming、NameServer`即注册中心**
+3. **Co指`Configuration`即配置中心**
+4. Service是指注册中心/配置中心都是**以服务为核心**。
+
+### 1.3 Nacos功能
+
+1. **服务发现及管理**
+
+   动态服务发现对以服务为中心的（例如微服务和云原生）应用架构方式非常关键。Nacos支持DNS-Based和RPC-Based（Dubbo、gRPC）模式的服务发现。Nacos也提供实时健康检查，以防止将请求发往不健康的主机或服务实例。借助Nacos，您可以更容易地为您的服务实现断路器。
+
+2. **动态配置服务**
+
+   动态配置服务让您能够以**中心化**、**外部化**和**动态化**的方式管理所有环境的配置。动态配置消除了配置变更时重新部署应用和服务的需要。配置中心化管理让实现无状态服务更简单，也让按需弹性扩展服务更容易。
+
+3. **动态DNS服务**
+
+   通过**支持权重路由**，动态DNS服务能让您轻松实现中间层负载均衡、更灵活的路由策略、流量控制以及简单数据中心内网的简单DNS解析服务。动态DNS服务还能让您更容易地实现以DNS协议为基础的服务发现，以消除耦合到厂商私有服务发现API上的风险。
+
+### 1.4 Nacos基本架构及概念
+
+<img src="imgs\Nacos架构-168536460853911.jpeg" alt="Nacos架构" style="zoom:50%; margin-left:40px" /> 
+
+#### 1.4.1 服务 (Service)
+
+​		**服务**是指一个或一组软件功能（例如特定信息的检索或一组操作的执行），其目的是不同的客户端可以为不同的目的重用（例如通过**跨进程的网络调用**）。Nacos 支持主流的服务生态，如 Kubernetes Service、gRPC | Dubbo RPC Service 或者 **Spring Cloud RESTful Service.**
+
+#### 1.4.2  服务注册中心 (Service Registry)
+
+​		存储<u>服务实例</u>和<u>服务负载均衡策略</u>的数据库。服务实例在启动时注册到服务注册表，并在关闭时注销。服务和路由器的客户端查询服务注册表以查找服务的可用实例。服务注册中心可能会调用服务实例的健康检查 API 来验证它是否能够处理请求。
+
+#### 1.4.3  服务元数据 (Service Metadata)
+
+​		**服务元数据**是指包括服务端点(endpoints)、服务标签、服务版本号、服务实例权重、路由规则、安全策略等描述服务的数据
+
+#### 1.4.4  服务提供方 (Service Provider)
+
+​		是指提供可复用和可调用服务的应用方
+
+#### 1.4.5  服务消费方 (Service Consumer)
+
+​		是指会发起对某个服务调用的应用方
+
+#### 1.4.6  配置 (Configuration)
+
+​		在系统开发过程中<u>通常会将一些需要变更的参数、变量</u>等从代码中<u>分离</u>出来<u>独立管理</u>，以独立的配置文件的形式存在。**目的是**让静态的系统**工件**或者**交付物**（如 WAR，JAR 包等）更好地和实际的物理运行环境进行适配。**配置管理**一般包含在系统部署的过程中，由系统管理员或者运维人员完成这个步骤。配置变更是调整系统运行时的行为的有效手段之一。
+
+#### 1.4.7  配置管理 (Configuration Management)
+
+​		在数据中心中，系统中<u>所有配置的编辑、存储、分发、变更管理、历史版本管理、变更审计等</u>所有与配置相关的活动统称为**配置管理**。
+
+## 2. Nacos控制台下载与安装
+
+### 2.1 Nacos控制台下载
+
+1. 本次使用Nacos 2.1.0 版本
+
+2. Windows版本下载地址
+
+   https://github.com/alibaba/nacos/releases/download/2.1.0/nacos-server-2.1.0.zip
+
+   也可以使用下面地址查找其它版本进行下载
+
+   https://github.com/alibaba/nacos/releases
+
+### 2.1 Nacos安装与启动
+
+1. 解压`nacos-server-2.1.0.zip`到当前目录
+
+   **<font color="red">注意：目录不能有中文、空格</font>**
+
+2. 使用cmd进入 bin目录，找到startup.cmd
+
+3. 使用下面的命令进行单机启动
+
+   `startup.cmd -m standalone` 
+
+4. 控制台地址：http://localhost:8848/nacos
+
+5. 用户名和密码默认都是nacos
+
+   <img src="imgs\nacos控制台-168536460853912.png" alt="1623984313620" style="zoom:70%;" /> 
+
+
+
+---
+
+
+
+# 3-Spring Cloud示例
+
+## Spring Cloud
+
+​	用户购买商品的业务逻辑，这个业务逻辑由两个微服务提供支持：
+
+1. 库存服务
+2. 订单服务
+
+## 1. 基础模块创建
+
+### 1.1 创建表
+
+- 执行如下SQL，创建表结构
+
+  ```sql
+  CREATE TABLE `cloud_order` (
+    `id` int(11) NOT NULL AUTO_INCREMENT comment '自增主键',
+    `user_id` varchar(255) DEFAULT NULL comment '用户id',
+    `product_code` varchar(255) DEFAULT NULL comment '商品编码',
+    `count` int(11) DEFAULT 0 comment '商品数量',
+    `money` int(11) DEFAULT 0 comment '商品金额',
+    PRIMARY KEY (`id`)
+  ) ;
+  
+  CREATE TABLE `cloud_storage` (
+    `id` int(11) NOT NULL AUTO_INCREMENT  comment '自增主键',
+    `product_code` varchar(255) DEFAULT NULL comment '商品编码',
+    `count` int(11) DEFAULT 0 comment '商品数量',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY (`product_code`)
+  );
+  ```
+
+### 1.2 创建父工程（管理Maven依赖）：cloud-et2301
+
+- 修改pom.xml，管理Maven依赖
+
+  ```xml
+  <properties>
+    <!-- 定义版本号 -->
+    <cloud.version>2021.0.4</cloud.version>
+    <cloud.alibaba.version>2021.0.4.0</cloud.alibaba.version>
+    <mybatis-plus.version>3.4.3.1</mybatis-plus.version>
+    <druid.version>1.2.11</druid.version>
+    <hutool.version>5.8.0</hutool.version>
+  </properties>
+  
+  <!-- Spring Boot -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.5</version>
+  </parent>
+  
+  <!-- 管理Maven依赖 -->
+  <dependencyManagement>
+    <dependencies>
+      <!-- 管理Spring Cloud的依赖 -->
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+  
+      <!-- 管理Spring Cloud Alibaba的依赖 -->
+      <dependency>
+        <groupId>com.alibaba.cloud</groupId>
+        <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+        <version>${cloud.alibaba.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+  
+      <!-- mybatis-plus-boot-starter -->
+      <dependency>
+        <groupId>com.baomidou</groupId>
+        <artifactId>mybatis-plus-boot-starter</artifactId>
+        <version>${mybatis-plus.version}</version>
+      </dependency>
+  
+      <!-- druid-spring-boot-starter -->
+      <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid-spring-boot-starter</artifactId>
+        <version>${druid.version}</version>
+      </dependency>
+  
+      <!-- hutool-all -->
+      <dependency>
+        <groupId>cn.hutool</groupId>
+        <artifactId>hutool-all</artifactId>
+        <version>${hutool.version}</version>
+      </dependency>
+        
+    </dependencies>
+  </dependencyManagement>
+  ```
+
+### 1.2 创建实体类模块：cloud-entity
+
+1. 修改pom.xml文件，添加依赖
+
+   ```xml
+   <dependencies>
+     <dependency>
+       <groupId>com.baomidou</groupId>
+       <artifactId>mybatis-plus-boot-starter</artifactId>
+       <optional>true</optional>
+     </dependency>
+   
+     <dependency>
+       <groupId>org.projectlombok</groupId>
+       <artifactId>lombok</artifactId>
+       <optional>true</optional>
+     </dependency>
+   </dependencies>
+   ```
+
+2. 创建Order和Storage实体类
+
+   ```java
+   @Data
+   @TableName("cloud_storage")
+   public class Storage {
+     
+     @TableId(type = IdType.AUTO)
+     private Integer id;
+   
+     /** 商品编码 */
+     private String productCode;
+   
+     /** 商品数量 */
+     private Integer count;
+   }
+   ```
+
+   ```java
+   @Data
+   @TableName("cloud_order")
+   public class Order {
+   
+       @TableId(type = IdType.AUTO)
+       private Integer id;
+   
+       /** 用户id */
+       private String userId;
+   
+       /** 商品编码 */
+       private String productCode;
+   
+       /** 商品数量 */
+       private Integer count;
+   
+       /** 商品价格 */
+       private Integer money;
+   }
+   ```
+
+
+### 1.3 创建common模块：cloud-common
+
+1. 修改pom.xml文件，添加依赖
+
+   ```xml
+     <dependencies>
+       <!-- hutool-all -->
+       <dependency>
+         <groupId>cn.hutool</groupId>
+         <artifactId>hutool-all</artifactId>
+       </dependency>
+   
+       <dependency>
+         <groupId>org.projectlombok</groupId>
+         <artifactId>lombok</artifactId>
+         <optional>true</optional>
+       </dependency>
+     </dependencies>
+   ```
+
+2. 创建ResultVO
+
+
+## 2. 开发库存服务：storage-service
+
+1. 创建`application.yml`
+2. 创建启动类
+3. 创建StorageMapper接口、StorageMapper.xml
+4. 创建StorageService接口和StorageServiceImpl实现类
+5. 创建StorageController（更新接口）
+
+## 3. 开发订单服务：order-service
+
+1. 创建`application.yml`
+2. 创建启动类
+3. 创建OrderMapper接口、OrderMapper.xml
+4. 创建OrderService接口和OrderServiceImpl实现类
+5. 创建OrderController（添加接口）
+
+
+
+
+
+---
+
+
+
+
+
+# day21()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
