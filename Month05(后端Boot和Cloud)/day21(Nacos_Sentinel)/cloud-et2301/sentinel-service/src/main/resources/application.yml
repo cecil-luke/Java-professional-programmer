@@ -1,0 +1,14 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: sentinel-service
+
+  cloud:
+    sentinel:
+      transport:
+        # 控制台
+        dashboard: localhost:9999
+      # 控制台立即加载服务
+      eager: true
