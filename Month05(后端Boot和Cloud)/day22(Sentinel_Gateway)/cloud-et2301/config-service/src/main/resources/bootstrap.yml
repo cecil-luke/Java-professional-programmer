@@ -1,0 +1,25 @@
+server:
+  port: 9090
+
+spring:
+  profiles:
+    active: dev
+
+  application:
+    # 服务名称
+    name: config-service
+
+  cloud:
+    nacos:
+      # 注册与发现中心
+      discovery:
+        server-addr: localhost:8848
+        namespace: et2301
+
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        # Data ID的prefix
+        prefix: ${spring.application.name}
+        # Data ID的扩展名, 默认是properties
+        file-extension: yml

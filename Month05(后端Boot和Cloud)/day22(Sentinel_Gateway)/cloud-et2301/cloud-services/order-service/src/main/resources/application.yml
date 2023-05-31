@@ -1,0 +1,39 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql:///et2301?serverTimezone=UTC
+    username: root
+    password: etoak
+
+  application:
+    name: order-service
+
+  cloud:
+    nacos:
+      discovery:
+        # 注册中心地址
+        server-addr: 127.0.0.1:8848
+        # 命名空间
+        namespace: et2301
+
+    sentinel:
+      eager: true
+      # 使用链路时必须设置为false
+      web-context-unify: false
+      transport:
+        # sentinel控制台
+        dashboard: 127.0.0.1:9999
+
+mybatis-plus:
+  type-aliases-package: com.etoak
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+feign:
+  # Feign对Sentinel的支持
+  sentinel:
+    enabled: true
