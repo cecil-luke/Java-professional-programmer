@@ -12752,13 +12752,307 @@ Sentinel 目前支持以下数据源扩展：
 
 
 
-# day23()
+# day23(最后阶段复习_面试)
+
+
+
+## 面试资料
+
+详细文件见目录：**Java-professional-programmer\Month05(后端Boot和Cloud)\day23(最后阶段复习_面试题)**
+
+
+
+---
+
+## yml和properties写法区别
+
+![yml和properties写法区别](imgs\yml和properties写法区别.png)
+
+---
+
+## 今天上课内容：gateway-03-sentinel
+
+## 网关使用Sentinel实现服务限流（Nacos配置限流规则）
+
+1. **创建新的项目`gateway-03-sentinel`，引入Maven依赖**
+
+   ```xml
+   <dependencies>
+     <!-- cloud-common -->
+     <dependency>
+       <groupId>com.etoak.et2301.cloud</groupId>
+       <artifactId>cloud-common</artifactId>
+       <version>1.0-SNAPSHOT</version>
+     </dependency>
+   
+     <!-- spring-cloud-starter-gateway -->
+     <dependency>
+       <groupId>org.springframework.cloud</groupId>
+       <artifactId>spring-cloud-starter-gateway</artifactId>
+     </dependency>
+   
+     <!-- nacos注册中心 -->
+     <dependency>
+       <groupId>com.alibaba.cloud</groupId>
+       <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+     </dependency>
+   
+     <!-- loadbalancer -->
+     <dependency>
+       <groupId>org.springframework.cloud</groupId>
+       <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+     </dependency>
+   
+     <!-- Sentinel整合Spring Cloud -->
+     <dependency>
+       <groupId>com.alibaba.cloud</groupId>
+       <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+     </dependency>
+   
+     <!-- Nacos持久化Sentinel规则：sentinel-datasource-nacos -->
+     <dependency>
+       <groupId>com.alibaba.csp</groupId>
+       <artifactId>sentinel-datasource-nacos</artifactId>
+     </dependency>
+   
+     <!--Sentinel与Gateway网关整合 -->
+     <dependency>
+       <groupId>com.alibaba.cloud</groupId>
+       <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
+     </dependency>
+   </dependencies>
+   ```
+
+   
+
+2. **在src/main/resources下创建application.yml，并填写如下内容**
+
+   ```yaml
+   server:
+     port: 9000
+   
+   spring:
+     application:
+       name: gateway-sentinel
+   
+     cloud:
+       nacos:
+         discovery:
+           server-addr: localhost:8848
+           namespace: et2301
+   
+       gateway:
+         routes:
+           - id: order-service
+             uri: lb://order-service
+             predicates:
+               - Path=/order-system/**
+             filters:
+               # 转发请求时删除第一层请求(/order-system)
+               - StripPrefix=1
+   
+       sentinel:
+         transport:
+           dashboard: localhost:8080
+         eager: true
+   
+         # 链路限流时必须设置为false
+         web-context-unify: false
+         datasource:
+           et:
+             nacos:
+               server-addr: ${spring.cloud.nacos.discovery.server-addr}
+               namespace: ${spring.cloud.nacos.discovery.namespace}
+               # json是默认值, 不写也可以
+               data-type: json
+               data-id: ${spring.application.name}-flow
+               # gw-flow: 网关限流(com.alibaba.cloud.sentinel.datasource.RuleType)
+               rule-type: gw-flow
+   ```
+
+   
+
+3. **在Nacos控制配置限流规则，对order-service进行限流**
+
+     
+
+   ```json
+   [
+     {
+       "resource": "order-service", // 资源  这里是Spring Cloud服务的名称
+       "grade": 1, // 1 QPS
+       "count": 2, // QPS = 5
+       "controlBehavior": 0, // 0直接流控
+       "resourceMode": 0 // 针对Gateway的Route 还是 用户在Sentinel中定义的API分组，默认是Route。
+     }
+   ]
+   ```
+
+4. **启动项目，查看sentinel控制台配置**
+
+   <img src="imgs\image-20230504111247478-16856182003482.png" alt="image-20230504111247478" style="zoom:43%;" /> 
+
+5. **测试限流**
+
+   <img src="imgs\image-20230504111004122-16856182003493.png" alt="image-20230504111004122" style="zoom:43%;" /> 
+
+### 1.1 **自定义限流后的结果**
+
+1. **实现WebExceptionHandler接口**
+
+   ```java
+   @Service
+   // 执行顺序  最高优先级
+   @Order(Ordered.HIGHEST_PRECEDENCE)
+   public class MySentinelHandler implements WebExceptionHandler {
+   
+     @Override
+     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+       // 请求路径
+       String path = exchange.getRequest().getPath().value();
+   
+       ResultVO<Object> resultVO = ResultVO.failed(path + "达到请求最大限制！");
+       String json = JSONUtil.toJsonStr(resultVO);
+   
+       ServerHttpResponse response = exchange.getResponse();
+       response.setStatusCode(HttpStatus.OK);
+       // 设置Content-Type
+       response.getHeaders().set(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8");
+   
+       DataBuffer dataBuffer = response.bufferFactory().wrap(json.getBytes());
+       return response.writeWith(Mono.just(dataBuffer));
+     }
+   }
+   ```
+
+   
+
+2. **测试结果**
+
+   <img src="imgs\image-20230504113012939-16856182003494.png" alt="image-20230504113012939" style="zoom:50%;" /> 
+
+
+
+---
 
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+# 扩展内容()
+
+## Mybatis子查询
+
+```java
+@Data
+public class BabyDTO extends Baby {
+
+    // list<T>
+    private List<AttVO> attributes;
+
+}
+```
+
+```xml
+	<resultMap id="map" type="com.etoak.common.dto.BabyDTO">
+        <id property="id" column="id"></id>
+        <result property="name" column="name"></result>
+        <result property="number" column="number"></result>
+        <result property="ss" column="ss"></result>
+        <result property="url" column="url"></result>
+        <result property="stature" column="stature"></result>
+        <result property="weight" column="weight"></result>
+        <result property="characteristic" column="characteristic"></result>
+		
+        <collection property="attributes" ofType="com.etoak.common.vo.AttVO" javaType="list" select="queryAttr" column="id">
+
+        </collection>
+    </resultMap>
+
+        <select id="getList" resultMap="map" parameterType="com.etoak.common.vo.BabyVO">
+            select
+                p.id,
+                p.number,
+                p.name,
+                ss,
+                url,
+                stature,
+                weight,
+                characteristic
+            <where>
+                <if test="name != null and name != ''">
+                    p.name like '%${name}%'
+                </if>
+                <if test="number != null and number != ''">
+                    AND p.number = '%${number}%'
+                </if>
+            </where>
+
+        </select>
+
+        <select id="queryAttr" resultType="com.etoak.common.vo.AttVO" parameterType="int">
+            select
+                 a.id id,
+                 a.name name
+                 from panda p1
+                    left join attributes a on a.id = p1.aid
+                    where p1.pid = #{id}
+        </select>
+```
+
+
+
+---
+
+### mybaits子查询基本用法
+
+```xml
+<mapper ******>
+<select id="getListByTeacherId2" resultMap="StudentTeacher2">
+    select *  from mybatis.student where tid =#{queryid}
+</select>
+    
+<resultMap id="StudentTeacher2" type="Student">
+    <result property="id" column="id"/>
+    <result property="name" column="name"/>
+    <association property="teacher" column="tid" javaType="Teacher" select="getTeacher"/>
+</resultMap>
+    
+<select id="getTeacher" resultType="Teacher">
+    select id, name from mybatis.teacher where id = #{tid}
+</select>
+</mapper>
+```
+
+**分表策略**
+
+```java
+strategy.setLikeTable(new LikeTable("examination_", SqlLike.RIGHT));
+```
+
+![image-20230601181941791](imgs\image-20230601181941791.png)
+
+
+
+---
 
 
 

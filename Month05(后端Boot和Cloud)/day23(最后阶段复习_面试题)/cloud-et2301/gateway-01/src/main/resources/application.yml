@@ -1,0 +1,15 @@
+server:
+  port: 9000
+
+spring:
+  cloud:
+    gateway:
+      # 一个Route由1个id、一个uri、一组Predicate、一组Filter
+      routes:
+        - id: et2301
+          uri: http://old.etoak.com
+          predicates:
+            # 请求http://localhost:9000/ 任意层级的请求  路由到 http://old.etoak.com
+            - Path=/**
+
+

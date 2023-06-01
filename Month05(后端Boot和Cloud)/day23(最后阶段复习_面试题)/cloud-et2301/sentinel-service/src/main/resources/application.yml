@@ -1,0 +1,35 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: sentinel-service
+
+  cloud:
+    sentinel:
+      transport:
+        # 控制台
+        dashboard: localhost:9999
+      # 控制台立即加载服务
+      eager: true
+      # 让资源不挂在 sentinel_spring_web_context 资源
+      web-context-unify: false
+      # 持久化
+      datasource:
+        et:
+          nacos:
+            # nacos服务器地址
+            server-addr: ${spring.cloud.nacos.discovery.server-addr}
+            # namespace
+            namespace: ${spring.cloud.nacos.discovery.namespace}
+            # 规则类型: 规则类型的值在RuleType枚举中
+            rule-type: flow
+            # Data ID
+            data-id: sentinel-flow
+            # 数据格式：默认值就是JSON
+            data-type: json
+
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: et2301
