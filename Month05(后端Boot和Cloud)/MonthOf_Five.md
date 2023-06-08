@@ -1140,15 +1140,15 @@ public class FormController {
 
    方便查看线上代码的问题
 
-   记录用户的操作行为，方便审计用户行为
+   记录用户的操作行为，**方便审计用户行为**
 
 2. 日志可以记录在哪里？
 
-   开发阶段一般输出到控制台
+   开发阶段一般<u>输出到控制台</u>
 
-   生产阶段一般输出文件、数据库（不一定是关系型数据库，例如：ELK）
+   **生产阶段一般输出文件、数据库**（不一定是关系型数据库，例如：ELK【noSQL】）
 
-3. 常用的日志框架有哪些？
+3. **常用的日志框架**有哪些？
 
    门面日志框架（接口规范）：Apache Commons Logging、SLF4J
 
@@ -4098,6 +4098,16 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import javax.sql.DataSource;
 import java.io.IOException;
 
+/**
+ * Mybatis的自动配置类
+ * 自动配置SqlSessionFactoryBean
+ * 需要满足一系列的条件
+ * 1、ClassPath下有SqlSessionFactory.class、SqlSessionFactoryBean.class
+ * 2、Spring容器中必须只有一个数据源配置
+ * 3、必须在数据源自动配置之后进行配置
+ * 4、Spring容器必须没有sqlSessionFactory对象
+ */
+
 @Configuration
 // Classpath下必须有SqlSessionFactory.class, SqlSessionFactoryBean.class
 @ConditionalOnClass({SqlSessionFactory.class, SqlSessionFactoryBean.class})
@@ -4594,6 +4604,180 @@ public class ResultVO<T> {
     }
 }
 ```
+
+## Spring Boot手动数据源和MyBatis
+
+### application.yml
+
+```yaml
+server:
+  port: 9999
+
+druid:
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql:///et2302?serverTimezone=UTC
+  username: root
+  password: etoak
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.etoak
+
+```
+
+### 启动类
+
+```java
+/**
+ * @Author Lushisan
+ * @Date 2023/6/8 17:08
+ * @Title: JavaConfigApplication
+ * @Description:
+ * @Package com.etoak
+ */
+@SpringBootApplication
+@MapperScan(basePackages = "com.etoak.**.mapper")
+public class JavaConfigApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(JavaConfigApplication.class, args);
+    }
+}
+
+```
+
+### properties/DruidProperties.java
+
+```java
+package com.etoak.properties;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+/**
+ * @Author Lushisan
+ * @Date 2023/6/8 17:11
+ * @Title: DruidProperties
+ * @Description:
+ * @Package com.etoak.properties
+ */
+// 或者@Service
+@Component
+@ConfigurationProperties(prefix = "druid")
+@Data
+public class DruidProperties {
+
+    private String driverClassName;
+
+    private String url;
+
+    private String username;
+
+    private String password;
+}
+```
+
+### properties/MyBatisProperties.java
+
+```java
+package com.etoak.properties;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+/**
+ * @Author Lushisan
+ * @Date 2023/6/8 17:15
+ * @Title: MyBatisProperties
+ * @Description:
+ * @Package com.etoak.properties
+ */
+@Component
+@ConfigurationProperties(prefix = "mybatis")
+@Data
+public class MyBatisProperties {
+
+    private String mapperLocations;
+
+    private String typeAliasesPackage;
+}
+```
+
+### config/MyBatisConfig.java
+
+```java
+/**
+ * @Author Lushisan
+ * @Date 2023/6/8 17:09
+ * @Title: MyBatisConfig
+ * @Description:
+ * @Package com.etoak.config
+ */
+
+/**
+ * 配置数据源
+ * 配置Pagehelper
+ * 配置SqlSessionFactoryBean
+ * 事务管理
+ * 注解事务
+ */
+@Configuration
+@EnableTransactionManagement    // <tx:annotaion-driven>
+public class MyBatisConfig {
+
+    @Autowired
+    DruidProperties druidProperties;
+
+    @Autowired
+    MyBatisProperties myBatisProperties;
+
+    // @Bean("ds")
+    @Bean
+    public DataSource dataSource() {
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName(druidProperties.getDriverClassName());
+        dataSource.setUrl(druidProperties.getUrl());
+        dataSource.setUsername(druidProperties.getUsername());
+        dataSource.setPassword(druidProperties.getPassword());
+
+        return dataSource;
+    }
+
+    @Bean
+    public SqlSessionFactoryBean sqlSessionFactoryBean(DataSource dataSource) throws IOException {
+        SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
+
+        // 数据源、typeAliasesPackage、mapperLocations
+        factory.setDataSource(dataSource);
+        factory.setTypeAliasesPackage(myBatisProperties.getTypeAliasesPackage());
+
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource[] resources = resolver.getResources(myBatisProperties.getMapperLocations());
+        factory.setMapperLocations(resources);
+
+        // 分页插件
+        PageInterceptor pageInterceptor = new PageInterceptor();
+        Properties properties = new Properties();
+        properties.setProperty("helperDialect", "mysql");
+        pageInterceptor.setProperties(properties);
+
+        factory.setPlugins(pageInterceptor);
+
+        return factory;
+    }
+
+    @Bean
+    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+}
+```
+
+
+
+
 
 
 
@@ -13378,11 +13562,28 @@ strategy.setLikeTable(new LikeTable("examination_", SqlLike.RIGHT));
 
 
 
+### form-data和x-www-form-urlencoded的区别？
+
+```java
+将http请求的ContentType设置为multipart/form-data之后，则会将数据已二进制的形式提交。
+    区别于x-www-form-urlencoded(即常说的表单形式)提交方式，x-www-form-urlencoded只能上传键值对，比如:name=zhangsan&age=18。
+    multipart/form-data既可以上传文件等二进制数据，也可以上传表单键值对。
+    (除以上两种方式之外，ContentType还有其它很多值，比如常见的application/xml，传递xml格式，application/json，传递json等)
+```
 
 
 
 
 
+### @RequestBody和@RequestParam区别？
+
+```java
+@RequestBody主要用来接收客户端请求传递给后台接口的json字符串中的数据(请求体中的数据)；
+    
+GET方式的请求没有请求体，所以使用@RequestBody接收数据时，客户端不能使用GET方式提交数据，需要用POST方式提交。
+    
+在同一个后台接口里，@RequestBody与@RequestParam可以同时使用，且@RequestBody最多 只能有一个 ，而@RequestParam 可以有多个 (一个注解对应一个参数)。
+```
 
 
 
