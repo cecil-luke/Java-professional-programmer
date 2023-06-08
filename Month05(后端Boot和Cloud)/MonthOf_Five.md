@@ -618,21 +618,117 @@ Day01(git预习)
 
 1. 创建Maven项目，导入Maven依赖
 
-2. 配置DispatcherServlet
+```xml
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <!-- servlet-api -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>4.0.1</version>
+      <!-- 1、在编译期有效, 运行期无效；2、不会被传递依赖 -->
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- spring-webmvc -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <version>5.3.21</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>springmvc-01</finalName>
+  </build>
+```
+
+
+
+1. 配置DispatcherServlet
 
    有几种配置Servlet的方式：web.xml、@WebServlet、SPI（Java代码）
 
-3. 配置处理器映射器
+   web.xml
 
-4. 配置处理器适配器
+   ```.xml
+     <!--
+       默认IOC容器：/WEB-INF/<servlet-name>-servlet.xml
+      -->
+     <servlet>
+       <servlet-name>et2301</servlet-name>
+       <servlet-class>
+         org.springframework.web.servlet.DispatcherServlet
+       </servlet-class>
+       <load-on-startup>1</load-on-startup>
+     </servlet>
+     <servlet-mapping>
+       <servlet-name>et2301</servlet-name>
+       <url-pattern>*.et</url-pattern>
+     </servlet-mapping>
+   ```
 
-5. 配置视图解析器
+2. 配置处理器映射器
 
-6. 开发处理器，并配置为Spring容器的对象
+3. 配置处理器适配器
 
-7. 开发视图
+4. 配置视图解析器
 
-8. 部署工程到Tomcat，测试请求
+```xml
+    <!-- 处理器映射器 使用bean对象的name属性值作为URI查找处理器 -->
+    <bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"></bean>
+
+    <!-- 处理器适配器 SimpleControllerHandlerAdapter -->
+    <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"></bean>
+
+    <!-- 视图解析器InternalResourceViewResolver -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"></bean>
+
+    <!-- localhost:8080/hello.et 被DispatcherServlet拦截 转给 HandlerMapping，截取/hello.et，从ioc中查找哪个对象的name属性值是/hello.et -->
+    <bean name="/hello.et"  class="com.etoak.controller.HelloController" />
+```
+
+
+
+1. 开发处理器，并配置为Spring容器的对象
+
+```java
+public class HelloController implements Controller {
+
+  @Override
+  public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    String id = request.getParameter("id");
+    System.out.println("id =>" + id);
+
+    ModelAndView mv = new ModelAndView();
+    mv.setViewName("/hello.jsp");
+    return mv;
+  }
+}
+```
+
+
+
+1. 开发视图
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+  <title>Hello</title>
+</head>
+<body>
+  <h1>Hello Spring MVC!</h1>
+</body>
+</html>
+```
+
+1. 部署工程到Tomcat，测试请求
 
 ## 6. 第二个Spring MVC工程
 
@@ -641,6 +737,44 @@ Day01(git预习)
 2. 替换处理器适配器：`HttpRequestHandlerAdapter`
 
    <img src="imgs\image-20230509155344660.png" style="zoom:40%;" /> 
+
+```xml
+  <!-- 处理器映射器 -->
+  <bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+    <property name="mappings">
+      <props>
+        <!-- key是uri, value是处理器的name或id属性值 -->
+        <prop key="/hello">helloController</prop>
+        <prop key="/hello2">helloController</prop>
+      </props>
+    </property>
+  </bean>
+
+  <!-- 处理器适配器 HttpRequestHandlerAdapter -->
+  <bean class="org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter"></bean>
+
+  <!-- 视图解析器 InternalResourceViewResolver-->
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"></bean>
+
+  <bean id="helloController" class="com.etoak.controller.HelloController" />
+```
+
+```java
+public class HelloController implements HttpRequestHandler {
+
+  @Override
+  public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String id = request.getParameter("id");
+    System.out.println("id=" + id);
+
+    // request对象请求转发、response对象重定向
+    request.getRequestDispatcher("/hello.jsp").forward(request, response);
+  }
+
+}
+```
+
+
 
 ## 7. 第三个Spring MVC工程
 
@@ -655,9 +789,46 @@ Day01(git预习)
 
   3、使用`@ReqeustMapping`注解的path或value属性值映射URI到处理器的方法
 
-## 8. 第四个Spring MVC工程
+```xml
+  <context:component-scan base-package="com.etoak" />
 
-## 9. `<mvc:annotation-driven>`
+  <!-- 处理器映射器 -->
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" />
+
+  <!-- 处理器适配器 -->
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter" />
+
+  <!-- 视图解析器
+       mv.setViewName("/hello.jsp")
+       mv.setViewName("hello") => prefix + hello + suffix = /pages/hello.jsp
+
+       public String hello() {
+         // mv.setViewName("hello")
+         return "hello";
+       }
+   -->
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/pages/" />
+    <property name="suffix" value=".jsp" />
+  </bean>
+```
+
+```java
+@Controller
+public class HelloController {
+
+  @RequestMapping(value = "/hello")
+  public String hello() {
+    // mv.setViewName("hello") => /pages/hello.jsp
+    return "hello";
+  }
+
+}
+```
+
+
+
+## 8. 第四个Spring MVC工程`<mvc:annotation-driven>`
 
 ​	由`org.springframework.web.servlet.config.AnnotationDrivenBeanDefinitionParser`解析，向Spring容器中注册如下Bean
 
@@ -674,6 +845,81 @@ Day01(git预习)
 4. Java Bean校验器
 
 5. 一组`HttpMessageConverter`
+
+```xml
+  <context:component-scan base-package="com.etoak" />
+
+  <!-- 处理器映射器、处理器适配器 -->
+  <mvc:annotation-driven></mvc:annotation-driven>
+
+  <!-- InternalResourceViewResolver -->
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/pages/" />
+    <property name="suffix" value=".jsp" />
+  </bean>
+```
+
+```java
+@Controller
+public class HelloController {
+
+  @RequestMapping("/hello")
+  public String hello(HttpServletRequest request) {
+    String id = request.getParameter("id");
+    System.out.println("id=" + id);
+    return "hello";
+  }
+
+}
+```
+
+---
+
+```xml
+    <context:component-scan base-package="com.etoak" />
+
+    <!-- 处理器映射器RequestMappingHandlerMapping -->
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" />
+
+    <!-- 处理器适配器RequestMappingHandlerAdapter -->
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter" />
+
+    <!-- InternalResourceViewResolver -->
+    <!--
+        mv.setViewName("/hello.jsp");
+        mv.setViewName("hello") => /jsps/hello.jsp
+        return "hello"; => /jsps/hello.jsp
+    -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/jsps/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+```
+
+```java
+@Controller
+public class HelloController {
+
+    @RequestMapping("/hello")
+    public ModelAndView hello() {
+        ModelAndView mv = new ModelAndView();
+
+        // prefix + hello + suffix = /jsps/hello.jsp
+        mv.setViewName("hello");
+        return mv;
+    }
+
+}
+
+```
+
+
+
+---
+
+
+
+
 
 ## 10. 今天练习
 
@@ -735,13 +981,75 @@ Day01(git预习)
 
 7. JSON
 
-   Spring MVC可以使用**Jackson、GSON、Jsonb**三个框架作为Json的消息转换器
+   Spring MVC可以使用**Jackson、GSON、Jsonb**三个框架作为**Json的消息转换器**
 
    这里使用Jackson框架作为JSON转换器，需要引入Jackson的jar包
 
    - jackson-core.jar、jackson-annotations.jar、jackson-databind.jar）
 
    在Maven项目中，仅需要导入一个**jackson-databind**依赖即可
+
+```java
+/**
+ * 接收表单参数
+ */
+@Controller
+@RequestMapping("/form")
+public class FormController {
+
+    @RequestMapping(path = "/simple", produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String simple(@RequestParam(required = false, defaultValue = "1") int id,
+                         @RequestParam String name) {
+        System.out.println("name=" + name);
+        System.out.println("id=" + id);
+        return "执行成功！";
+    }
+
+    @RequestMapping("/bean")
+    @ResponseBody
+    public String bean(User user) {
+        System.out.println(user);
+
+        return "success";
+    }
+
+    /**
+     * 使用数组
+     * @param hobbies
+     * @return
+     */
+    @RequestMapping(value = "/array", method = RequestMethod.POST)
+    @ResponseBody
+    public String array(String[] hobbies) {
+        for(String x : hobbies) {
+            System.out.println(x);
+        }
+        return "success";
+    }
+
+    /**
+     * List
+     */
+    @RequestMapping("/list")
+    @ResponseBody
+    public String list(@RequestParam List<String> hobbies) {
+        hobbies.forEach(System.out::println);
+        return "success";
+    }
+
+    @RequestMapping("/map")
+    @ResponseBody
+    public String map(@RequestParam Map<String, Object> map) {
+        System.out.println(map);
+        return "success";
+    }
+
+}
+
+```
+
+
 
 ## 2. @RequestParam注解
 
@@ -760,11 +1068,15 @@ Day01(git预习)
 
 2. `String[] path属性`：映射URI地址
 
-3. `RequestMethod[] method属性`：设置请求方法
+3. `RequestMethod[] method属性`：设置请求方法(限制HTTP请求方法)
 
 4. `String[] produces属性`：设置响应头的`Content-Type`
 
-5. `String[] consumes属性`：限制请求参数的类型
+5. `String[] consumes属性`：**限制请求参数的类型**
+
+6. `string[] params` :请求参数必须携带什么参数，也可以限制参数的值
+
+7. `string[] headers` :请求头必须携带什么参数
 
    ```java
    @PostMapping(value = "/test", consumes = "application/json;charset=utf-8")
@@ -13055,6 +13367,14 @@ strategy.setLikeTable(new LikeTable("examination_", SqlLike.RIGHT));
 ---
 
 
+
+```java
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+```
 
 
 
