@@ -4846,7 +4846,10 @@ Spring Boot默认处理的静态资源在Classpath下
    location="classpath:/static/"
    location="classpath:/public/"
    ```
+```java
 
+
+```
 3. 如何自定义**静态资源的请求路径**和**静态文件位置**
 
    自己编写配置类，实现`WebMvcConfigurer`接口的`addResourceHandlers()方法`
@@ -4855,7 +4858,7 @@ Spring Boot默认处理的静态资源在Classpath下
 
 1. 接口地址：http://localhost:8000/car
 
-2. 请求方法：`post`
+2. 请<u>求方法</u>：`post`
 
 3. 请求参数类型：`application/json`
 
@@ -11749,6 +11752,298 @@ public class Consumer {
   ```
 
 
+
+# 代码补充:
+
+**Nacos配置代码详细参见**：Month05(后端Boot和Cloud)\day21(Nacos_Sentinel)\cloud-et2301
+
+
+
+## 接口请求方式：多种写法
+
+```java
+@RestController
+@RequestMapping("/storage")
+public class StorageController {
+
+    @Autowired
+    StorageService storageService;
+
+    /**
+     * 扣减库存的接口
+     * @param storage
+     * @return
+     */
+    @PostMapping("/deduct")
+    public Result deduct(@RequestBody Storage storage) {
+        storageService.deduct(storage);
+        return Result.success("");
+    }
+
+    @PostMapping("/form")
+    public Result form(Storage storage) {
+        storageService.deduct(storage);
+        return Result.success("");
+    }
+
+    @PostMapping("/form2")
+    public Result form(String productCode, int count) {
+        Storage storage = new Storage();
+        storage.setProductCode(productCode);
+        storage.setCount(count);
+        storageService.deduct(storage);
+        return Result.success("");
+    }
+
+    @GetMapping("/get")
+    public Result getStorage(int id) {
+        Storage storage = storageService.getById(id);
+        return Result.success(storage);
+    }
+
+    @GetMapping("/{id}")
+    public Result getStorage2(@PathVariable int id) {
+        Storage storage = storageService.getById(id);
+        return Result.success(storage);
+    }
+}
+```
+
+### 扣减库存ServiceImpl
+
+```java
+@Service
+public class StorageServiceImpl extends ServiceImpl<StorageMapper, Storage> implements StorageService {
+
+    @Override
+    @Transactional
+    public void deduct(Storage storage) {
+        // 传来的参数: 商品编码、扣减数量
+        QueryWrapper<Storage> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("product_code", storage.getProductCode());
+        Storage savedStorage = getOne(queryWrapper);
+
+        if (!ObjectUtils.isEmpty(savedStorage)) {
+            // 现有库存
+            Integer count = savedStorage.getCount();
+
+            // 扣减后的库存
+            count = count - storage.getCount();
+            if (count < 0) {
+                throw new RuntimeException("库存不足！");
+            }
+
+            /* 更新库存 */
+            savedStorage.setCount(count);
+            updateById(savedStorage);
+        }
+    }
+}
+```
+
+### StorageServiceAPI
+
+```java
+/**
+ * @FeignClient value、name属性值: 被调用的远程服务的服务名称(${spring.application.name})
+ */
+@FeignClient(value = "storage-service")
+public interface StorageServiceApi {
+
+    @PostMapping("/storage/deduct")
+    Result deduct(@RequestBody Storage storage);
+
+    /**
+     * post请求 + 表单参数
+     *
+     * @SpringQueryMap: 远程的http接口使用对象接收表单参数时,
+     * 使用这个注解映射表单参数
+     */
+    @PostMapping("/storage/form2")
+    Result form(@SpringQueryMap Storage storage);
+
+    // @PostMapping("/storage/form")
+    // Result form(@RequestParam("productCode") String productCode,
+    //            @RequestParam("count") int count);
+
+    /**
+     * 只要传递的参数是k=v(x-www-form-urlencoded)
+     * 1、使用对象传递参数: 对象前加上@SpringQueryMap
+     * 2、使用基本数据类型和String: 需要在参数前加上@RequestParam, 并且必须设置value属性值
+     */
+    @PostMapping("/storage/form2")
+    Result form2222222(@RequestParam("productCode") String productCode,
+                       @RequestParam("count") int count);
+    
+    @GetMapping("/storage/get")
+    Result getStorage(@RequestParam("id") int id);
+
+    @GetMapping("/storage/{id}")
+    Result getStorage2(@PathVariable int id);
+}
+```
+
+### nacos配置 application.yml
+
+```yaml
+server:
+  port: 8080
+
+spring:
+  # nacos 应用名称或服务名称
+  application:
+    name: storage-service
+
+  # 数据源
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql:///et2302?serverTimezone=UTC
+    username: root
+    password: etoak
+    druid:
+      initial-size: 20
+      max-active: 50
+  # nacos Nacos地址、命名空间（用户）
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: et2302
+
+mybatis-plus:
+  type-aliases-package: com.etoak
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+```
+
+### pom.xml
+
+```xml
+    <dependencies>
+        <!-- cloud-common -->
+        <dependency>
+            <artifactId>cloud-common</artifactId>
+            <groupId>com.etoak.et2302.cloud</groupId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- cloud-entity -->
+        <dependency>
+            <groupId>com.etoak.et2302.cloud</groupId>
+            <artifactId>cloud-entity</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- spring-boot-starter-web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- mybatis-plus-boot-starter -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+        </dependency>
+
+        <!-- druid-boot-starter -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- mysql -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <!-- lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <!-- spring-cloud-starter-alibaba-nacos-discover -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- 服务调用组件：spring-cloud-starter-openfeign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+        <!-- 负载均衡组件：spring-cloud-starter-loadbalancer -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+    </dependencies>
+```
+
+
+
+## config-service模块
+
+```java
+@RestController
+@RefreshScope   // 自动刷新使用@Value获取的配置中心的配置项
+public class TestController {
+
+    @Autowired
+    UserProperties userProperties;
+
+    @Value("${user.id}")
+    private int id;
+
+    @Value("${user.name}")
+    private String name;
+
+    @RequestMapping("/test")
+    public Result test() {
+
+        Map<Object, Object> map = MapUtil.builder()
+                .put("id", this.id)
+                .put("name", this.name)
+                .build();
+
+        return Result.success(map);
+    }
+
+    @RequestMapping("/test2")
+    public Result test2() {
+        return Result.success(userProperties);
+    }
+}
+```
+
+### bootstrap.yml
+
+```yml
+server:
+  port: 9000
+
+spring:
+  application:
+    name: config-service
+
+  cloud:
+    nacos:
+      # 注册与发现中心
+      discovery:
+        server-addr: localhost:8848
+        namespace: et2302
+      # 配置中心 获取配置项
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+```
 
 
 
