@@ -12045,6 +12045,204 @@ spring:
         namespace: ${spring.cloud.nacos.discovery.namespace}
 ```
 
+## order-service模块(FeignClient调用远程服务)
+
+### application.yml
+
+```yaml
+server:
+  port: 9999
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql:///et2302?serverTimezone=UTC
+    username: root
+    password: etoak
+    druid:
+      initial-size: 20
+      max-active: 50
+
+  application:
+    name: order-service
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: et2302
+
+mybatis-plus:
+  type-aliases-package: com.etoak
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+```
+
+### 启动类
+
+```java
+@SpringBootApplication
+@MapperScan(basePackages = "com.etoak.**.mapper")
+@EnableTransactionManagement
+@EnableFeignClients
+public class OrderServiceApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(OrderServiceApplication.class, args);
+    }
+}
+```
+
+### StorageServiceAPI.java
+
+```java
+/**
+ * @FeignClient value、name属性值: 被调用的远程服务的服务名称(${spring.application.name})
+ */
+@FeignClient(value = "storage-service")
+public interface StorageServiceApi {
+
+    @PostMapping("/storage/deduct")
+    Result deduct(@RequestBody Storage storage);
+
+    /**
+     * post请求 + 表单参数
+     *
+     * @SpringQueryMap: 远程的http接口使用对象接收表单参数时,
+     * 使用这个注解映射表单参数
+     *
+     * @SpringQueryMap是微服务之间调用，使用openfeign通过get请求方式来处理 多入参（也就是通过实体来传参） 情况的注解，多用于restful风格方式
+     * 作用：@SpringQueryMap，简单来说就是将实体(对象)转化为表单数据
+     */
+    @PostMapping("/storage/form2")
+    Result form(@SpringQueryMap Storage storage);
+
+    // @PostMapping("/storage/form")
+    // Result form(@RequestParam("productCode") String productCode,
+    //            @RequestParam("count") int count);
+
+    /**
+     * 只要传递的参数是k=v(x-www-form-urlencoded)
+     * 1、使用对象传递参数: 对象前加上@SpringQueryMap
+     * 2、使用基本数据类型和String: 需要在参数前加上@RequestParam, 并且必须设置value属性值
+     */
+    @PostMapping("/storage/form2")
+    Result form2222222(@RequestParam("productCode") String productCode,
+                       @RequestParam("count") int count);
+    
+    @GetMapping("/storage/get")
+    Result getStorage(@RequestParam("id") int id);
+
+    @GetMapping("/storage/{id}")
+    Result getStorage2(@PathVariable int id);
+}
+```
+
+### OrderService.interface
+
+```java
+public interface OrderService extends IService<Order> {
+
+    /**
+     * 创建订单
+     *
+     * @param order
+     */
+    void createOrder(Order order) throws Exception;
+
+}
+```
+
+### OrderServiceImpl.java
+
+```java
+@Service
+public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements OrderService {
+
+    /**
+     * 远程服务的代理对象
+     */
+    @Autowired
+    StorageServiceApi storageServiceApi;
+
+    @Transactional
+    @Override
+    public void createOrder(Order order) throws Exception {
+        // 调用远程服务
+        Storage storage = new Storage();
+        storage.setProductCode(order.getProductCode());
+        storage.setCount(order.getCount());
+
+        // 像调用本地方法一样  调用远程计算机提供的服务 (RPC)
+        // storageServiceApi.deduct(storage);
+
+        storageServiceApi.form(storage);
+
+        // storageServiceApi.form2222222(storage.getProductCode(), storage.getCount());
+
+        /* 参数
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("productCode", order.getProductCode());
+        jsonMap.put("count", order.getCount());
+        String body = JSONUtil.toJsonStr(jsonMap);
+        */
+
+        /* hutool
+        String result = HttpUtil.post("http://localhost:8080/storage/deduct", body);
+        System.out.println(result);
+        */
+
+        /* httpclient
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost("http://localhost:8080/storage/deduct");
+        httpPost.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
+        CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
+        String result = EntityUtils.toString(httpResponse.getEntity());
+        System.out.println(result);
+        */
+
+        this.save(order);
+    }
+}
+```
+
+### OrderController.java
+
+```java
+@RestController
+@RequestMapping("/order")
+public class OrderController {
+
+    @Autowired
+    OrderService orderService;
+
+    /**
+     * 创建订单接口  post /order/add
+     *
+     * @param order
+     */
+    @PostMapping("/add")
+    public Result addOrder(@RequestBody Order order) throws Exception {
+        orderService.createOrder(order);
+        return Result.success("");
+    }
+
+    @Autowired
+    StorageServiceApi storageServiceApi;
+
+    /**
+     * 调用库存
+     */
+    @GetMapping("/storage")
+    public Result storage(int id) {
+        return storageServiceApi.getStorage2(id);
+    }
+}
+```
+
+
+
 
 
 
