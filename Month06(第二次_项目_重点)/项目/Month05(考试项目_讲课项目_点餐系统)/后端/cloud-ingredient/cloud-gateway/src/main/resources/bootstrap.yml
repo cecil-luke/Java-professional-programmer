@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+
+  profiles:
+    active: dev
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: ingredient
+
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        file-extension: yml
+
+    #gateway:
+    #  globalcors:
+    #    cors-configurations:
+    #      '[/**]':
+    #        # 允许哪些域、携带哪些请求头、哪些方法进行跨域请求
+    #        allowedOrigins: "*"
+    #        allowedHeaders: "*"
+    #        allowedMethods:
+    #          - GET
+    #          - POST
+    #          - PUT
+    #          - DELETE
+    #          - OPTIONS
+    #        maxAge: 3600
+

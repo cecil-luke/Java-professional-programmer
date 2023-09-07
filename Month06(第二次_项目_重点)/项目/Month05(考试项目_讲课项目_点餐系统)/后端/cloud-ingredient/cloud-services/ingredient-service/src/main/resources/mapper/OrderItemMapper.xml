@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etoak.mapper.OrderItemMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.etoak.entity.OrderItem">
+        <id column="id" property="id" />
+        <result column="order_no" property="orderNo" />
+        <result column="ingredient_id" property="ingredientId" />
+        <result column="ingredient_name" property="ingredientName" />
+        <result column="ingredient_num" property="ingredientNum" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, order_no, ingredient_id, ingredient_name, ingredient_num
+    </sql>
+
+    <insert id="insertItemList" parameterType="list">
+        insert into t_order_item (
+                order_no,
+                ingredient_id,
+                ingredient_name,
+                ingredient_num
+        ) values
+        <foreach collection="list" item="orderItem"
+                 separator=",">
+            (#{orderItem.orderNo},
+             #{orderItem.ingredientId},
+             #{orderItem.ingredientName},
+             #{orderItem.ingredientNum}
+             )
+        </foreach>
+    </insert>
+
+</mapper>

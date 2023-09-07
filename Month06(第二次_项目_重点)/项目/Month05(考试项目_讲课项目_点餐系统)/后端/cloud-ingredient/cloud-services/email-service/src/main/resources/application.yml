@@ -1,0 +1,35 @@
+server:
+  port: 9997
+
+# 服务名称
+spring:
+  application:
+    name: email-service
+
+# 注册中心
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: ingredient
+
+# RabbitMQ
+  rabbitmq:
+    host: 192.168.244.128
+    port: 5672
+    virtual-host: /
+    username: et
+    password: et
+
+  mail:
+    # QQ邮箱服务器主机
+    host: smtp.qq.com
+    # 登录主机的邮箱
+    username: 2548316766@qq.com
+    # 授权码
+    password: wbyeadtikmgcebha
+
+
+
+
+

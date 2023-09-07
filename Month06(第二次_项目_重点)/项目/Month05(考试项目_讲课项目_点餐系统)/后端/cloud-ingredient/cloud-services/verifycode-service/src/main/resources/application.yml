@@ -1,0 +1,24 @@
+server:
+  port: 9998
+
+spring:
+  application:
+    name: code-service
+
+  redis:
+    # host: 127.0.0.1
+    # port: 6379
+    cluster:
+      nodes:
+        - 192.168.244.128:6001
+        - 192.168.244.128:6002
+        - 192.168.244.128:6003
+        - 192.168.244.128:6004
+        - 192.168.244.128:6005
+        - 192.168.244.128:6006
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: ingredient

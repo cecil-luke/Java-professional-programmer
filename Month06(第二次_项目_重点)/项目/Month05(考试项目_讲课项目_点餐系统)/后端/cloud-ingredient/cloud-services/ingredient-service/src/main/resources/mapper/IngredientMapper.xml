@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etoak.mapper.IngredientMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.etoak.entity.Ingredient">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="url" property="url" />
+        <result column="main_ingredient" property="mainIngredient" />
+        <result column="main_ingredient_num" property="mainIngredientNum" />
+        <result column="minor_ingredient" property="minorIngredient" />
+        <result column="minor_ingredient_num" property="minorIngredientNum" />
+        <result column="seasoning" property="seasoning" />
+        <result column="seasoning_num" property="seasoningNum" />
+        <result column="description" property="description" />
+        <result column="ingredient_type" property="ingredientType" />
+        <result column="delete_state" property="deleteState" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        select dishes.id,
+               dishes.name,
+               dishes.url,
+               dishes.main_ingredient,
+               main.name                   AS mainIngredientName,
+               dishes.main_ingredient_num,
+               dishes.minor_ingredient,
+               minor.name                  AS minorIngredientName,
+               dishes.minor_ingredient_num,
+               dishes.seasoning,
+               seasoning.name              AS seasoningName,
+               dishes.seasoning_num,
+               dishes.description,
+               dishes.ingredient_type,
+               dishes.delete_state,
+               dishes.create_time,
+               dishes.update_time
+    </sql>
+
+    <select id="getList" parameterType="Ingredient" resultType="IngredientVO">
+      <include refid="Base_Column_List" />
+      from t_ingredient dishes
+      left join t_ingredient main on dishes.main_ingredient = main.id
+      left join t_ingredient minor on dishes.minor_ingredient = minor.id
+      left join t_ingredient seasoning on dishes.seasoning = seasoning.id
+      <where>
+          <if test="name != null and name != ''">
+              AND dishes.name like concat(#{name}, '%')
+          </if>
+          <if test="ingredientType != null">
+              AND dishes.ingredient_type = #{ingredientType}
+          </if>
+          <if test="mainIngredient != null">
+              AND dishes.main_ingredient = #{mainIngredient}
+          </if>
+          <if test="minorIngredient != null">
+              AND dishes.minor_ingredient = #{minorIngredient}
+          </if>
+          <if test="seasoning != null">
+              AND dishes.seasoning = #{seasoning}
+          </if>
+          AND dishes.delete_state = 1
+      </where>
+      ORDER BY dishes.create_time DESC
+    </select>
+
+    <select id="getIngredientList" parameterType="Ingredient" resultType="IngredientVO">
+         select id,
+                name,
+                url,
+                main_ingredient,
+                main_ingredient_num,
+                minor_ingredient,
+                minor_ingredient_num,
+                seasoning,
+                seasoning_num,
+                description,
+                ingredient_type,
+                delete_state,
+                create_time,
+                update_time
+         from t_ingredient
+        <where>
+            <if test="name != null and name != ''">
+                AND name like concat(#{name}, '%')
+            </if>
+            <if test="ingredientType != null">
+                AND ingredient_type = #{ingredientType}
+            </if>
+            AND delete_state = 1
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="getTypeList" resultType="IngredientTypeVO">
+        <![CDATA[
+        select id,
+               name,
+               ingredient_type
+          from t_ingredient
+         where ingredient_type <> 1 and delete_state = 1
+        ]]>
+    </select>
+
+    <select id="getNameList" resultType="string" parameterType="int">
+        select name
+          from t_ingredient
+         where ingredient_type = 1
+           and delete_state = 1
+           and (
+            main_ingredient = #{id}
+            or
+            minor_ingredient = #{id}
+            or
+            seasoning = #{id}
+           )
+    </select>
+
+    <update id="updateIngredient" parameterType="ingredient">
+        update t_ingredient
+           set name = #{name},
+               url = #{url},
+               description = #{description},
+               update_time = #{updateTime}
+           where id = #{id}
+    </update>
+
+</mapper>

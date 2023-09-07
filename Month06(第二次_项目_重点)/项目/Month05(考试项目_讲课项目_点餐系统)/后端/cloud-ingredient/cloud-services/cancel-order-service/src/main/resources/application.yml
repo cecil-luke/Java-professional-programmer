@@ -1,0 +1,31 @@
+server:
+  port: 9996
+
+spring:
+  application:
+    name: cancel-order-service
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: ingredient
+
+  rabbitmq:
+    host: 192.168.244.128
+    port: 5672
+    virtual-host: /
+    username: et
+    password: et
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql:///et2302?serverTimezone=UTC
+    username: root
+    password: etoak
+
+
+mybatis-plus:
+  type-aliases-package: com.etoak
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
