@@ -737,6 +737,372 @@ public class GuavaCacheExample {
 
 通过合理的查询优化、索引设计和覆盖索引，我们可以有效减少回表操作，提高查询效率。
 
+### MySQL中水平分表和垂直分表
+
+<font title="green">水平分表：</font>
+
+1. **定义**：
+   - 水平分表是指**将一张表的数据按行拆分，存储到多个结构相同的表中**。
+   - 每个表存储一部分数据，所有表的表结构相同。
+2. **实现方式**：
+   - 按某个规则（如ID范围、哈希值、时间范围）将数据分散到多个表中。
+   - 例如：用户表按用户ID的哈希值分表，分成`user_0`、`user_1`、`user_2`等。
+3. **使用场景**：
+   - 单表数据量过大，导致查询和写入性能下降。
+   - 需要分散数据存储压力，提高系统扩展性。
+4. **优点**：
+   - 分散单表数据量，提升查询和写入性能。
+   - 支持水平扩展，适合大数据量场景。
+5. **缺点**：
+   - 查询时需要跨多个表，复杂度增加。
+   - 数据迁移和扩容较复杂。
+
+<font title="green">垂直分表：</font>
+
+1. **定义**：
+   - 垂直分表是指**将一张表按列拆分，存储到多个表中**。
+   - 每个表存储一部分列，所有表通过主键关联。
+2. **实现方式**：
+   - 将**常用列**和**不常用列**分开存储。
+   - 例如：用户表拆分为`user_basic`（存储用户名、密码）和`user_detail`（存储地址、电话）。
+3. **使用场景**：
+   - 表中包含大量不常用字段，导致单行数据过大。
+   - 需要优化查询性能，减少I/O开销。
+4. **优点**：
+   - 减少单行数据大小，提升查询效率。
+   - 按需加载数据，减少资源浪费。
+5. **缺点**：
+   - 查询时需要关联多个表，增加复杂度。
+   - 事务一致性维护较复杂。
+
+### 过滤器和拦截器区别
+
+| **特性**     | **过滤器（Filter）**             | **拦截器（Interceptor）**    |
+| :----------- | :------------------------------- | :--------------------------- |
+| **规范**     | Servlet规范                      | Spring框架                   |
+| **工作范围** | 所有请求（包括静态资源）         | 仅Controller请求             |
+| **实现方式** | 实现`javax.servlet.Filter`接口   | 实现`HandlerInterceptor`接口 |
+| **执行时机** | 在Servlet之前或之后执行          | 在Controller方法执行前后执行 |
+| **依赖**     | 依赖Servlet容器（如Tomcat）      | 依赖Spring容器               |
+| **使用场景** | 字符编码、全局权限校验、日志记录 | 登录验证、权限检查、性能监控 |
+
+<font title="green">总结：</font>
+
+- **过滤器**：基于Servlet规范，<u>拦截所有请求</u>，适合**全局处理**（如字符编码、权限校验）。
+- **拦截器**：基于Spring框架，<u>仅拦截Controller请求</u>，适合**业务逻辑处理**（如登录验证、性能监控）。
+
+### Java中大文件上下传
+
+<font title="green">大文件上传：</font>
+
+1. **分片上传**：
+   - 将大文件分割成多个小文件（分片），逐个上传到服务器。
+   - 服务器接收分片后，按顺序合并成完整文件。
+   - **优点**：支持断点续传、减少单次上传压力。
+2. **断点续传**：
+   - 记录已上传的分片信息，上传中断后可以从断点继续上传。
+   - 使用**文件MD5**或**唯一标识**校验文件完整性。
+3. **使用流式上传**：
+   - 使用`InputStream`读取文件，通过HTTP或FTP等协议流式上传。
+   - 避免将整个文件加载到内存，减少内存占用。
+4. **多线程上传**：
+   - 使用多线程同时上传多个分片，提高上传速度。
+
+<font title="green">大文件下载：</font>
+
+1. **分块下载**：
+   - 将大文件分成多个块，客户端逐个下载并合并。
+   - 使用HTTP的`Range`头实现分块下载。
+2. **断点续传**：
+   - 记录已下载的文件大小，下载中断后可以从断点继续下载。
+3. **使用流式下载**：
+   - 使用`OutputStream`将文件流式写入本地，避免一次性加载到内存。
+4. **多线程下载**：
+   - 使用多线程同时下载文件的不同部分，提高下载速度。
+
+### 反射机制核心类
+
+Java反射机制的核心类位于`java.lang.reflect`包中，主要包括以下几个类：
+
+1. **`Class`**：
+   - 表示一个类或接口的类型信息。
+   - 通过`Class`对象可以获取类的构造方法、方法、字段等信息。
+   - 获取`Class`对象的方式：
+     - `Class.forName("全限定类名")`。
+     - `对象.getClass()`。
+     - `类名.class`。
+2. **`Constructor`**：
+   - 表示类的构造方法。
+   - 通过`Constructor`对象可以创建类的实例。
+   - 示例：`Class.getDeclaredConstructor(参数类型)`。
+3. **`Method`**：
+   - 表示类的方法。
+   - 通过`Method`对象可以调用类的方法。
+   - 示例：`Class.getDeclaredMethod("方法名", 参数类型)`。
+4. **`Field`**：
+   - 表示类的字段（成员变量）。
+   - 通过`Field`对象可以获取或设置字段的值。
+   - 示例：`Class.getDeclaredField("字段名")`。
+5. **`Modifier`**：
+   - 提供对类、方法、字段的修饰符（如`public`、`private`、`static`等）的解析。
+   - 示例：`Modifier.isPublic(method.getModifiers())`。
+6. **`Array`**：
+   - 提供动态创建和操作数组的方法。
+   - 示例：`Array.newInstance(Class<?> componentType, int length)`。
+
+<font title="green">反射的基本使用步骤：</font>
+
+1. 获取`Class`对象。
+2. 通过`Class`对象获取`Constructor`、`Method`、`Field`等对象。
+3. 设置访问权限（如`setAccessible(true)`）。
+4. 调用方法或操作字段。
+
+<font title="green">反射的应用场景：</font>
+
+1. **动态加载类**：在运行时加载类并创建对象。
+2. **框架开发**：如Spring通过反射创建Bean并注入依赖。
+3. **注解处理**：通过反射读取注解信息。
+4. **测试工具**：如JUnit通过反射调用测试方法。
+5. **通用工具**：如序列化、反序列化工具。
+
+<font title="green">总结：</font>
+
+- 反射机制的核心类包括`Class`、`Constructor`、`Method`、`Field`、`Modifier`和`Array`。
+- 反射的主要作用是动态获取类的信息并操作类的成员，常用于框架开发、注解处理等场景。
+
+### Java创建对象的方式
+
+<font title="green">Java中创建对象的五种方式：</font>
+
+1. **使用`new`关键字**：
+
+   - 最常见的方式，直接调用类的构造方法创建对象。
+
+     ```
+     User user = new User();
+     ```
+
+2. **使用`Class.newInstance()`**：
+
+   - 通过反射调用类的**无参构造方法**创建对象。
+
+     ```
+     Class<?> clazz = Class.forName("com.example.User");
+     User user = (User) clazz.newInstance();
+     ```
+
+3. **使用`Constructor.newInstance()`**：
+
+   - 通过反射调用类的**带参构造方法**创建对象。
+
+     ```
+     Class<?> clazz = Class.forName("com.example.User");
+     Constructor<?> constructor = clazz.getConstructor(String.class, int.class);
+     User user = (User) constructor.newInstance("Alice", 25);
+     ```
+
+4. **使用`clone()`方法**：
+
+   - 通过实现`Cloneable`接口并重写`clone()`方法**创建对象的副本**。
+
+     ```
+     class User implements Cloneable {
+         private String name;
+         public User(String name) {
+             this.name = name;
+         }
+         @Override
+         protected Object clone() throws CloneNotSupportedException {
+             return super.clone();
+         }
+     }
+     
+     User user1 = new User("Alice");
+     User user2 = (User) user1.clone();
+     ```
+
+5. **使用反序列化**：
+
+   - 通过`ObjectInputStream`从文件或网络中**读取字节流并反序列化为对象**。
+
+     ```
+     class User implements Serializable {
+         private String name;
+         public User(String name) {
+             this.name = name;
+         }
+     }
+     
+     // 序列化
+     try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("user.ser"))) {
+         oos.writeObject(new User("Alice"));
+     }
+     
+     // 反序列化
+     try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("user.ser"))) {
+         User user = (User) ois.readObject();
+     }
+     ```
+
+------
+
+<font title="green">其他创建对象的方式：</font>
+
+1. **工厂模式**：
+
+   - 通过工厂类创建对象，隐藏对象创建的细节。
+
+     ```
+     class UserFactory {
+         public static User createUser() {
+             return new User();
+         }
+     }
+     
+     User user = UserFactory.createUser();
+     ```
+
+2. **依赖注入（DI）**：
+
+   - 通过Spring等框架的**依赖注入机制**创建对象。
+
+     ```
+     @Autowired
+     private User user;
+     ```
+
+3. **Lambda表达式**：
+
+   - 通过函数式接口创建对象。
+
+     ```
+     Runnable runnable = () -> System.out.println("Hello");
+     ```
+
+------
+
+<font title="green">总结：</font>
+
+Java中创建对象的方式主要有：
+
+1. `new`关键字。
+2. `Class.newInstance()`。
+3. `Constructor.newInstance()`。
+4. `clone()`方法。
+5. 反序列化。
+
+此外，还可以通过**工厂模式**、**依赖注入**、**Lambda表达式**等方式创建对象。每种方式适用于不同的场景，选择合适的创建方式可以提高代码的灵活性和可维护性。
+
+### 线程池的创建和使用方式
+
+<font title="green">线程池的创建：</font>
+
+Java中通过`java.util.concurrent.Executors`**工具类**或直接使用`ThreadPoolExecutor`**类**创建线程池。
+
+1. **使用`Executors`工具类**：
+
+`Executors`提供了几种常见的线程池创建方法：
+
+- **`newFixedThreadPool`**：
+
+  - 创建**固定大小**的线程池。
+
+    ```
+    ExecutorService executor = Executors.newFixedThreadPool(5);
+    ```
+
+- **`newCachedThreadPool`**：
+
+  - 创建可缓存的线程池，**线程数根据任务数量动态调整**。
+
+    ```
+    ExecutorService executor = Executors.newCachedThreadPool();
+    ```
+
+- **`newSingleThreadExecutor`**：
+
+  - 创建单线程的线程池，**保证任务按顺序执行**。
+
+    ```
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    ```
+
+- **`newScheduledThreadPool`**：
+
+  - 创建支持**定时及周期性**任务执行的线程池。
+
+    ```
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(3);
+    ```
+
+2. **使用`ThreadPoolExecutor`类**：
+
+`ThreadPoolExecutor`提供了更灵活的线程池配置，可以自定义核心线程数、最大线程数、任务队列等参数。
+
+```
+int corePoolSize = 5; // 核心线程数
+int maxPoolSize = 10; // 最大线程数
+long keepAliveTime = 60; // 空闲线程存活时间
+TimeUnit unit = TimeUnit.SECONDS; // 时间单位
+BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(100); // 任务队列
+
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    corePoolSize, maxPoolSize, keepAliveTime, unit, workQueue
+);
+```
+
+<font title="green">线程池的使用：</font>
+
+1. **提交任务**：
+
+   - 使用`execute()`方法提交任务（**无返回值**）。
+
+     ```
+     executor.execute(() -> System.out.println("Task executed"));
+     ```
+
+   - 使用`submit()`方法提交任务（返回`Future`对象，**可获取任务执行结果**）。
+
+     ```
+     Future<String> future = executor.submit(() -> "Task result");
+     String result = future.get(); // 获取任务结果
+     ```
+
+2. **关闭线程池**：
+
+   - 使用`shutdown()`方法平滑关闭线程池（等待已提交任务执行完成）。**排队中的任务可以执行完**
+
+     ```
+     executor.shutdown();
+     ```
+
+   - 使用`shutdownNow()`方法立即关闭线程池（尝试中断正在执行的任务）。**退回排队中的任务**
+
+     ```
+     executor.shutdownNow();
+     ```
+
+3. **监控线程池状态**：
+
+   - 通过`ThreadPoolExecutor`的方法获取线程池状态：
+     - `getPoolSize()`：当前线程池中的线程数。
+     - `getActiveCount()`：正在执行任务的线程数。
+     - `getCompletedTaskCount()`：已完成的任务数。
+
+<font title="green">总结：</font>
+
+- Java中通过`Executors`工具类或`ThreadPoolExecutor`类创建线程池。
+- 线程池的核心作用是复用线程、提高资源利用率和任务执行效率。
+- 使用线程池时需合理配置核心参数，并根据任务类型选择合适的线程池类型。
+
+
+
+
+
+
+
+
+
 
 
 
